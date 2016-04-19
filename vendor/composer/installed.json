@@ -1,0 +1,45 @@
+[
+    {
+        "name": "zyberspace/telegram-cli-client",
+        "version": "v0.4.1",
+        "version_normalized": "0.4.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/zyberspace/php-telegram-cli-client.git",
+            "reference": "59a9d3225af86614549559009d8044523fe0443b"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/zyberspace/php-telegram-cli-client/zipball/59a9d3225af86614549559009d8044523fe0443b",
+            "reference": "59a9d3225af86614549559009d8044523fe0443b",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0,<6.0.0"
+        },
+        "require-dev": {
+            "zyberspace/discovery-shell": "dev-master"
+        },
+        "time": "2015-12-23 18:44:34",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Zyberspace\\Telegram\\Cli\\": "lib/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MPL-2.0"
+        ],
+        "authors": [
+            {
+                "name": "zyberspace",
+                "email": "zyberspace@zyberware.org"
+            }
+        ],
+        "description": "php-client for telegram-cli",
+        "homepage": "https://github.com/zyberspace/php-telegram-cli-client",
+        "abandoned": "irazasyed/telegram-bot-sdk"
+    }
+]

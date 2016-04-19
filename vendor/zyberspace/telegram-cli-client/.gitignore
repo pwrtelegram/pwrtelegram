@@ -1,0 +1,5 @@
+/composer.lock
+/.developer-shell-history
+/vendor/
+/doc/
+/.project

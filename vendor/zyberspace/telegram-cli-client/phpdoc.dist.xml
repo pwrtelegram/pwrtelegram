@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+    <title>zyberspace/telegram-cli-client</title>
+    <parser>
+        <target>doc</target>
+    </parser>
+    <transformer>
+        <target>doc</target>
+    </transformer>
+    <logging>
+        <level>quiet</level>
+    </logging>
+    <files>
+        <directory>lib</directory>
+    </files>
+</phpdoc>
