@@ -44,16 +44,16 @@ function checkurl($url) {
 }
 
 // Prepare the url with the token
-$token = preg_replace(array("/^\//", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
+$token = preg_replace(array("/^\//", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
+$uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
 $url = "https://telegram.org/" . $token;
-
 
 // gotta intercept sendphoto, sendaudio, sendvoice, sendvideo, senddocument, possibly without storing in ram, upload as secret user, forward to user
 
 
 // intercept getfile, get file id, forward to secret user, get download link from secret user, return file id, file size, file path
 
-if(strtolower($_SERVER['REQUEST_URI']) == "/getFile" && $_REQUEST['file_id'] != "") {
+if(strtolower($uri) == "/getFile" && $_REQUEST['file_id'] != "") {
 	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 	if($response["ok"] == false && preg_match("/\[Error\]: Bad Request: file is too big\[size:/", $response["description"])) {
 		$file_id = $_REQUEST['file_id'];

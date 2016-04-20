@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * AJAX Cross Domain (PHP) Proxy 0.8
  *    by Iacovos Constantinou (http://www.iacons.net)
@@ -39,6 +40,8 @@ foreach ($_SERVER as $key => $value) {
     }
 }
 
+
+
 // identify request method, url and params
 $request_method = $_SERVER['REQUEST_METHOD'];
 if ('GET' == $request_method) {
@@ -56,24 +59,20 @@ if ('GET' == $request_method) {
 } else {
     $request_params = null;
 }
+exit("here");
 
-
-$request_url = "https://api.telegram.org".$_SERVER['PATH_INFO'];
+$request_url = "https://api.telegram.org".$_SERVER['SCRIPT_URL'];
 
 
 
 $p_request_url = parse_url($request_url);
 
-// ignore requests for proxy :)
-if (preg_match('!' . $_SERVER['SCRIPT_NAME'] . '!', $request_url) || empty($request_url) || count($p_request_url) == 1) {
-    echo 'hello!';
-    exit;
-}
 
 // append query string for GET requests
 if ($request_method == 'GET' && count($request_params) > 0 && (!array_key_exists('query', $p_request_url) || empty($p_request_url['query']))) {
     $request_url .= '?' . http_build_query($request_params);
 }
+
 
 // let the request begin
 $ch = curl_init($request_url);
@@ -84,6 +83,7 @@ curl_setopt($ch, CURLOPT_HEADER, true);       // enabled response headers
 if ('POST' == $request_method) {
     $post_data = is_array($request_params) ? http_build_query($request_params) : $request_params;
     curl_setopt($ch, CURLOPT_POST, true);
+
     curl_setopt($ch, CURLOPT_POSTFIELDS,  $post_data);
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_method);
@@ -93,6 +93,7 @@ if ('POST' == $request_method) {
 // retrieve response (headers and content)
 $response = curl_exec($ch);
 curl_close($ch);
+
 
 // split response to header and content
 list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);
