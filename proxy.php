@@ -1,4 +1,5 @@
 <?php
+//logging
 
 
 /**
@@ -28,13 +29,14 @@ define('CSAJAX_DEBUG', false);
 
 /* * * STOP EDITING HERE UNLESS YOU KNOW WHAT YOU ARE DOING * * */
 
-// identify request headers
+/* identify request headers */
 $request_headers = array( );
 foreach ($_SERVER as $key => $value) {
     if (strpos($key, 'HTTP_') === 0  ||  strpos($key, 'CONTENT_') === 0) {
         $headername = str_replace('_', ' ', str_replace('HTTP_', '', $key));
         $headername = str_replace(' ', '-', ucwords(strtolower($headername)));
-        if (!in_array($headername, array( 'Host', 'X-Proxy-Url' ))) {
+	$value = preg_replace('/ boundary=.*/', '', $value);
+        if (in_array($headername, array( 'Content-Type' ))) {
             $request_headers[] = "$headername: $value";
         }
     }
@@ -53,20 +55,21 @@ if ('GET' == $request_method) {
         if (!empty($data)) {
             $request_params = $data;
         }
+	if(!empty($_FILES)) {
+		foreach ($_FILES as $key => $val) {
+			$request_params[$key] = "@".$val['tmp_name'];
+		}
+	};
     }
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
     $request_params = file_get_contents('php://input');
 } else {
     $request_params = null;
 }
-exit("here");
 
 $request_url = "https://api.telegram.org".$_SERVER['SCRIPT_URL'];
 
-
-
 $p_request_url = parse_url($request_url);
-
 
 // append query string for GET requests
 if ($request_method == 'GET' && count($request_params) > 0 && (!array_key_exists('query', $p_request_url) || empty($p_request_url['query']))) {
@@ -83,17 +86,18 @@ curl_setopt($ch, CURLOPT_HEADER, true);       // enabled response headers
 if ('POST' == $request_method) {
     $post_data = is_array($request_params) ? http_build_query($request_params) : $request_params;
     curl_setopt($ch, CURLOPT_POST, true);
-
     curl_setopt($ch, CURLOPT_POSTFIELDS,  $post_data);
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_method);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $request_params);
 }
 
+$fp = fopen('/tmp/errorlog.txt', 'w');
+curl_setopt($ch, CURLOPT_VERBOSE, true);
+curl_setopt($ch, CURLOPT_STDERR, $fp);
 // retrieve response (headers and content)
 $response = curl_exec($ch);
 curl_close($ch);
-
 
 // split response to header and content
 list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);

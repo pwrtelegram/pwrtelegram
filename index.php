@@ -3,6 +3,10 @@
 // by Daniil Gentili
 // gplv3 license
 
+// logging
+ini_set("log_errors", 1);
+ini_set("error_log", "/tmp/php-error-index.log");
+
 // connect to db
 include 'db_connect.php';
 // import php telegram api
@@ -46,7 +50,8 @@ function checkurl($url) {
 // Prepare the url with the token
 $token = preg_replace(array("/^\//", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
 $uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
-$url = "https://telegram.org/" . $token;
+$url = "https://api.telegram.org/" . $token;
+$request_url = "https://api.telegram.org".$_SERVER['SCRIPT_URL'];
 
 // gotta intercept sendphoto, sendaudio, sendvoice, sendvideo, senddocument, possibly without storing in ram, upload as secret user, forward to user
 
@@ -102,6 +107,9 @@ if(strtolower($uri) == "/getFile" && $_REQUEST['file_id'] != "") {
 							$newresponse["description"] = "Downloaded file size does not match.";
 							unlink($path);
 						} else {
+							if (!file_exists("/mnt/vdb/api/storage/" . hash('sha256', $token))) {
+								mkdir("/mnt/vdb/api/storage/" . hash('sha256', $token), 0777, true);
+							}
 							$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/files/', '', $path);
 							if(rename($path, "/mnt/vdb/api/storage/" . $file_path)) {
 								$newresponse["ok"] = true;
