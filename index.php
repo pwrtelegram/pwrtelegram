@@ -13,16 +13,18 @@ include 'db_connect.php';
 require('vendor/autoload.php');
 $telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
 
-$botusername = "@daniilgentili";
+$botusername = "140639228";
+
 $sendMethods = array("document", "photo", "audio", "voice", "video");
 
 
 function find_txt($msgs) {
+	$ok = "";
 	foreach ($msgs as $msg) {
 		foreach ($msg as $key => $val) { 
-			if ($key = "text" && $val = $_REQUEST["file_id"]) $ok = y;
+			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = "y";
 		}
-		if ($ok = "y") return $msg["reply_id"];
+		if ($ok == "y") return $msg->reply_id;
 	}
 }
 // curl wrapper
@@ -48,17 +50,20 @@ function checkurl($url) {
 }
 
 // Prepare the url with the token
-$token = preg_replace(array("/^\//", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
+$token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
 $uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
+$method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
 $url = "https://api.telegram.org/bot" . $token;
+
 
 // gotta intercept sendphoto, sendaudio, sendvoice, sendvideo, senddocument, possibly without storing in ram, upload as secret user, forward to user
 
 
 // intercept getfile, get file id, forward to secret user, get download link from secret user, return file id, file size, file path
 
-if(strtolower($uri) == "/getFile" && $_REQUEST['file_id'] != "") {
+if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
+
 	if($response["ok"] == false && preg_match("/\[Error\]: Bad Request: file is too big\[size:/", $response["description"])) {
 		$file_id = $_REQUEST['file_id'];
 		$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? DESC LIMIT 1;");
@@ -70,15 +75,19 @@ if(strtolower($uri) == "/getFile" && $_REQUEST['file_id'] != "") {
 			$newresponse["ok"] = true;
 		} else {
 			$file_size = preg_replace(array("/.*big\[size:/", "/\].*/"), '', $response["description"]); // get size
-			$me = curl($url . "/getMe")["username"]; // get my username
+			$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
-			$usernames = array_column($telegram->getDialogList(), "username"); // get usernames list
+			$usernameweird  = $telegram->getDialogList(); // get usernames list
+
+			$usernames = array();
+			foreach ($usernameweird as $username){ $usernames[] = $username->username; };
+
 			if(!in_array($me, $usernames)) { // If never contacted bot send start command
-				$telegram->msg($me, '/start');
+				$telegram->msg("@".$me, '/start');
 			}
 
 			$count = 0;
-			while($result["ok"] != true) {
+			while($result["ok"] != true && $count < 5) {
 				$result = curl($url . "/send" . $sendMethods["$count"] . "?chat_id=" . $botusername . "&" . $sendMethods["$count"] . "=" . $file_id);
 				$count++;
 			};
@@ -88,14 +97,19 @@ if(strtolower($uri) == "/getFile" && $_REQUEST['file_id'] != "") {
 				$newresponse["error_code"] = 400;
 				$newresponse["description"] = "Couldn't forward file to download user.";
 			} else {
-				$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["message_id"] . "&chat_id=" . $botusername . "&message=" . $file_id);
+				$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
+
+
 				if($result["ok"] == false) {
 					$newresponse["ok"] = false;
 					$newresponse["error_code"] = 400;
 					$newresponse["description"] = "Couldn't reply to forwarded file to download user.";
 				} else {
-					$path = $telegram->getFile($me, $sendMethods["$count"], find_txt($telegram->getHistory($botusername, 1000000, 1000000)))["result"];
-					if($path = "") {
+					$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
+					$result = $telegram->getFile($sendMethods["$count"], $msg_id);
+					$path = $result["result"];
+
+					if($path == "") {
 						$newresponse["ok"] = false;
 						$newresponse["error_code"] = 400;
 						$newresponse["description"] = "Couldn't download file.";

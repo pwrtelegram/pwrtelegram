@@ -411,9 +411,8 @@ class Client extends RawClient
         return $this->exec('send_file ' . $peer . ' ' . $formattedPath);
     }
     /**
-     * Download file from peer
+     * Download file from message id
      *
-     * @param  string $peer The peer, gets escaped with escapePeer()
      * @param  string $type   The file type (document, audio, photo, video, voice)
      * @param  string $id   The message's id
      * @return boolean
@@ -421,10 +420,9 @@ class Client extends RawClient
      * @uses exec()
      * @uses escapePeer()
      */
-    public function getFile($peer, $type, $id)
+    public function getFile($type, $id)
     {
-        $peer = $this->escapePeer($peer);
 
-        return $this->exec('load_' . $type . ' ' . $peer . ' ' . $id);
+        return $this->exec('load_' . $type . ' ' . $id);
     }
 }
