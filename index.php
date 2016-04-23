@@ -50,8 +50,7 @@ function checkurl($url) {
 // Prepare the url with the token
 $token = preg_replace(array("/^\//", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
 $uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
-$url = "https://api.telegram.org/" . $token;
-$request_url = "https://api.telegram.org".$_SERVER['SCRIPT_URL'];
+$url = "https://api.telegram.org/bot" . $token;
 
 // gotta intercept sendphoto, sendaudio, sendvoice, sendvideo, senddocument, possibly without storing in ram, upload as secret user, forward to user
 

@@ -1,6 +1,4 @@
 <?php
-//logging
-
 
 /**
  * AJAX Cross Domain (PHP) Proxy 0.8
@@ -36,7 +34,7 @@ foreach ($_SERVER as $key => $value) {
         $headername = str_replace('_', ' ', str_replace('HTTP_', '', $key));
         $headername = str_replace(' ', '-', ucwords(strtolower($headername)));
 	$value = preg_replace('/ boundary=.*/', '', $value);
-        if (in_array($headername, array( 'Content-Type' ))) {
+        if (!in_array($headername, array( 'Host', 'X-Proxy-Url' ))) {
             $request_headers[] = "$headername: $value";
         }
     }
@@ -46,6 +44,7 @@ foreach ($_SERVER as $key => $value) {
 
 // identify request method, url and params
 $request_method = $_SERVER['REQUEST_METHOD'];
+$todel = array();
 if ('GET' == $request_method) {
     $request_params = $_GET;
 } elseif ('POST' == $request_method) {
@@ -55,12 +54,12 @@ if ('GET' == $request_method) {
         if (!empty($data)) {
             $request_params = $data;
         }
+    }
 	if(!empty($_FILES)) {
-		foreach ($_FILES as $key => $val) {
-			$request_params[$key] = "@".$val['tmp_name'];
+		foreach ($_FILES as $file => $val) {
+			$request_params[$file] = new \CurlFile($val["tmp_name"], $val["type"], $val["name"]);
 		}
 	};
-    }
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
     $request_params = file_get_contents('php://input');
 } else {
@@ -84,17 +83,15 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);     // return response
 curl_setopt($ch, CURLOPT_HEADER, true);       // enabled response headers
 // add data for POST, PUT or DELETE requests
 if ('POST' == $request_method) {
-    $post_data = is_array($request_params) ? http_build_query($request_params) : $request_params;
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS,  $post_data);
+	//$post_data = is_array($request_params) ? http_build_query($request_params) : $request_params;
+	//die(var_dump($request_params));
+	curl_setopt($ch, CURLOPT_POST, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS,  $request_params);
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_method);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $request_params);
 }
 
-$fp = fopen('/tmp/errorlog.txt', 'w');
-curl_setopt($ch, CURLOPT_VERBOSE, true);
-curl_setopt($ch, CURLOPT_STDERR, $fp);
 // retrieve response (headers and content)
 $response = curl_exec($ch);
 curl_close($ch);
@@ -120,4 +117,6 @@ function csajax_debug_message($message)
         print $message . PHP_EOL;
     }
 }
+
+
 ?>
