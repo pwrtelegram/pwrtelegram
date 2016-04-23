@@ -106,14 +106,15 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 					$newresponse["description"] = "Couldn't reply to forwarded file to download user.";
 				} else {
 					$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
-					$result = $telegram->getFile($sendMethods["$count"], $msg_id);
+					$result = $telegram->getFile($sendMethods["$count"], "010000008fda0a060d030000000000007a314db62e13b68e");
 					$path = $result["result"];
-
+die(var_export($result));
 					if($path == "") {
 						$newresponse["ok"] = false;
 						$newresponse["error_code"] = 400;
 						$newresponse["description"] = "Couldn't download file.";
 					} else {
+						clearstatcache();
 						if(filesize($path) != $file_size) {
 							$newresponse["ok"] = false;
 							$newresponse["error_code"] = 400;
