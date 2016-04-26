@@ -49,6 +49,10 @@ function checkurl($url) {
 	if($retcode = 200) { return 0; } else { return 1;  };
 }
 
+function jsonexit($wut) {
+	die(json_encode($wut));
+}
+
 // Prepare the url with the token
 $token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
 $uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
@@ -60,6 +64,11 @@ $url = "https://api.telegram.org/bot" . $token;
 
 
 // intercept getfile, get file id, forward to secret user, get download link from secret user, return file id, file size, file path
+
+if(preg_match("/^\/file\/bot/", $_SERVER['SCRIPT_URL'])) {
+	header("Location: https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['SCRIPT_URL']));
+	die();
+};
 
 if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
@@ -117,14 +126,20 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 						}
 						$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/.telegram-cli\/downloads/', '', $path);
 						if(rename($path, "/mnt/vdb/api/storage/" . $file_path)) {
-							$newresponse["ok"] = true;
-							$newresponse["file_id"] = $file_id;
-							$newresponse["file_size"] = filesize("/mnt/vdb/api/storage/" . $file_path);
-							$newresponse["file_path"] = $file_path;
-							$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
-							$delete = $delete_stmt->execute(array($file_id));
-							$insert_stmt = $pdo->prepare("INSERT INTO dl VALUES (file_id, file_size, file_path), (?, ?, ?);");
-							$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
+							if(chmod("/mnt/vdb/api/storage/" . $file_path, 0755)){
+								$newresponse["ok"] = true;
+								$newresponse["result"]["file_id"] = $file_id;
+								$newresponse["result"]["file_size"] = filesize("/mnt/vdb/api/storage/" . $file_path);
+								$newresponse["result"] ["file_path"] = $file_path;
+								$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
+								$delete = $delete_stmt->execute(array($file_id));
+								$insert_stmt = $pdo->prepare("INSERT INTO dl VALUES (file_id, file_size, file_path), (?, ?, ?);");
+								$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
+							} else {
+								$newresponse["ok"] = false;
+								$newresponse["error_code"] = 400;
+								$newresponse["description"] = "Couldn't chmod file.";
+							}
 						} else {
 							$newresponse["ok"] = false;
 							$newresponse["error_code"] = 400;
