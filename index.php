@@ -15,7 +15,7 @@ $telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
 
 $botusername = "140639228";
 
-$sendMethods = array("document", "photo", "audio", "voice", "video");
+$sendMethods = array("photo", "audio", "video", "voice", "document");
 
 
 function find_txt($msgs) {
@@ -64,7 +64,7 @@ $url = "https://api.telegram.org/bot" . $token;
 if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 
-	if($response["ok"] == false && preg_match("/\[Error\]: Bad Request: file is too big\[size:/", $response["description"])) {
+	if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) {
 		$file_id = $_REQUEST['file_id'];
 		$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? DESC LIMIT 1;");
 		$select = $selectstmt->execute(array($file_id));
@@ -74,7 +74,6 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 			$newresponse["file_size"] = $select["file_size"];
 			$newresponse["ok"] = true;
 		} else {
-			$file_size = preg_replace(array("/.*big\[size:/", "/\].*/"), '', $response["description"]); // get size
 			$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
 			$usernameweird  = $telegram->getDialogList(); // get usernames list
@@ -91,7 +90,7 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 				$result = curl($url . "/send" . $sendMethods["$count"] . "?chat_id=" . $botusername . "&" . $sendMethods["$count"] . "=" . $file_id);
 				$count++;
 			};
-
+			$count--;
 			if($result["ok"] == false) {
 				$newresponse["ok"] = false;
 				$newresponse["error_code"] = 400;
@@ -106,35 +105,30 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 					$newresponse["description"] = "Couldn't reply to forwarded file to download user.";
 				} else {
 					$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
-					$result = $telegram->getFile($sendMethods["$count"], "010000008fda0a060d030000000000007a314db62e13b68e");
-					$path = $result["result"];
-die(var_export($result));
+					$result = $telegram->getFile($sendMethods["$count"], $msg_id);
+					$path = $result->{"result"};
 					if($path == "") {
 						$newresponse["ok"] = false;
 						$newresponse["error_code"] = 400;
 						$newresponse["description"] = "Couldn't download file.";
 					} else {
-						clearstatcache();
-						if(filesize($path) != $file_size) {
+						if (!file_exists("/mnt/vdb/api/storage/" . hash('sha256', $token))) {
+							mkdir("/mnt/vdb/api/storage/" . hash('sha256', $token), 0777, true);
+						}
+						$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/.telegram-cli\/downloads/', '', $path);
+						if(rename($path, "/mnt/vdb/api/storage/" . $file_path)) {
+							$newresponse["ok"] = true;
+							$newresponse["file_id"] = $file_id;
+							$newresponse["file_size"] = filesize("/mnt/vdb/api/storage/" . $file_path);
+							$newresponse["file_path"] = $file_path;
+							$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
+							$delete = $delete_stmt->execute(array($file_id));
+							$insert_stmt = $pdo->prepare("INSERT INTO dl VALUES (file_id, file_size, file_path), (?, ?, ?);");
+							$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
+						} else {
 							$newresponse["ok"] = false;
 							$newresponse["error_code"] = 400;
-							$newresponse["description"] = "Downloaded file size does not match.";
-							unlink($path);
-						} else {
-							if (!file_exists("/mnt/vdb/api/storage/" . hash('sha256', $token))) {
-								mkdir("/mnt/vdb/api/storage/" . hash('sha256', $token), 0777, true);
-							}
-							$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/files/', '', $path);
-							if(rename($path, "/mnt/vdb/api/storage/" . $file_path)) {
-								$newresponse["ok"] = true;
-								$newresponse["file_id"] = $file_id;
-								$newresponse["file_size"] = $file_size;
-								$newresponse["file_path"] = $file_path;
-								$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
-								$delete = $delete_stmt->execute(array($file_id));
-								$insert_stmt = $pdo->prepare("INSERT INTO dl VALUES (file_id, file_size, file_path), (?, ?, ?);");
-								$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
-							}
+							$newresponse["description"] = "Couldn't rename file.";
 						}
 					}
 				}
@@ -142,7 +136,7 @@ die(var_export($result));
 		}
 
 		$response = json_encode($newresponse);
-	}
+	} else $response = json_encode($response);
 	exit($response);
 }
 include "proxy.php";

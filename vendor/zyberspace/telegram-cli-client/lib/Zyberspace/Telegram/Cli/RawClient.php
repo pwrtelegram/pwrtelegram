@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 namespace Zyberspace\Telegram\Cli;
-
 /**
  * Raw part of the php-client for telegram-cli.
  * Takes care of the socket-connection and some helper-methods.
@@ -69,14 +68,18 @@ class RawClient
     public function exec($command)
     {
         $command = implode(' ', func_get_args());
-
         fwrite($this->_fp, str_replace("\n", '\n', $command) . PHP_EOL);
 
         $answer = fgets($this->_fp); //"ANSWER $bytes" or false if an error occurred
 
+        //error_log("cmd is " . var_export(str_replace("\n", '\n', $command) . PHP_EOL, true), 3, "/tmp/php-err.log");
+        //error_log("answer is " . var_export($answer, true), 3, "/tmp/php-err.log");
         if (is_string($answer)) {
+        
+        //error_log("is string is " . var_export(is_string($answer), true), 3, "/tmp/php-err.log");
             if (substr($answer, 0, 7) === 'ANSWER ') {
                 $bytes = ((int) substr($answer, 7)) + 1; //+1 because the json-return seems to miss one byte
+                error_log("bytes is " . var_export($bytes, true), 3, "/tmp/php-err.log");
                 if ($bytes > 0) {
                     $bytesRead = 0;
                     $jsonString = '';
@@ -89,12 +92,14 @@ class RawClient
                     } while ($bytesRead < $bytes);
 
 
-                    $json = json_decode($jsonString, true);
-
+                    $json = json_decode($jsonString);
+//error_log("json is " . var_export($json, true), 3, "/tmp/php-err.log");
+//error_log("jsonString is " . var_export($jsonString, true), 3, "/tmp/php-err.log");
                     if (!isset($json->error)) {
                         //Reset error-message and error-code
                         $this->_errorMessage = null;
                         $this->_errorCode = null;
+
 
                         //For "status_online" and "status_offline"
                         if (isset($json->result) && $json->result === 'SUCCESS') {
