@@ -6,7 +6,6 @@
 // logging
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
-
 // connect to db
 include 'db_connect.php';
 // import php telegram api
@@ -52,6 +51,7 @@ function checkurl($url) {
 function jsonexit($wut) {
 	die(json_encode($wut));
 }
+
 
 // Prepare the url with the token
 $token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
@@ -149,5 +149,47 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 
 	} else jsonexit($response);
 }
+
+if($method == "/getupdates") {
+	$response = curl($url . "/getUpdates?offset=" . $_REQUEST['offset'] . "&limit=" . $_REQUEST['limit'] . "&timeout=" . $_REQUEST['timeout']);
+	if($response["ok"] == false) jsonexit($response);
+
+	$newresponse["ok"] = true;
+
+	foreach($response["result"] as $cur) {
+
+		if($cur["message"]["chat"]["id"] == $botusername) {
+			if(preg_match("/^exec_this/", $cur["message"]["text"])) {
+				$methodurl = preg_replace("/^exec_this /", "", $cur["message"]["text"]);
+
+/*
+				$count = 0;
+				while($file_id == "" && $count < 5) {
+					if($sendMethods["$count"] == "photo") {
+						$file_id = end($cur["message"]["reply_to_message"][$sendMethods["$count"]])["file_id"]; 
+					} else {
+						$file_id = $cur["message"]["reply_to_message"][$sendMethods["$count"]]["file_id"];
+					}
+					$count++;
+				};
+				$count--;
+*/
+
+				$result = curl($url . $methodurl . $file_id);
+			}
+		} else {
+			$newresponse["result"][] = $cur;
+		}
+	} 
+	jsonexit($newresponse);
+}
+
+
+foreach($sendMethods as $curmethod) {
+	if($method == "/send" . $curmethod) {
+		;
+	}
+}
+
 include "proxy.php";
 ?>
