@@ -72,14 +72,13 @@ class RawClient
 
         $answer = fgets($this->_fp); //"ANSWER $bytes" or false if an error occurred
 
-        //error_log("cmd is " . var_export(str_replace("\n", '\n', $command) . PHP_EOL, true), 3, "/tmp/php-err.log");
-        //error_log("answer is " . var_export($answer, true), 3, "/tmp/php-err.log");
+
         if (is_string($answer)) {
         
-        //error_log("is string is " . var_export(is_string($answer), true), 3, "/tmp/php-err.log");
+
             if (substr($answer, 0, 7) === 'ANSWER ') {
                 $bytes = ((int) substr($answer, 7)) + 1; //+1 because the json-return seems to miss one byte
-                error_log("bytes is " . var_export($bytes, true), 3, "/tmp/php-err.log");
+                
                 if ($bytes > 0) {
                     $bytesRead = 0;
                     $jsonString = '';
@@ -93,8 +92,6 @@ class RawClient
 
 
                     $json = json_decode($jsonString);
-//error_log("json is " . var_export($json, true), 3, "/tmp/php-err.log");
-//error_log("jsonString is " . var_export($jsonString, true), 3, "/tmp/php-err.log");
                     if (!isset($json->error)) {
                         //Reset error-message and error-code
                         $this->_errorMessage = null;
@@ -161,6 +158,8 @@ class RawClient
      */
     public function escapePeer($peer)
     {
+        if(preg_match("/^@[^\s]*$/", $peer)) $tmp = $this->exec('resolve_username ' . preg_replace("/^@/", "", $peer));
+        if($tmp != false) return $tmp->print_name;
         return str_replace(' ', '_', $peer);
     }
 

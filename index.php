@@ -46,7 +46,7 @@ function checkurl($url) {
 	curl_exec($ch);
 	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	curl_close($ch);
-	if($retcode = 200) { return 0; } else { return 1;  };
+	if($retcode == 200) { return true; } else { return false;  };
 }
 
 function jsonexit($wut) {
@@ -71,88 +71,83 @@ if(preg_match("/^\/file\/bot/", $_SERVER['SCRIPT_URL'])) {
 };
 
 if($method == "/getfile" && $_REQUEST['file_id'] != "") {
+	$file_id = $_REQUEST['file_id'];
+	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? LIMIT 1;");
+	$selectstmt->execute(array($file_id));
+	$select = $selectstmt->fetch(PDO::FETCH_ASSOC);
+
+	if($selectstmt->rowCount() == "1" && checkurl("https://storage.pwrtelegram.xyz/" . $select["file_path"])) {
+	
+		$newresponse["ok"] = true;
+		$newresponse["result"]["file_id"] = $select["file_id"];
+		$newresponse["result"]["file_path"] = $select["file_path"];
+		$newresponse["result"]["file_size"] = $select["file_size"];
+		jsonexit($newresponse);
+	}
+
 	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 
 	if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) {
-		$file_id = $_REQUEST['file_id'];
-		$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? DESC LIMIT 1;");
-		$select = $selectstmt->execute(array($file_id));
-		if(checkurl("https://storage.pwrtelegram.xyz/" . $select["file_path"])) {
-			$newresponse["file_id"] = $select["file_id"];
-			$newresponse["file_path"] = $select["file_path"];
-			$newresponse["file_size"] = $select["file_size"];
-			$newresponse["ok"] = true;
-		} else {
-			$me = curl($url . "/getMe")["result"]["username"]; // get my username
+		$me = curl($url . "/getMe")["result"]["username"]; // get my username
+		$usernameweird  = $telegram->getDialogList(); // get usernames list
+		$usernames = array();
+		foreach ($usernameweird as $username){ $usernames[] = $username->username; };
 
-			$usernameweird  = $telegram->getDialogList(); // get usernames list
-
-			$usernames = array();
-			foreach ($usernameweird as $username){ $usernames[] = $username->username; };
-
-			if(!in_array($me, $usernames)) { // If never contacted bot send start command
-				$telegram->msg("@".$me, '/start');
-			}
-
-			$count = 0;
-			while($result["ok"] != true && $count < 5) {
-				$result = curl($url . "/send" . $sendMethods["$count"] . "?chat_id=" . $botusername . "&" . $sendMethods["$count"] . "=" . $file_id);
-				$count++;
-			};
-			$count--;
-			if($result["ok"] == false) {
-				$newresponse["ok"] = false;
-				$newresponse["error_code"] = 400;
-				$newresponse["description"] = "Couldn't forward file to download user.";
-			} else {
-				$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
-
-
-				if($result["ok"] == false) {
-					$newresponse["ok"] = false;
-					$newresponse["error_code"] = 400;
-					$newresponse["description"] = "Couldn't reply to forwarded file to download user.";
-				} else {
-					$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
-					$result = $telegram->getFile($sendMethods["$count"], $msg_id);
-					$path = $result->{"result"};
-					if($path == "") {
-						$newresponse["ok"] = false;
-						$newresponse["error_code"] = 400;
-						$newresponse["description"] = "Couldn't download file.";
-					} else {
-						if (!file_exists("/mnt/vdb/api/storage/" . hash('sha256', $token))) {
-							mkdir("/mnt/vdb/api/storage/" . hash('sha256', $token), 0777, true);
-						}
-						$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/.telegram-cli\/downloads/', '', $path);
-						if(rename($path, "/mnt/vdb/api/storage/" . $file_path)) {
-							if(chmod("/mnt/vdb/api/storage/" . $file_path, 0755)){
-								$newresponse["ok"] = true;
-								$newresponse["result"]["file_id"] = $file_id;
-								$newresponse["result"]["file_size"] = filesize("/mnt/vdb/api/storage/" . $file_path);
-								$newresponse["result"] ["file_path"] = $file_path;
-								$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
-								$delete = $delete_stmt->execute(array($file_id));
-								$insert_stmt = $pdo->prepare("INSERT INTO dl VALUES (file_id, file_size, file_path), (?, ?, ?);");
-								$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
-							} else {
-								$newresponse["ok"] = false;
-								$newresponse["error_code"] = 400;
-								$newresponse["description"] = "Couldn't chmod file.";
-							}
-						} else {
-							$newresponse["ok"] = false;
-							$newresponse["error_code"] = 400;
-							$newresponse["description"] = "Couldn't rename file.";
-						}
-					}
-				}
-			}
+		if(!in_array($me, $usernames)) { // If never contacted bot send start command
+			if(!$telegram->msg("@".$me, "/start")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.")); 
 		}
 
-		$response = json_encode($newresponse);
-	} else $response = json_encode($response);
-	exit($response);
+		$count = 0;
+		while($result["ok"] != true && $count < 5) {
+			$result = curl($url . "/send" . $sendMethods["$count"] . "?chat_id=" . $botusername . "&" . $sendMethods["$count"] . "=" . $file_id);
+			$count++;
+		};
+		$count--;
+
+		if($result["ok"] == false) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user."));
+
+		$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
+
+
+		if($result["ok"] == false) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id."));
+
+		$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
+
+		if($msg_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
+
+		$result = $telegram->getFile($sendMethods["$count"], $msg_id);
+		$path = $result->{"result"};
+
+		if($path == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't download file."));
+
+		if (!file_exists("/mnt/vdb/api/storage/" . hash('sha256', $token))) {
+			if(!mkdir("/mnt/vdb/api/storage/" . hash('sha256', $token), 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
+		}
+
+		$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/.telegram-cli\/downloads/', '', $path);
+
+		if(!rename($path, "/mnt/vdb/api/storage/" . $file_path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't move file to storage."));
+
+		if(!chmod("/mnt/vdb/api/storage/" . $file_path, 0755)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't chmod file."));
+
+		$file_size = filesize("/mnt/vdb/api/storage/" . $file_path);
+
+		$newresponse["ok"] = true;
+		$newresponse["result"]["file_id"] = $file_id;
+		$newresponse["result"]["file_size"] = $file_size;
+		$newresponse["result"]["file_path"] = $file_path;
+
+		$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
+
+		$delete = $delete_stmt->execute(array($file_id));
+
+		$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_size, file_path) VALUES (?, ?, ?);");
+
+		$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
+
+		jsonexit($newresponse);
+
+	} else jsonexit($response);
 }
 include "proxy.php";
 ?>
