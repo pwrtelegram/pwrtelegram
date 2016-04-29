@@ -23,3 +23,9 @@ Feel free to contribute with pull Requests.
 
 
 Daniil Gentili (http://daniil.it)
+
+
+
+
+[Privacy Policy](http://privacypolicies.com/privacy/view/Yv8dZc)
+[Cookie Policy](https://cookie.daniil.it/?w=pwrtelegram)
