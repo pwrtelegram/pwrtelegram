@@ -169,10 +169,10 @@ if($method == "/getupdates") {
 				$msg = preg_replace("/^exec_this /", "", $cur["message"]["text"]);
 
 				$file_hash = preg_replace("/\s.*/", "", $msg);
-				$salt = preg_replace("/$file_hash /", "", $msg);
+				$salt = preg_replace(array("/$file_hash /", "/\s.*/"), "", $msg);
 				$method = $sendMethods[preg_replace("/$file_hash $salt /", "", $msg)];
 
-				$file_id = $cur["message"][$method]["file_id"];
+				$file_id = $cur["message"]["reply_to_message"][$method]["file_id"];
 
 				$insert_stmt = $pdo->prepare("UPDATE ul SET file_id=? WHERE file_hash=? AND salt=?;");
 				$insert_stmt->execute(array($file_id, $file_hash, $salt));
@@ -186,17 +186,42 @@ if($method == "/getupdates") {
 
 
 foreach ($sendMethods as $number => $curmethod) {
-	if($method == "/send" . $curmethod) {// 
-		if(!empty($_FILES[$curmethod]&& $_FILES[$curmethod]["size"] == 50000000)) {
+	if($method == "/send" . $curmethod) {// && $_FILES[$curmethod]["size"] > 40000000
+		if(!empty($_FILES[$curmethod]) && $_GET["t"] == "y") {
 			$file_hash = hash_file('sha256', $_FILES[$curmethod]["tmp_name"]);
 			$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
 			$select_stmt->execute(array($file_hash));
-			$count = $select_stmt->rowCount();
+			$sel = $select_stmt->fetchColumn();
 
-			if($count == "0") {
-				$path = $homedir . "/ul/" . $_FILES[$curmethod]["name"];
+			if($sel == "") {
+
+				$me = curl($url . "/getMe")["result"]["username"]; // get my username
+				$usernameweird  = $telegram->getDialogList(); // get usernames list
+				$usernames = array();
+				foreach ($usernameweird as $username){ $usernames[] = $username->username; };
+
+				if(!in_array($me, $usernames)) { // If never contacted bot send start command
+					if(!$telegram->msg("@".$me, "/start")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.")); 
+				}
+
+				$path = $homedir . "/ul/" . hash('sha256', $token) . "/" . $_FILES[$curmethod]["name"];
+
+		 		if (!file_exists($homedir . "/ul/" . hash('sha256', $token))) {
+		 			if(!mkdir($homedir . "/ul/" . hash('sha256', $token), 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
+		 		}
+
+
 				if(!move_uploaded_file($_FILES[$curmethod]["tmp_name"], $path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file."));
 
+
+				$result = $telegram->pwrsendFile("@" . $me, $curmethod, $path);
+				unlink($path);
+
+				if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
+
+				$message_id = $result->{'id'};
+
+		 		if($message_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
 
 				$salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
 				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, salt) VALUES (?, ?);");
@@ -204,29 +229,19 @@ foreach ($sendMethods as $number => $curmethod) {
 				$count = $insert_stmt->rowCount();
 				if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
 
-				$result = $telegram->pwrsendFile("@" . curl($url . "/getMe")["result"]["username"], $curmethod, $path);
-
-				$result = json_decode(strtok($result, '\n'));
-
-				if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
-
-				$message_id = $result->{'id'};
-
-				$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $salt . " " . $number);
-
+				if(!$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $salt . " " . $number)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
+				
 				sleep(1);
-				curl("https://pwrtelegram.xyz/bot" . $token . "/getupdates");
+				curl("https://api.pwrtelegram.xyz/bot" . $token . "/getupdates");
 
 				$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
 				$select_stmt->execute(array($file_hash));
-				$count = $select_stmt->rowCount();
-
-				if($count == "0") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id."));
-
 				$file_id = $select_stmt->fetchColumn();
+
+				if($file_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id."));
 
 			} else {
-				$file_id = $select_stmt->fetchColumn();
+				$file_id = $sel;
 			}
 		}
 	}
