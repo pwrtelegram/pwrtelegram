@@ -12,10 +12,14 @@ include 'db_connect.php';
 require('vendor/autoload.php');
 $telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
 
-$botusername = "140639228";
+$botusername = $telegram->getSelf()->{'peer_id'};
 
-$sendMethods = array("photo", "audio", "video", "voice", "document");
 
+$homedir = getenv("PWRTELEGRAM_HOME");
+
+
+$getMethods = array("photo", "audio", "video", "voice", "document");
+$sendMethods = array("photo", "audio", "video", "document");
 
 function find_txt($msgs) {
 	$ok = "";
@@ -99,7 +103,7 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 
 		$count = 0;
 		while($result["ok"] != true && $count < 5) {
-			$result = curl($url . "/send" . $sendMethods["$count"] . "?chat_id=" . $botusername . "&" . $sendMethods["$count"] . "=" . $file_id);
+			$result = curl($url . "/send" . $getMethods["$count"] . "?chat_id=" . $botusername . "&" . $getMethods["$count"] . "=" . $file_id);
 			$count++;
 		};
 		$count--;
@@ -115,35 +119,38 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 
 		if($msg_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
 
-		$result = $telegram->getFile($sendMethods["$count"], $msg_id);
-		$path = $result->{"result"};
-
+		while ($path == "") {
+			$result = $telegram->getFile($getMethods["$count"], $msg_id);
+			$path = $result->{"result"};
+		}
 		if($path == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't download file."));
 
-		if (!file_exists("/mnt/vdb/api/storage/" . hash('sha256', $token))) {
-			if(!mkdir("/mnt/vdb/api/storage/" . hash('sha256', $token), 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
+		if (!file_exists($homedir . "/storage/" . hash('sha256', $token))) {
+			if(!mkdir($homedir . "/storage/" . hash('sha256', $token), 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
 		}
 
-		$file_path = hash('sha256', $token) . preg_replace('/\/mnt\/vdb\/api\/.telegram-cli\/downloads/', '', $path);
+		$file_path = hash('sha256', $token) . preg_replace('/' . preg_replace('/\//','\\/',$homedir) . '\/.telegram-cli\/downloads/', '', $path);
 
-		if(!rename($path, "/mnt/vdb/api/storage/" . $file_path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't move file to storage."));
+		unlink($homedir . "/storage/" . $file_path);
 
-		if(!chmod("/mnt/vdb/api/storage/" . $file_path, 0755)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't chmod file."));
+		if(!symlink($path, $homedir . "/storage/" . $file_path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't symlink file to storage."));
 
-		$file_size = filesize("/mnt/vdb/api/storage/" . $file_path);
+		if(!chmod($homedir . "/storage/" . $file_path, 0755)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't chmod file."));
+
+		$file_size = filesize($homedir . "/storage/" . $file_path);
 
 		$newresponse["ok"] = true;
 		$newresponse["result"]["file_id"] = $file_id;
-		$newresponse["result"]["file_size"] = $file_size;
 		$newresponse["result"]["file_path"] = $file_path;
+		$newresponse["result"]["file_size"] = $file_size;
 
 		$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=?;");
 
 		$delete = $delete_stmt->execute(array($file_id));
 
-		$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_size, file_path) VALUES (?, ?, ?);");
+		$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size) VALUES (?, ?, ?);");
 
-		$insert = $insert_stmt->execute(array($file_id, $file_size, $file_path));
+		$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size));
 
 		jsonexit($newresponse);
 
@@ -155,27 +162,20 @@ if($method == "/getupdates") {
 	if($response["ok"] == false) jsonexit($response);
 
 	$newresponse["ok"] = true;
-
+	$newresponse["result"] = array();
 	foreach($response["result"] as $cur) {
-
 		if($cur["message"]["chat"]["id"] == $botusername) {
-			if(preg_match("/^exec_this/", $cur["message"]["text"])) {
-				$methodurl = preg_replace("/^exec_this /", "", $cur["message"]["text"]);
+			if(preg_match("/^exec_this /", $cur["message"]["text"])) {
+				$msg = preg_replace("/^exec_this /", "", $cur["message"]["text"]);
 
-/*
-				$count = 0;
-				while($file_id == "" && $count < 5) {
-					if($sendMethods["$count"] == "photo") {
-						$file_id = end($cur["message"]["reply_to_message"][$sendMethods["$count"]])["file_id"]; 
-					} else {
-						$file_id = $cur["message"]["reply_to_message"][$sendMethods["$count"]]["file_id"];
-					}
-					$count++;
-				};
-				$count--;
-*/
+				$file_hash = preg_replace("/\s.*/", "", $msg);
+				$salt = preg_replace("/$file_hash /", "", $msg);
+				$method = $sendMethods[preg_replace("/$file_hash $salt /", "", $msg)];
 
-				$result = curl($url . $methodurl . $file_id);
+				$file_id = $cur["message"][$method]["file_id"];
+
+				$insert_stmt = $pdo->prepare("UPDATE ul SET file_id=? WHERE file_hash=? AND salt=?;");
+				$insert_stmt->execute(array($file_id, $file_hash, $salt));
 			}
 		} else {
 			$newresponse["result"][] = $cur;
@@ -185,9 +185,50 @@ if($method == "/getupdates") {
 }
 
 
-foreach($sendMethods as $curmethod) {
-	if($method == "/send" . $curmethod) {
-		;
+foreach ($sendMethods as $number => $curmethod) {
+	if($method == "/send" . $curmethod) {// 
+		if(!empty($_FILES[$curmethod]&& $_FILES[$curmethod]["size"] == 50000000)) {
+			$file_hash = hash_file('sha256', $_FILES[$curmethod]["tmp_name"]);
+			$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
+			$select_stmt->execute(array($file_hash));
+			$count = $select_stmt->rowCount();
+
+			if($count == "0") {
+				$path = $homedir . "/ul/" . $_FILES[$curmethod]["name"];
+				if(!move_uploaded_file($_FILES[$curmethod]["tmp_name"], $path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file."));
+
+
+				$salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
+				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, salt) VALUES (?, ?);");
+				$insert_stmt->execute(array($file_hash, $salt));
+				$count = $insert_stmt->rowCount();
+				if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
+
+				$result = $telegram->pwrsendFile("@" . curl($url . "/getMe")["result"]["username"], $curmethod, $path);
+
+				$result = json_decode(strtok($result, '\n'));
+
+				if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
+
+				$message_id = $result->{'id'};
+
+				$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $salt . " " . $number);
+
+				sleep(1);
+				curl("https://pwrtelegram.xyz/bot" . $token . "/getupdates");
+
+				$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
+				$select_stmt->execute(array($file_hash));
+				$count = $select_stmt->rowCount();
+
+				if($count == "0") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id."));
+
+				$file_id = $select_stmt->fetchColumn();
+
+			} else {
+				$file_id = $select_stmt->fetchColumn();
+			}
+		}
 	}
 }
 

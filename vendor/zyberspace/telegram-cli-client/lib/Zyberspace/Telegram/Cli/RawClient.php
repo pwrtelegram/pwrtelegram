@@ -97,7 +97,6 @@ class RawClient
                         $this->_errorMessage = null;
                         $this->_errorCode = null;
 
-
                         //For "status_online" and "status_offline"
                         if (isset($json->result) && $json->result === 'SUCCESS') {
                             return true;
@@ -159,7 +158,7 @@ class RawClient
     public function escapePeer($peer)
     {
         if(preg_match("/^@[^\s]*$/", $peer)) $tmp = $this->exec('resolve_username ' . preg_replace("/^@/", "", $peer));
-        if($tmp != false) return $tmp->print_name;
+        if($tmp != false) $peer = $tmp->print_name;
         return str_replace(' ', '_', $peer);
     }
 

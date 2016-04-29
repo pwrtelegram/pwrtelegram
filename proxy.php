@@ -57,7 +57,9 @@ if ('GET' == $request_method) {
     }
 	if(!empty($_FILES)) {
 		foreach ($_FILES as $file => $val) {
-			$request_params[$file] = new \CurlFile($val["tmp_name"], $val["type"], $val["name"]);
+			if($file_id != "") {
+				$request_params[$file] = $file_id;
+			} else $request_params[$file] = new \CurlFile($val["tmp_name"], $val["type"], $val["name"]);
 		}
 	};
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
@@ -91,7 +93,6 @@ if ('POST' == $request_method) {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_method);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $request_params);
 }
-
 // retrieve response (headers and content)
 $response = curl_exec($ch);
 curl_close($ch);

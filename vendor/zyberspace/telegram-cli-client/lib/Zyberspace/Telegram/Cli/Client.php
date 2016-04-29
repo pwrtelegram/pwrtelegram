@@ -71,6 +71,23 @@ class Client extends RawClient
     }
 
     /**
+     * Replies tp a text message.
+     *
+     * @param string $id The message id that we're replying to
+     * @param string $msg The message to send, gets escaped with escapeStringArgument()
+     *
+     * @return boolean true on success, false otherwise
+     *
+     * @uses exec()
+     * @uses escapeStringArgument()
+     */
+    public function replymsg($id, $msg)
+    {
+        $id = $this->escapeStringArgument($id);
+        $msg = $this->escapeStringArgument($msg);
+        return $this->exec('reply ' . $id . ' ' . $msg);
+    }
+    /**
      * Sends a text message to several users at once.
      *
      * @param array $userList List of users / contacts that shall receive the message,
@@ -410,12 +427,36 @@ class Client extends RawClient
 
         return $this->exec('send_file ' . $peer . ' ' . $formattedPath);
     }
+
+
+    /**
+     * Send file to peer and return message id
+     *
+     * @param  string $peer The peer, gets escaped with escapePeer() and escapeshellarg()
+     * @param  string $type The type of the file to be sent, gets escaped with escapePeer() and escapeshellarg()
+     * @param  string $path The file path, gets formatted with formatFileName() and escapeshellarg()
+     * @return array
+     *
+     * @uses exec()
+     * @uses escapePeer()
+     * @uses formatFileName()
+     * @uses escapeshellarg()
+     */
+    public function pwrsendFile($peer, $type, $path)
+    {
+        $peer = escapeshellarg($this->escapePeer($peer));
+	$type = escapeshellarg($type);
+        $formattedPath = escapeshellarg($this->formatFileName($path));
+
+	return shell_exec("telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1");
+    }
+
     /**
      * Download file from message id
      *
      * @param  string $type   The file type (document, audio, photo, video, voice)
      * @param  string $id   The message's id
-     * @return boolean
+     * @return array|boolean
      *
      * @uses exec()
      * @uses escapePeer()
@@ -424,5 +465,18 @@ class Client extends RawClient
     {
 
         return $this->exec('load_' . $type . ' ' . $id);
+    }
+
+    /**
+     * Get info about current user
+     *
+     * @return array|boolean
+     *
+     * @uses exec()
+     * @uses escapePeer()
+     */
+    public function getSelf()
+    {
+        return $this->exec('get_self');
     }
 }
