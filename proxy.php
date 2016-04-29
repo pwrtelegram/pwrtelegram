@@ -97,6 +97,7 @@ if ('POST' == $request_method) {
 $response = curl_exec($ch);
 curl_close($ch);
 
+
 // split response to header and content
 list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);
 

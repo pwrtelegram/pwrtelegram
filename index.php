@@ -169,13 +169,13 @@ if($method == "/getupdates") {
 				$msg = preg_replace("/^exec_this /", "", $cur["message"]["text"]);
 
 				$file_hash = preg_replace("/\s.*/", "", $msg);
-				$salt = preg_replace(array("/$file_hash /", "/\s.*/"), "", $msg);
-				$method = $sendMethods[preg_replace("/$file_hash $salt /", "", $msg)];
+
+				$method = $sendMethods[preg_replace("/^[^\s]*\s/", "", $msg)];
 
 				$file_id = $cur["message"]["reply_to_message"][$method]["file_id"];
 
-				$insert_stmt = $pdo->prepare("UPDATE ul SET file_id=? WHERE file_hash=? AND salt=?;");
-				$insert_stmt->execute(array($file_id, $file_hash, $salt));
+				$insert_stmt = $pdo->prepare("UPDATE ul SET file_id=? WHERE file_hash=?;");
+				$insert_stmt->execute(array($file_id, $file_hash));
 			}
 		} else {
 			$newresponse["result"][] = $cur;
@@ -186,8 +186,8 @@ if($method == "/getupdates") {
 
 
 foreach ($sendMethods as $number => $curmethod) {
-	if($method == "/send" . $curmethod) {// && $_FILES[$curmethod]["size"] > 40000000
-		if(!empty($_FILES[$curmethod]) && $_GET["t"] == "y") {
+	if($method == "/send" . $curmethod) {// 
+		if(!empty($_FILES[$curmethod]) && $_FILES[$curmethod]["size"] > 40000000) {
 			$file_hash = hash_file('sha256', $_FILES[$curmethod]["tmp_name"]);
 			$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
 			$select_stmt->execute(array($file_hash));
@@ -223,15 +223,13 @@ foreach ($sendMethods as $number => $curmethod) {
 
 		 		if($message_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
 
-				$salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
-				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, salt) VALUES (?, ?);");
-				$insert_stmt->execute(array($file_hash, $salt));
+				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash) VALUES (?);");
+				$insert_stmt->execute(array($file_hash));
 				$count = $insert_stmt->rowCount();
 				if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
 
-				if(!$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $salt . " " . $number)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
+				if(!$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $number)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
 				
-				sleep(1);
 				curl("https://api.pwrtelegram.xyz/bot" . $token . "/getupdates");
 
 				$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
@@ -243,6 +241,8 @@ foreach ($sendMethods as $number => $curmethod) {
 			} else {
 				$file_id = $sel;
 			}
+jsonexit(curl($url . "/send" . $curmethod . "?" . http_build_query($_POST) . "&" . $curmethod . "=" . $file_id));
+
 		}
 	}
 }
