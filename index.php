@@ -20,6 +20,7 @@ $homedir = getenv("PWRTELEGRAM_HOME");
 
 $getMethods = array("photo", "audio", "video", "voice", "document");
 $sendMethods = array("photo", "audio", "video", "document");
+$allsendMethods = array("photo", "audio", "video", "voice", "sticker", "document");
 
 function find_txt($msgs) {
 	$ok = "";
@@ -43,6 +44,53 @@ function curl($url) {
 	return json_decode($res, true);
 };
 
+/**
+ * Returns the size of a file without downloading it, or -1 if the file
+ * size could not be determined.
+ *
+ * @param $url - The location of the remote file to download. Cannot
+ * be null or empty.
+ *
+ * @return The size of the file referenced by $url, or -1 if the size
+ * could not be determined.
+ */
+ 
+function curl_get_file_size( $url ) {
+  // Assume failure.
+  $result = -1;
+
+  $curl = curl_init( $url );
+
+  // Issue a HEAD request and follow any redirects.
+  curl_setopt( $curl, CURLOPT_NOBODY, true );
+  curl_setopt( $curl, CURLOPT_HEADER, true );
+  curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+  curl_setopt( $curl, CURLOPT_FOLLOWLOCATION, true );
+
+  $data = curl_exec( $curl );
+  curl_close( $curl );
+
+  if( $data ) {
+    $content_length = "unknown";
+    $status = "unknown";
+
+    if( preg_match( "/^HTTP\/1\.[01] (\d\d\d)/", $data, $matches ) ) {
+      $status = (int)$matches[1];
+    }
+
+    if( preg_match( "/Content-Length: (\d+)/", $data, $matches ) ) {
+      $content_length = (int)$matches[1];
+    }
+
+    // http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+    if( $status == 200 || ($status > 300 && $status <= 308) ) {
+      $result = $content_length;
+    }
+  }
+
+  return $result;
+}
+
 function checkurl($url) {
 	$ch = curl_init("$url");
 	curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -52,22 +100,80 @@ function checkurl($url) {
 	if($retcode == 200) { return true; } else { return false;  };
 }
 
+function checkbotuser($die = true) {
+	global $url, $telegram, $me;
+	$usernames = array();
+	foreach ($telegram->getDialogList() as $username){ $usernames[] = $username->username; };
+	if(!in_array($me, $usernames)) { // If never contacted bot send start command
+		if(!$telegram->msg("@".$me, "/start")) $ret = json_encode(array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.")); 
+	}
+	if($ret != "" && $die == true) die($ret);
+	return $ret;
+}
+
+function checkdir($dir) {
+	if (!file_exists($dir)) {
+		if(!mkdir($dir, 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
+	}
+}
+
 function jsonexit($wut) {
 	die(json_encode($wut));
 }
 
+function upload($path) {
+		global $url, $telegram, $me, $curmethod, $pdo, $token;
+		
+		$file_hash = hash_file('sha256', $path);
+		
+		$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
+		$select_stmt->execute(array($file_hash));
+		$sel = $select_stmt->fetchColumn();
+		$count = $select_stmt->rowCount();
+		
+
+		if($sel != "") { unlink($path); return $sel; };
+			
+		$ret = checkbotuser(false);
+		
+		if($ret != "") { unlink($path); die($ret); }
+		
+		$result = $telegram->pwrsendFile("@" . $me, $curmethod, $path);
+		unlink($path);
+
+		if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
+
+		$message_id = $result->{'id'};
+
+		if($message_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
+
+		if($count == "0") {
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash) VALUES (?);");
+			
+			$insert_stmt->execute(array($file_hash));
+			$count = $insert_stmt->rowCount();
+			if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
+		}
+
+		if(!$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $curmethod)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
+				
+		curl("https://api.pwrtelegram.xyz/bot" . $token . "/getupdates");
+
+		$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
+		$select_stmt->execute(array($file_hash));
+		$file_id = $select_stmt->fetchColumn();
+
+		if($file_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id."));
+		return $file_id;
+}
 
 // Prepare the url with the token
 $token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
 $uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
 $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
+$smethod = preg_replace("/.*\/send/", "", $method);
 $url = "https://api.telegram.org/bot" . $token;
 
-
-// gotta intercept sendphoto, sendaudio, sendvoice, sendvideo, senddocument, possibly without storing in ram, upload as secret user, forward to user
-
-
-// intercept getfile, get file id, forward to secret user, get download link from secret user, return file id, file size, file path
 
 if(preg_match("/^\/file\/bot/", $_SERVER['SCRIPT_URL'])) {
 	header("Location: https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['SCRIPT_URL']));
@@ -93,14 +199,7 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 
 	if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) {
 		$me = curl($url . "/getMe")["result"]["username"]; // get my username
-		$usernameweird  = $telegram->getDialogList(); // get usernames list
-		$usernames = array();
-		foreach ($usernameweird as $username){ $usernames[] = $username->username; };
-
-		if(!in_array($me, $usernames)) { // If never contacted bot send start command
-			if(!$telegram->msg("@".$me, "/start")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.")); 
-		}
-
+		checkbotuser();
 		$count = 0;
 		while($result["ok"] != true && $count < 5) {
 			$result = curl($url . "/send" . $getMethods["$count"] . "?chat_id=" . $botusername . "&" . $getMethods["$count"] . "=" . $file_id);
@@ -112,7 +211,6 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 
 		$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
 
-
 		if($result["ok"] == false) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id."));
 
 		$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
@@ -123,11 +221,10 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 			$result = $telegram->getFile($getMethods["$count"], $msg_id);
 			$path = $result->{"result"};
 		}
+		
 		if($path == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't download file."));
 
-		if (!file_exists($homedir . "/storage/" . hash('sha256', $token))) {
-			if(!mkdir($homedir . "/storage/" . hash('sha256', $token), 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
-		}
+		checkdir($homedir . "/storage/" . hash('sha256', $token));
 
 		$file_path = hash('sha256', $token) . preg_replace('/' . preg_replace('/\//','\\/',$homedir) . '\/.telegram-cli\/downloads/', '', $path);
 
@@ -170,10 +267,10 @@ if($method == "/getupdates") {
 
 				$file_hash = preg_replace("/\s.*/", "", $msg);
 
-				$method = $sendMethods[preg_replace("/^[^\s]*\s/", "", $msg)];
+				$method = preg_replace("/" . $file_hash . "\s/", "", $msg);
 
 				$file_id = $cur["message"]["reply_to_message"][$method]["file_id"];
-
+error_log($file_id);
 				$insert_stmt = $pdo->prepare("UPDATE ul SET file_id=? WHERE file_hash=?;");
 				$insert_stmt->execute(array($file_id, $file_hash));
 			}
@@ -184,66 +281,36 @@ if($method == "/getupdates") {
 	jsonexit($newresponse);
 }
 
-
-foreach ($sendMethods as $number => $curmethod) {
-	if($method == "/send" . $curmethod) {// 
-		if(!empty($_FILES[$curmethod]) && $_FILES[$curmethod]["size"] > 40000000) {
-			$file_hash = hash_file('sha256', $_FILES[$curmethod]["tmp_name"]);
-			$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
-			$select_stmt->execute(array($file_hash));
-			$sel = $select_stmt->fetchColumn();
-
-			if($sel == "") {
-
-				$me = curl($url . "/getMe")["result"]["username"]; // get my username
-				$usernameweird  = $telegram->getDialogList(); // get usernames list
-				$usernames = array();
-				foreach ($usernameweird as $username){ $usernames[] = $username->username; };
-
-				if(!in_array($me, $usernames)) { // If never contacted bot send start command
-					if(!$telegram->msg("@".$me, "/start")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.")); 
-				}
-
-				$path = $homedir . "/ul/" . hash('sha256', $token) . "/" . $_FILES[$curmethod]["name"];
-
-		 		if (!file_exists($homedir . "/ul/" . hash('sha256', $token))) {
-		 			if(!mkdir($homedir . "/ul/" . hash('sha256', $token), 0777, true)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory."));
-		 		}
-
-
-				if(!move_uploaded_file($_FILES[$curmethod]["tmp_name"], $path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file."));
-
-
-				$result = $telegram->pwrsendFile("@" . $me, $curmethod, $path);
-				unlink($path);
-
-				if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
-
-				$message_id = $result->{'id'};
-
-		 		if($message_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
-
-				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash) VALUES (?);");
-				$insert_stmt->execute(array($file_hash));
-				$count = $insert_stmt->rowCount();
-				if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
-
-				if(!$telegram->replymsg($message_id, "exec_this " . $file_hash . " " . $number)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
-				
-				curl("https://api.pwrtelegram.xyz/bot" . $token . "/getupdates");
-
-				$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=?;");
-				$select_stmt->execute(array($file_hash));
-				$file_id = $select_stmt->fetchColumn();
-
-				if($file_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id."));
-
-			} else {
-				$file_id = $sel;
-			}
-jsonexit(curl($url . "/send" . $curmethod . "?" . http_build_query($_POST) . "&" . $curmethod . "=" . $file_id));
-
-		}
+$curmethod = $allsendMethods[array_search($smethod, $allsendMethods)];
+if ($curmethod !== false) { // If using one of the send methods
+	$me = curl($url . "/getMe")["result"]["username"]; // get my username
+	if(array_search($curmethod, $sendMethods) !== false && !empty($_FILES[$curmethod]) && $_FILES[$curmethod]["size"] < 1610612736 && $_FILES[$curmethod]["size"] > 40000000) { // If file is too big
+		checkdir($homedir . "/ul/" . hash('sha256', $token));
+		$path = $homedir . "/ul/" . hash('sha256', $token) . "/" . $_FILES[$curmethod]["name"];
+		
+		if(!move_uploaded_file($_FILES[$curmethod]["tmp_name"], $path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file."));
+		$params = $_REQUEST;
+		$params[$curmethod] = upload($path);
+		jsonexit(curl($url . "/send" . $curmethod . "?" . http_build_query($params)));
+	}
+	$size = curl_get_file_size($_REQUEST[$curmethod]);
+	if($size > 0 && $size < 1610612736) {
+		set_time_limit(0);
+		checkdir($homedir . "/ul/" . hash('sha256', $token));
+		$path = $homedir . "/ul/" . hash('sha256', $token) . "/" .  basename($_REQUEST[$curmethod]);
+		$fp = fopen ($path, 'w+');
+		$ch = curl_init(str_replace(" ","%20",$_REQUEST[$curmethod]));
+		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+		// write curl response to file
+		curl_setopt($ch, CURLOPT_FILE, $fp); 
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		// get curl response
+		curl_exec($ch); 
+		curl_close($ch);
+		fclose($fp);
+		$params = $_REQUEST;
+		$params[$curmethod] = upload($path);
+		jsonexit(curl($url . "/send" . $curmethod . "?" . http_build_query($params)));
 	}
 }
 

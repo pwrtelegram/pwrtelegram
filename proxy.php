@@ -57,15 +57,16 @@ if ('GET' == $request_method) {
     }
 	if(!empty($_FILES)) {
 		foreach ($_FILES as $file => $val) {
-			if($file_id != "") {
-				$request_params[$file] = $file_id;
-			} else $request_params[$file] = new \CurlFile($val["tmp_name"], $val["type"], $val["name"]);
+			$request_params[$file] = new \CurlFile($val["tmp_name"], $val["type"], $val["name"]);
 		}
 	};
 } elseif ('PUT' == $request_method || 'DELETE' == $request_method) {
     $request_params = file_get_contents('php://input');
 } else {
     $request_params = null;
+}
+if($file_id != "") {
+	$request_params[$curmethod] = $file_id;
 }
 
 $request_url = "https://api.telegram.org".$_SERVER['SCRIPT_URL'];
