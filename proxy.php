@@ -69,7 +69,7 @@ if($file_id != "") {
 	$request_params[$curmethod] = $file_id;
 }
 
-$request_url = "https://api.telegram.org".$_SERVER['SCRIPT_URL'];
+$request_url = "https://api.telegram.org".$_SERVER['REQUEST_URI'];
 
 $p_request_url = parse_url($request_url);
 

@@ -2,7 +2,6 @@
 // pwrtelegram script
 // by Daniil Gentili
 // gplv3 license
-
 // logging
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
@@ -14,8 +13,7 @@ $telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
 
 $botusername = $telegram->getSelf()->{'peer_id'};
 
-
-$homedir = getenv("PWRTELEGRAM_HOME");
+$homedir = "/mnt/vdb/api/";
 
 
 $getMethods = array("photo", "audio", "video", "voice", "document");
@@ -44,7 +42,6 @@ function curl($url) {
 	//var_export($res);
 	return json_decode($res, true);
 };
-
 /**
  * Returns the size of a file without downloading it, or -1 if the file
  * size could not be determined.
@@ -123,64 +120,61 @@ function jsonexit($wut) {
 }
 
 function upload($path) {
-		global $url, $telegram, $me, $curmethod, $pdo, $token;
-		
-		$file_hash = hash_file('sha256', $path);
-		
-		$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=?;");
-		$select_stmt->execute(array($file_hash, $curmethod, $me));
-		$sel = $select_stmt->fetchColumn();
-		$count = $select_stmt->rowCount();
+	global $url, $telegram, $me, $curmethod, $pdo, $token;
+
+	$file_hash = hash_file('sha256', $path);
+	
+	$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=?;");
+	$select_stmt->execute(array($file_hash, $curmethod, $me));
+	$sel = $select_stmt->fetchColumn();
+	$count = $select_stmt->rowCount();
 		
 
-		if($sel != "") { unlink($path); return $sel; };
-			
-		$ret = checkbotuser(false);
+	if($sel != "") { unlink($path); return $sel; };
 		
-		if($ret != "") { unlink($path); die($ret); }
-		
-		$result = $telegram->pwrsendFile("@" . $me, $curmethod, $path);
-		
-		unlink($path);
+	$ret = checkbotuser(false);
+	
+	if($ret != "") { unlink($path); die($ret); }
+	
+	$result = $telegram->pwrsendFile("@" . $me, $curmethod, $path);
+	
+	unlink($path);
 
-		if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
+	if($result->{'error'} != "") jsonexit(array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'}));
+	$message_id = $result->{'id'};
 
-		$message_id = $result->{'id'};
+	if($message_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
 
-		if($message_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Message id is empty."));
+	if($count == "0") {
+		$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, type, bot) VALUES (?, ?, ?);");
+		$insert_stmt->execute(array($file_hash, $curmethod, $me));
+		$count = $insert_stmt->rowCount();
+		if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
+	}
 
-		if($count == "0") {
-			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, type, bot) VALUES (?, ?, ?);");
-			$insert_stmt->execute(array($file_hash, $curmethod, $me));
-			$count = $insert_stmt->rowCount();
-			if($count != "1") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database."));
-		}
-
-		if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "type" => $curmethod, "bot" => $me)))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
-		
-		$response = curl("https://api.pwrtelegram.xyz/bot" . $token . "/getupdates");
-		
-		
-		
-		$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=?;");
-		$select_stmt->execute(array($file_hash, $curmethod, $me));
-		$file_id = $select_stmt->fetchColumn();
-		
-		if($file_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file."));
-		
-		return $file_id;
+	if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "type" => $curmethod, "bot" => $me)))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data."));
+	$response = curl("https://api.pwrtelegram.xyz/bot" . $token . "/getupdates");
+	$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=?;");
+	$select_stmt->execute(array($file_hash, $curmethod, $me));
+	$file_id = $select_stmt->fetchColumn();
+	if($file_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file."));
+	return $file_id;
 }
-
+//jsonexit(g);
 // Prepare the url with the token
-$token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['SCRIPT_URL']);
-$uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//"), '', $_SERVER['SCRIPT_URL']);
+$token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
+$uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//", "/\?[^\?]*$/"), '', $_SERVER['REQUEST_URI']);
 $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
 $smethod = preg_replace("/.*\/send/", "", $method);
 $url = "https://api.telegram.org/bot" . $token;
 
-
-if(preg_match("/^\/file\/bot/", $_SERVER['SCRIPT_URL'])) {
-	header("Location: https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['SCRIPT_URL']));
+if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
+	if(checkurl("https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
+		$file_url = https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
+	} else {
+		$file_url = https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
+	}
+	header("Location: " . $file_url);
 	die();
 };
 
@@ -199,9 +193,9 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 		jsonexit($newresponse);
 	}
 
-	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
+	if($_REQUEST["store_on_pwrtelegram"] == "y") $response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 
-	if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) {
+	if(($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) || $_REQUEST["store_on_pwrtelegram"] == "y") {
 		$me = curl($url . "/getMe")["result"]["username"]; // get my username
 		checkbotuser();
 		$count = 0;
@@ -228,9 +222,9 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 		
 		if($path == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't download file."));
 
-		checkdir($homedir . "/storage/" . hash('sha256', $token));
+		checkdir($homedir . "/storage/" . $me);
 
-		$file_path = hash('sha256', $token) . preg_replace('/' . preg_replace('/\//','\\/',$homedir) . '\/.telegram-cli\/downloads/', '', $path);
+		$file_path = $me . preg_replace('/' . preg_replace('/\//','\\/',$homedir) . '\/.telegram-cli\/downloads/', '', $path);
 
 		unlink($homedir . "/storage/" . $file_path);
 
@@ -259,6 +253,7 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 }
 
 if($method == "/getupdates") {
+	if($_REQUEST["limit"] == "") $limit = 100; else $limit = $_REQUEST["limit"];
 	$response = curl($url . "/getUpdates?offset=" . $_REQUEST['offset'] . "&timeout=" . $_REQUEST['timeout']);
 	if($response["ok"] == false) jsonexit($response);
 	$onlyme = true;
@@ -279,7 +274,7 @@ if($method == "/getupdates") {
 			if($onlyme) $todo = $cur["update_id"] + 1;
 		} else {
 			$notmecount++;
-			if($notmecount <= $_REQUEST["limit"]) $newresponse["result"][] = $cur;
+			if($notmecount <= $limit) $newresponse["result"][] = $cur;
 			$onlyme = false;
 		}
 	}
@@ -290,9 +285,9 @@ if($method == "/getupdates") {
 $curmethod = $allsendMethods[array_search($smethod, $allsendMethods)];
 if ($curmethod !== "") { // If using one of the send methods
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
-	if(array_search($curmethod, $sendMethods) !== false && !empty($_FILES[$curmethod]) && $_FILES[$curmethod]["size"] < 1610612736 && $_FILES[$curmethod]["size"] > 40000000) { // If file is too big
-		checkdir($homedir . "/ul/" . hash('sha256', $token));
-		$path = $homedir . "/ul/" . hash('sha256', $token) . "/" . $_FILES[$curmethod]["name"];
+	if(array_search($curmethod, $sendMethods) !== false && !empty($_FILES[$curmethod]) && $_FILES[$curmethod]["size"] < 1610612736 && $_FILES[$curmethod]["size"] > 30000000) { // If file is too big
+		checkdir($homedir . "/ul/" . $me);
+		$path = $homedir . "/ul/" . $me . "/" . $_FILES[$curmethod]["name"];
 		
 		if(!move_uploaded_file($_FILES[$curmethod]["tmp_name"], $path)) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file."));
 		$params = $_REQUEST;
@@ -302,8 +297,8 @@ if ($curmethod !== "") { // If using one of the send methods
 	$size = curl_get_file_size($_REQUEST[$curmethod]);
 	if($size > 0 && $size < 1610612736) {
 		set_time_limit(0);
-		checkdir($homedir . "/ul/" . hash('sha256', $token));
-		$path = $homedir . "/ul/" . hash('sha256', $token) . "/" .  basename($_REQUEST[$curmethod]);
+		checkdir($homedir . "/ul/" . $me);
+		$path = $homedir . "/ul/" . $me . "/" .  basename($_REQUEST[$curmethod]);
 		$fp = fopen ($path, 'w+');
 		$ch = curl_init(str_replace(" ","%20",$_REQUEST[$curmethod]));
 		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
