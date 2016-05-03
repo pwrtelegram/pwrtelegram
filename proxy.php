@@ -1,5 +1,4 @@
 <?php
-
 /**
  * AJAX Cross Domain (PHP) Proxy 0.8
  *    by Iacovos Constantinou (http://www.iacons.net)
@@ -95,21 +94,8 @@ if ('POST' == $request_method) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $request_params);
 }
 // retrieve response (headers and content)
-
-curl_setopt($ch, CURLOPT_VERBOSE, true);
-
-$verbose = fopen('php://temp', 'w+');
-curl_setopt($ch, CURLOPT_STDERR, $verbose);
-
 $response = curl_exec($ch);
 curl_close($ch);
-
-printf("cUrl error (#%d): %s<br>\n", curl_errno($handle),
-           htmlspecialchars(curl_error($handle)));
-rewind($verbose);
-$verboseLog = stream_get_contents($verbose);
-
-echo "Verbose information:\n<pre>", htmlspecialchars($verboseLog), "</pre>\n";
 
 // split response to header and content
 list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);
