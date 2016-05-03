@@ -13,7 +13,7 @@ $telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
 
 $botusername = $telegram->getSelf()->{'peer_id'};
 
-$homedir = "/mnt/vdb/api/";
+$homedir = __DIR__ . "/../";
 
 
 $getMethods = array("photo", "audio", "video", "voice", "document");
