@@ -3,23 +3,28 @@
 // by Daniil Gentili
 // gplv3 license
 // logging
-
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
-$pwrtelegram_api = "https://api.pwrtelegram.xyz/";
-$pwrtelegram_storage = "https://storage.pwrtelegram.xyz/";
-// connect to db
-include '../db_connect.php';
-// beta version
-include 'beta.php';
-// import php telegram api
-require('vendor/autoload.php');
-$telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
+$file_id = "";
+function load_database() {
+	global $pdo;
+	// connect to db
+	include '../db_connect.php';
+}
 
-$botusername = $telegram->getSelf()->{'peer_id'};
-
+function load_resources() {
+	global $pdo, $pwrtelegram_api, $pwrtelegram_storage, $telegram, $botusername;
+	load_database();
+	$pwrtelegram_api = "https://api.pwrtelegram.xyz/";
+	$pwrtelegram_storage = "https://storage.pwrtelegram.xyz/";
+	// beta version
+	include 'beta.php';
+	// import php telegram api
+	require('vendor/autoload.php');
+	$telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
+	$botusername = $telegram->getSelf()->{'peer_id'};
+}
 $homedir = __DIR__ . "/../";
-
 $getMethods = array("photo", "audio", "video", "voice", "document");
 $sendMethods = array("photo", "audio", "video", "document");
 $allsendMethods = array("photo", "audio", "video", "voice", "sticker", "document");
@@ -164,7 +169,6 @@ function upload($path) {
 	if($file_id == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file."));
 	return $file_id;
 }
-//jsonexit(g);
 // Prepare the url with the token
 $token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
 $uri = "/" . preg_replace(array("/^\//", "/[^\/]*\//", "/\?[^\?]*$/"), '', $_SERVER['REQUEST_URI']);
@@ -173,16 +177,17 @@ $smethod = preg_replace("/.*\/send/", "", $method);
 $url = "https://api.telegram.org/bot" . $token;
 
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
+	load_resources();
 	if(checkurl($pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
-		$file_url = $pwrtelegra_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
+		$file_url = $pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
 	} else {
 		$file_url = "https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
 	}
 	header("Location: " . $file_url);
 	die();
 };
-
 if($method == "/getfile" && $_REQUEST['file_id'] != "") {
+	load_resources();
 	$file_id = $_REQUEST['file_id'];
 	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? LIMIT 1;");
 	$selectstmt->execute(array($file_id));
@@ -257,6 +262,7 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "") {
 }
 
 if($method == "/getupdates") {
+	load_database();
 	if($_REQUEST["limit"] == "") $limit = 100; else $limit = $_REQUEST["limit"];
 	$response = curl($url . "/getUpdates?offset=" . $_REQUEST['offset'] . "&timeout=" . $_REQUEST['timeout']);
 	if($response["ok"] == false) jsonexit($response);
@@ -289,6 +295,7 @@ if($method == "/getupdates") {
 $number = array_search($smethod, $allsendMethods);
 if ($number != "") $curmethod = $allsendMethods[$number]; else $curmethod = "";
 if ($curmethod !== "") { // If using one of the send methods
+	load_resources();
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	if(array_search($curmethod, $sendMethods) !== false && !empty($_FILES[$curmethod]) && $_FILES[$curmethod]["size"] < 1610612736 && $_FILES[$curmethod]["size"] > 30000000) { // If file is too big
 		checkdir($homedir . "/ul/" . $me);
