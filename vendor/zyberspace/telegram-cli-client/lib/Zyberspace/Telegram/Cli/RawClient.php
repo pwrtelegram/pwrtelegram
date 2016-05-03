@@ -46,7 +46,7 @@ class RawClient
     {
         $this->_fp = stream_socket_client($remoteSocket);
         if ($this->_fp === false) {
-            shell_exec("rm /tmp/tg.sck; telegram-cli --json --permanent-msg-ids -dWS /tmp/tg.sck&");
+            shell_exec("pkill telegram-cli; rm /tmp/tg.sck; telegram-cli --json --permanent-msg-ids -dWS /tmp/tg.sck&");
             $this->_fp = stream_socket_client($remoteSocket);
             if ($this->_fp === false) {
                 throw new ClientException('Could not connect to socket "' . $remoteSocket . '"');

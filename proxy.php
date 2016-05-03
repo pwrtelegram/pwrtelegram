@@ -30,21 +30,21 @@ define('CSAJAX_DEBUG', false);
 /* identify request headers */
 $request_headers = array( );
 foreach ($_SERVER as $key => $value) {
+
     if (strpos($key, 'HTTP_') === 0  ||  strpos($key, 'CONTENT_') === 0) {
         $headername = str_replace('_', ' ', str_replace('HTTP_', '', $key));
         $headername = str_replace(' ', '-', ucwords(strtolower($headername)));
-	 $value = preg_replace('/; boundary=.*/', '', $value);
-        if (!in_array($headername, array( 'Host', 'X-Proxy-Url' ))) {
+	$value = preg_replace('/; boundary=.*/', '', $value);
+        if (!in_array($headername, array( 'Host', 'X-Proxy-Url' )) && !in_array("$headername: $value", $request_headers)) {
             $request_headers[] = "$headername: $value";
         }
+
     }
 }
 
 
-
 // identify request method, url and params
 $request_method = $_SERVER['REQUEST_METHOD'];
-$todel = array();
 if ('GET' == $request_method) {
     $request_params = $_GET;
 } elseif ('POST' == $request_method) {
@@ -95,9 +95,21 @@ if ('POST' == $request_method) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $request_params);
 }
 // retrieve response (headers and content)
+
+curl_setopt($ch, CURLOPT_VERBOSE, true);
+
+$verbose = fopen('php://temp', 'w+');
+curl_setopt($ch, CURLOPT_STDERR, $verbose);
+
 $response = curl_exec($ch);
 curl_close($ch);
 
+printf("cUrl error (#%d): %s<br>\n", curl_errno($handle),
+           htmlspecialchars(curl_error($handle)));
+rewind($verbose);
+$verboseLog = stream_get_contents($verbose);
+
+echo "Verbose information:\n<pre>", htmlspecialchars($verboseLog), "</pre>\n";
 
 // split response to header and content
 list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);
