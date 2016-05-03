@@ -170,9 +170,9 @@ $url = "https://api.telegram.org/bot" . $token;
 
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	if(checkurl("https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
-		$file_url = https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
+		$file_url = "https://storage.pwrtelegram.xyz/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
 	} else {
-		$file_url = https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
+		$file_url = "https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
 	}
 	header("Location: " . $file_url);
 	die();
