@@ -1,0 +1,27 @@
+language: php
+
+sudo: false
+
+php:
+  - 5.4
+  - 5.5.9
+  - 5.5
+  - 5.6
+  - 7.0
+  - hhvm
+
+env:
+    global:
+        - LANG=en_US.UTF-8
+install:
+  - travis_retry composer install --no-interaction --prefer-source
+
+before_script:
+  - mkdir -p build/logs
+
+script:
+  - ./vendor/bin/phpunit --coverage-clover ./build/logs/clover.xml
+  - ./vendor/bin/phpcs --standard=PSR2 ./src/
+
+after_script:
+  - php vendor/bin/coveralls -v

@@ -6,4 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Symfony\\Component\\Process\\' => array($vendorDir . '/symfony/process'),
+    'Symfony\\Component\\Filesystem\\' => array($vendorDir . '/symfony/filesystem'),
+    'Mhor\\MediaInfo\\' => array($vendorDir . '/mhor/php-mediainfo/src'),
 );

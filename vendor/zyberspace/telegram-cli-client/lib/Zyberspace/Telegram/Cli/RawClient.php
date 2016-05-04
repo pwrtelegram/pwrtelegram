@@ -13,12 +13,6 @@ namespace Zyberspace\Telegram\Cli;
  */
 class RawClient
 {
-    /**
-     * The file handler for the socket-connection
-     *
-     * @var ressource
-     */
-    protected $_fp;
 
     /**
      * If telegram-cli returns an error, the error-message gets stored here.
@@ -41,25 +35,16 @@ class RawClient
      *                             Can be 'unix://' or 'tcp://'.
      *
      * @throws ClientException Throws an exception if no connection can be established.
-     */
-    public function __construct($remoteSocket)
+*/
+    public function __construct()
     {
-        $this->_fp = stream_socket_client($remoteSocket);
-        if ($this->_fp === false) {
-            shell_exec("pkill telegram-cli; rm /tmp/tg.sck; telegram-cli --json --permanent-msg-ids -dWS /tmp/tg.sck&");
-            $this->_fp = stream_socket_client($remoteSocket);
-            if ($this->_fp === false) {
-                throw new ClientException('Could not connect to socket "' . $remoteSocket . '"');
-            }
-        }
     }
 
     /**
      * Closes the connection to the telegram-cli.
-     */
+    */
     public function __destruct()
     {
-        fclose($this->_fp);
     }
 
     /**
@@ -69,32 +54,9 @@ class RawClient
      *
      * @return object|boolean Returns the answer as a json-object or true on success, false if there was an error.
      */
-    public function exec($command)
-    {
-        $command = implode(' ', func_get_args());
-        fwrite($this->_fp, str_replace("\n", '\n', $command) . PHP_EOL);
-
-        $answer = fgets($this->_fp); //"ANSWER $bytes" or false if an error occurred
-
-
-        if (is_string($answer)) {
-        
-
-            if (substr($answer, 0, 7) === 'ANSWER ') {
-                $bytes = ((int) substr($answer, 7)) + 1; //+1 because the json-return seems to miss one byte
-                
-                if ($bytes > 0) {
-                    $bytesRead = 0;
-                    $jsonString = '';
-
-                    //Run fread() till we have all the bytes we want
-                    //(as fread() can only read a maximum of 8192 bytes from a read-buffered stream at once)
-                    do {
-                        $jsonString .= fread($this->_fp, $bytes - $bytesRead);
-                        $bytesRead = strlen($jsonString);
-                    } while ($bytesRead < $bytes);
-
-
+    public function exec($command) {
+        $command = escapeshellarg(str_replace("\n", '\n', implode(' ', func_get_args())));
+        $jsonString = shell_exec("telegram-cli --json --permanent-msg-ids -WNe " . $command . " 2>&1  | sed 's/[>]//g;/{/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/' | tail -1");
                     $json = json_decode($jsonString);
                     if (!isset($json->error)) {
                         //Reset error-message and error-code
@@ -112,11 +74,7 @@ class RawClient
                         $this->_errorMessage = $json->error;
                         $this->_errorCode = $json->error_code;
                     }
-                }
-            }
-        }
-
-        return false;
+           return false;
     }
 
     /**

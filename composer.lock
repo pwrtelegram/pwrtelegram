@@ -4,9 +4,155 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "93dd5c6e31efd505ea9492c1d715514b",
-    "content-hash": "0e408d76d05a87a6259da0c1ab3cf961",
+    "hash": "037f8f1ff17f3fbbf78187db8eb1dd8b",
+    "content-hash": "d886fb2222c18fd9e1a0d5bde1444592",
     "packages": [
+        {
+            "name": "mhor/php-mediainfo",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mhor/php-mediainfo.git",
+                "reference": "37e4e1a88b7812468fb09fa553dfa90e3d64a06a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/37e4e1a88b7812468fb09fa553dfa90e3d64a06a",
+                "reference": "37e4e1a88b7812468fb09fa553dfa90e3d64a06a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0",
+                "symfony/filesystem": "~2.3|~3.0",
+                "symfony/process": "~2.3|~3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0",
+                "satooshi/php-coveralls": "0.7.*@dev",
+                "squizlabs/php_codesniffer": "~2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mhor\\MediaInfo\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mhor",
+                    "email": "maxime.horcholle@gmail.com"
+                }
+            ],
+            "description": "PHP wrapper around the mediainfo command",
+            "time": "2016-05-02 20:49:25"
+        },
+        {
+            "name": "symfony/filesystem",
+            "version": "v3.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/filesystem.git",
+                "reference": "74fec3511b62cb934b64bce1d96f06fffa4beafd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/74fec3511b62cb934b64bce1d96f06fffa4beafd",
+                "reference": "74fec3511b62cb934b64bce1d96f06fffa4beafd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Filesystem\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Filesystem Component",
+            "homepage": "https://symfony.com",
+            "time": "2016-04-12 18:09:53"
+        },
+        {
+            "name": "symfony/process",
+            "version": "v3.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/process.git",
+                "reference": "53f9407c0bb1c5a79127db8f7bfe12f0f6f3dcdb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/process/zipball/53f9407c0bb1c5a79127db8f7bfe12f0f6f3dcdb",
+                "reference": "53f9407c0bb1c5a79127db8f7bfe12f0f6f3dcdb",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Process\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Process Component",
+            "homepage": "https://symfony.com",
+            "time": "2016-04-14 15:30:28"
+        },
         {
             "name": "zyberspace/telegram-cli-client",
             "version": "v0.4.1",
