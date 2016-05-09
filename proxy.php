@@ -68,7 +68,7 @@ if($file_id != "") {
 	$request_params[$curmethod] = $file_id;
 }
 
-$request_url = "https://api.telegram.org".$_SERVER['REQUEST_URI'];
+$request_url = "https://api.telegram.org".$uri;
 
 $p_request_url = parse_url($request_url);
 
@@ -118,6 +118,6 @@ function csajax_debug_message($message)
         print $message . PHP_EOL;
     }
 }
-
+exit();
 
 ?>

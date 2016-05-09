@@ -1,5 +1,5 @@
 # Pwrtelegram API
-Version 1.0 beta 2.  
+Version 1.1 beta 1.  
 Licensed under GPLv3.  
 
 This repository contains the source code for the pwrtelegram API, a boosted version of the official telegram bot API.
@@ -7,18 +7,22 @@ This repository contains the source code for the pwrtelegram API, a boosted vers
 ## Features:  
 
 * All of the official telegram bot API features plus:  
-* Uploading of files up to 1.5 GB in size  
 * Downloading of files up to 1.5 GB in size  
-* Uploading of files using an url  
+* Anonymus file storage 
+* Uploading of files up to 1.5 GB in size  
+* Uploading of files using an url
+* Uploading of any file/url with automagical type recognition  
+* Optional automagical metadata recognition of sent files/urls.  
+* Deleting of text messages sent from the bot  
 * [You tell me!](https://telegram.me/danogentili)  
 
 ## How do I enable it?  
 
-To enable it simply subsitute the url of the bot telegram API (https://API.telegram.org) with the url of the pwrtelegram API (https://API.pwrtelegram.xyz) in your telegram client.
+To enable it simply subsitute the url of the bot telegram API (https://api.telegram.org) with the url of the pwrtelegram API (https://api.pwrtelegram.xyz) in your telegram client.
 
 You can use this command to do it:
 
-sed -i 's/API\.telegram\.org/API\.pwrtelegram\.xyz/g' client.py
+sed -i 's/api\.telegram\.org/api\.pwrtelegram\.xyz/g' client.py
 
 The API will automagically do the rest :)  
 

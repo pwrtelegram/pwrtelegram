@@ -445,7 +445,7 @@ class Client extends RawClient
     public function pwrsendFile($peer, $type, $path)
     {
         $peer = escapeshellarg($this->escapePeer($peer));
-	$type = escapeshellarg($type);
+     	$type = escapeshellarg($type);
         $formattedPath = escapeshellarg($this->formatFileName($path));
 
 	return json_decode(shell_exec("telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1 | sed 's/^[^{]*{/{/;s/}[^}]*$/}/'"));
@@ -462,6 +462,11 @@ class Client extends RawClient
      * @uses escapePeer()
      */
     public function getFile($type, $id)
+    {
+ 
+	     json_decode(shell_exec("telegram-cli  --permanent-msg-ids -WNe " . escapeshellarg("load_".$type." ".$id) . " 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"}/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'"));
+    }
+    public function oldgetFile($type, $id)
     {
 
         return $this->exec('load_' . $type . ' ' . $id);
