@@ -461,10 +461,15 @@ class Client extends RawClient
      * @uses exec()
      * @uses escapePeer()
      */
-    public function getFile($type, $id)
+    public function getFile($user, $file_id, $type)
     {
- 
-	     json_decode(shell_exec("telegram-cli  --permanent-msg-ids -WNe " . escapeshellarg("load_".$type." ".$id) . " 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"}/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'"));
+	return json_decode(shell_exec("telegram-cli --json -WNs /usr/bin/download.lua --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1 | sed '/{\"event\":\"download\", \"result\":\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'"));
+    }
+    public function izigetFile($id)
+    {
+	return json_decode(
+shell_exec("telegram-cli --json --permanent-msg-ids -WNe " . escapeshellarg("load_file ".$id)." 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"}/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'")
+);
     }
     public function oldgetFile($type, $id)
     {

@@ -1,15 +1,25 @@
-<?php
+ <?php
 // pwrtelegram script
 // by Daniil Gentili
-// gplv3 license
+/*
+Copyright 2016 Daniil Gentili
+(https://daniil.it)
+
+This file is part of the PWRTelegram API.
+the PWRTelegram API is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
+The PWRTelegram API is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU Affero General Public License for more details. 
+You should have received a copy of the GNU General Public License along with the PWRTelegram API. 
+If not, see <http://www.gnu.org/licenses/>.
+*/
 // logging
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
 
 $file_id = "";
 $homedir = __DIR__ . "/../";
-$sendMethods = array("photo" => "photo", "audio" => "audio", "video" => "video", "document" => "document", "sticker" => "document", "voice" => "document", "file" => "");
-$uri = "/" . preg_replace(array("/\?[^\?]*$/", "/^\//", "/[^\/]*\//"), '', $_SERVER['REQUEST_URI']);
+$methods = array("photo" => "photo", "audio" => "audio", "video" => "video", "document" => "document", "sticker" => "document", "voice" => "document", "file" => "");
+$uri = "/" . preg_replace(array("/\?.*$/", "/^\//", "/[^\/]*\//"), '', $_SERVER['REQUEST_URI']);
 $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
 $smethod = preg_replace("/.*\/send/", "", $method);
 $botusername = "140639228";
@@ -40,7 +50,7 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "" && $token != "") {
 	if($_REQUEST["store_on_pwrtelegram"] == true) jsonexit(download($_REQUEST['file_id']));
 	$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 	if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) {
-		jsonexit(download($file_id));
+		jsonexit(download($_REQUEST["file_id"]));
 	} else jsonexit($response);
 }
 
@@ -75,14 +85,18 @@ if($method == "/getupdates" && $token != "") {
 	if($todo != "") curl($url . "/getUpdates?offset=" . $todo);
 	jsonexit($newresponse);
 }
-
-if($method == "/deleteMessage" && $token != "" && ($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) {
+if($method == "/deletemessage" && $token != "" && ($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) {
 	include 'functions.php';
-	if($_REQUEST["inline_message_id"] != "") { $res = curl($url . "/editMessage?parse_mode=Markdown&text=_This message was deleted_&inline_message_id=" . $_REQUEST["inline_message_id"]); } else { $res = curl($url . "/editMessage?parse_mode=Markdown&text=_This message was deleted_&message_id=" . $_REQUEST["message_id"] . "&chat_id=" . $_REQUEST["chat_id"]); };
+	if($_REQUEST["inline_message_id"] != "") {
+		$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id=" . $_REQUEST["inline_message_id"]); 
+	} else {
+		$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id=" . $_REQUEST["message_id"] . "&chat_id=" . $_REQUEST["chat_id"]);
+	};
+	if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 	jsonexit($res);
 }
 
-if (array_key_exists($smethod, $sendMethods) && $token != "") { // If using one of the send methods
+if (array_key_exists($smethod, $methods) && $token != "") { // If using one of the send methods
 	include 'functions.php';
 	if($_FILES[$smethod]["tmp_name"] != "") {
 		$name = $_FILES[$smethod]["name"];

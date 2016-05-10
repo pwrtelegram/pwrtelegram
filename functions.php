@@ -1,12 +1,24 @@
 <?php
+/*
+Copyright 2016 Daniil Gentili
+(https://daniil.it)
+
+This file is part of the PWRTelegram API.
+the PWRTelegram API is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
+The PWRTelegram API is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU Affero General Public License for more details. 
+You should have received a copy of the GNU General Public License along with the PWRTelegram API. 
+If not, see <http://www.gnu.org/licenses/>.
+*/
 function find_txt($msgs) {
 	$ok = "";
 	foreach ($msgs as $msg) {
 		foreach ($msg as $key => $val) { 
 			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = "y";
 		}
-		if ($ok == "y") return $msg->reply_id;
+		if ($ok == "y") $id = $msg->reply_id;
 	}
+	return $id;
 }
 // curl wrapper
 function curl($url) {
@@ -79,7 +91,7 @@ function checkurl($url) {
 
 function checkbotuser($me) {
 	include 'telegram_connect.php';
-	include 'vars.php';
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
 	$usernames = array();
@@ -109,10 +121,8 @@ function unlink_link($path) {
 
 function download($file_id) {
 	include '../db_connect.php';
-	include 'vars.php';
-	global $homedir, $methods;
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $homedir, $methods;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
-	$file_id = $_REQUEST['file_id'];
 	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;");
 	$selectstmt->execute(array($file_id, $me));
 	$select = $selectstmt->fetch(PDO::FETCH_ASSOC);
@@ -126,14 +136,13 @@ function download($file_id) {
 	}
 
 	include 'telegram_connect.php';
-	$getMethods = array("photo", "audio", "video", "voice", "sticker", "document");
-
+	$gmethods = array_keys($methods);
 
 	if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
 
 	$count = 0;
-	while($result["ok"] != true && $count < count($getMethods)) {
-		$result = curl($url . "/send" . $getMethods["$count"] . "?chat_id=" . $botusername . "&" . $getMethods["$count"] . "=" . $file_id);
+	while($result["ok"] != true && $count < count($gmethods)) {
+		$result = curl($url . "/send" . $gmethods["$count"] . "?chat_id=" . $botusername . "&" . $gmethods["$count"] . "=" . $file_id);
 		$count++;
 	};
 	$count--;
@@ -141,13 +150,14 @@ function download($file_id) {
 	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user.");
 	$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
 	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
+/*
 	$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
 	if($msg_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't find message id.");
-	$result = $telegram->getFile($getMethods["$count"], $msg_id);
+*/
+	$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
 	$path = $result->{"result"};
 	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
-	use Mhor\MediaInfo\MediaInfo;
-	$mediaInfo = new MediaInfo();
+	$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 	$mediaInfoContainer = $mediaInfo->getInfo($path);
 	$general = $mediaInfoContainer->getGeneral();
 	if($general->get("file_extension") == null) {
@@ -173,23 +183,24 @@ function download($file_id) {
 }
 
 function get_finfo($file_id){
-	include 'vars.php';
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage;
 	include 'telegram_connect.php';
-	$getMethods = array("photo", "sticker", "audio", "video", "voice", "document");
+	global $methods;
+	$methods = array_keys($methods);
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
 	if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
 
 	$count = 0;
-	while($result["ok"] != true && $count < count($getMethods)) {
-		$result = curl($url . "/send" . $getMethods["$count"] . "?chat_id=" . $botusername . "&" . $getMethods["$count"] . "=" . $file_id);
+	while($result["ok"] != true && $count < count($methods)) {
+		$result = curl($url . "/send" . $methods["$count"] . "?chat_id=" . $botusername . "&" . $methods["$count"] . "=" . $file_id);
 		$count++;
 	};
 	$count--;
 	$info["ok"] = $result["ok"];
 	if($info["ok"] == true) {
-		$info["type"] = $getMethods[$count];
-		if($info["type"] == "photo") $info["file_size"] = $result["result"][$getMethods[$count]][0]["file_size"]; else $info["file_size"] = $result["result"][$getMethods[$count]]["file_size"];
+		$info["type"] = $methods[$count];
+		if($info["type"] == "photo") $info["file_size"] = $result["result"][$methods[$count]][0]["file_size"]; else $info["file_size"] = $result["result"][$methods[$count]]["file_size"];
 	}
 	return $info;
 }
@@ -197,9 +208,10 @@ function get_finfo($file_id){
 function upload($file, $name = "", $type = "", $detect = false, $forcename = false) {
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
 	include '../db_connect.php';
-	include 'vars.php';
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage;
+	include 'beta.php';
 	include 'telegram_connect.php';
-	global $sendMethods, $homedir;
+	global $methods, $homedir;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
 	if($detect == "") $detect = false;
@@ -207,7 +219,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 	if($forcename) $name = basename($name); else $name = "";
 	if($type == "file") $detect = true;
 	if(!checkdir($homedir . "/ul/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
-	$path = $homedir . "/ul/" . $me . "/" . $fname;
+	$path = $homedir . "ul/" . $me . "/" . $fname;
 	if(file_exists($file)) {
 		$size = filesize($file);
 		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
@@ -256,6 +268,41 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 				$type = "document";
 		}
 	};
+	$params = $_REQUEST;
+	$newparams = array();
+	if($detect == true) {
+			switch($type) {
+				case "audio":
+					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+					$mediaInfoContainer = $mediaInfo->getInfo($path);
+					$general = $mediaInfoContainer->getGeneral(); 
+					foreach (array("duration" => "duration", "performer" => "performer", "track_name" => "title") as $orig => $param) { $newparams[$param] = $general->get($orig); };
+					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
+					break;
+				case "voice":
+					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+					$mediaInfoContainer = $mediaInfo->getInfo($path);
+					$general = $mediaInfoContainer->getGeneral(); 
+					foreach (array("duration" => "duration") as $orig => $param) { $newparams[$param] = $general->get($orig); };
+					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
+					break;
+				case "video":
+					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+					$mediaInfoContainer = $mediaInfo->getInfo($path);
+					$general = $mediaInfoContainer->getGeneral(); 
+					foreach (array("duration" => "duration", "width" => "width", "height" => "height") as $orig => $param) { $newparams[$param] = $general->get($orig); };
+					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
+					foreach (array("width" => "width", "height" => "height") as $orig => $param) { if($newparams[$param] !== null) $newparams[$param] = $newparams[$param]->__toString(); };
+					$newparams["caption"] = $fname;
+					break;
+				case "photo":
+					$newparams["caption"] = $fname;
+					break;
+				case "document":
+					$newparams["caption"] = $fname;
+					break;
+			}
+	}
 
 	$file_hash = hash_file('sha256', $path);
 	$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
@@ -265,10 +312,9 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 
 	if($file_id == "") {
 		if(!checkbotuser($me)) { unlink($path); return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat."); };
-	
-		$result = $telegram->pwrsendFile("@" . $me, $sendMethods[$type], $path);
-		unlink($path);
 
+		$result = $telegram->pwrsendFile("@" . $me, $methods[$type], $path);
+		unlink($path);
 		if($result->{'error'} != "") return array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'});
 		$message_id = $result->{'id'};
 
@@ -287,50 +333,12 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		$select_stmt->execute(array($file_hash, $type, $me, $name));
 		$file_id = $select_stmt->fetchColumn();
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file.");
-	} else {
-		unlink($path);
-	}
-	$params = $_REQUEST;
+	} else unlink($path);
 	$params[$type] = $file_id;
-	$newparams = array();
-	if($detect == true) {
-			switch($type) {
-				case "audio":
-					use Mhor\MediaInfo\MediaInfo;
-					$mediaInfo = new MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration", "performer" => "performer", "track_name" => "title") as $orig => $param) { $newparams[$param] = $general->get($orig); };
-					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
-					break;
-				case "voice":
-					use Mhor\MediaInfo\MediaInfo;
-					$mediaInfo = new MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration") as $orig => $param) { $newparams[$param] = $general->get($orig); };
-					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
-					break;
-				case "video":
-					use Mhor\MediaInfo\MediaInfo;
-					$mediaInfo = new MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration", "width" => "width", "height" => "height") as $orig => $param) { $newparams[$param] = $general->get($orig); };
-					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
-					foreach (array("width" => "width", "height" => "height") as $orig => $param) { if($newparams[$param] !== null) $newparams[$param] = $newparams[$param]->__toString(); };
-					$newparams["caption"] = $fname;
-					break;
-				case "photo":
-					$newparams["caption"] = $fname;
-					break;
-				case "document":
-					$newparams["caption"] = $fname;
-					break;
-			}
-	}
 	foreach($newparams as $wut => $newparam) { if($params["wut"] == "" && $newparam != "") $params["wut"] = $newparam; };
-	return curl($url . "/send" . $type . "?" . http_build_query($params));
+	$res = curl($url . "/send" . $type . "?" . http_build_query($params));
+	//if($res["ok"] == true) $res["type"] = $type;
+	return $res;
 }
 
 ?>
