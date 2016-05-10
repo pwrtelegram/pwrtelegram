@@ -19,7 +19,7 @@ The PWRTelegram API makes use of:
 
 * All of the official telegram bot API features plus:  
 * Downloading of files up to 1.5 GB in size  
-* Anonymus file storage (the URL of downloaded files does not contain your bot's token)  
+* Anonymous file storage (the URL of downloaded files does not contain your bot's token)  
 * Uploading of files up to 1.5 GB in size  
 * Uploading of files using an url
 * Uploading of any file/url with automagical type recognition  
@@ -48,15 +48,16 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 
 * The PWRTelegram API proxies all requests sent to it to api.telegram.org (later will be called official telegram API), except for:
 
- * getUpdates requests.
+* getUpdates requests.
 
-The response of these requests will be passed trough a piece of code that will filter out messages from @pwrtelegramAPI.
+The response of these requests will be passed trough a piece of code that will filter out messages from @pwrtelegramapi.
 
- * getFile requests.
+* getFile requests.
 
-If a getFile request is made and the file ID points to a file which size is bigger than 20 MB and/or if you provide a (GET or POST) parameter with name ```store_on_pwrtelegram``` and value true the request is intercepted and the file is downloaded using the PWRTelegram API, else the request is forwarded to the official telegram API.  
+If a getFile request is made and the file ID points to a file which size is bigger than 20 MB and/or if you provide a (GET or POST) parameter with name ```store_on_pwrtelegram``` and boolean value ```true``` the request is intercepted and the file is downloaded using the PWRTelegram API, else the request is forwarded to the official telegram API.  
 The PWRTelegram API will then return a [File](https://core.telegram.org/bots/API#file) object.   
-The file can be downloaded via the link ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>```. If the file was downloaded using the PWRTelegram API than you can use the following anonymus url: ```https://storage.pwrtelegram.xyz/<file_path>```.
+The file can be downloaded via the link ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>```.  
+If the file was downloaded using the PWRTelegram API than you can use the following anonymous url: ```https://storage.pwrtelegram.xyz/<file_path>```.
 
 If the file was downloaded using the PWRTelegram API the download URL will be in the following format:  
 ```
@@ -70,7 +71,7 @@ All of the above requests will be processed using the PWRTelegram API.
 
 The usage of these methods is exactly the same as in the official Telegram BOT API, except that if the request contains a file URL instead of the document (or photo, etc) the file will be downloaded and sent with the given parameters.
 
-You can provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and trsend the file with the new file name.  
+You can provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
 
 You can also provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).
 
@@ -84,7 +85,9 @@ This is the metadata that will be obtained and sent if the detect parameter is s
 
 * Audio: track name, author, duration as title, author, duration
 
-* Voice: duration as duration
+* Voice: duration as duration  
+
+
 
 
 * sendFile
@@ -142,11 +145,11 @@ Otherwise the error is returned.
 
 * For now the only supported message update method is getUpdates.  
 
-* Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili)  
+* Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili).  
 
-For questions contact https://telegram.me/danogentili
+For questions contact https://telegram.me/danogentili or the [official support group](https://telegram.me/pwrtelegramgroup).
 
-Share this API with all of your friends! :) 
+Share this API and its offical channel (https://telegram.me/pwrtelegram) with all of your friends! :) 
 
 Feel free to contribute with pull Requests.  
 
