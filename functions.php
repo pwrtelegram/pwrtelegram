@@ -10,16 +10,6 @@ See the GNU Affero General Public License for more details.
 You should have received a copy of the GNU General Public License along with the PWRTelegram API. 
 If not, see <http://www.gnu.org/licenses/>.
 */
-function find_txt($msgs) {
-	$ok = "";
-	foreach ($msgs as $msg) {
-		foreach ($msg as $key => $val) { 
-			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = "y";
-		}
-		if ($ok == "y") $id = $msg->reply_id;
-	}
-	return $id;
-}
 // curl wrapper
 function curl($url) {
 	// Get cURL resource
@@ -150,10 +140,6 @@ function download($file_id) {
 	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user.");
 	$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
 	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
-/*
-	$msg_id = find_txt($telegram->getHistory("@" .$me, 10000000));
-	if($msg_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't find message id.");
-*/
 	$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
 	$path = $result->{"result"};
 	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");

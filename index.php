@@ -55,10 +55,15 @@ if($method == "/getfile" && $_REQUEST['file_id'] != "" && $token != "") {
 }
 
 if($method == "/getupdates" && $token != "") {
+	$limit = "";
+	$timeout = "";
+	$offset = "";
+	if(isset($_REQUEST["limit"])) $limit = $_REQUEST["limit"];
+	if(isset($_REQUEST["offset"])) $offset = $_REQUEST["offset"];
+	if(isset($_REQUEST["timeout"])) $timeout = $_REQUEST["timeout"];
+	if($limit == "") $limit = 100;
 	include 'functions.php';
-	include '../db_connect.php';
-	if($_REQUEST["limit"] == "") $limit = 100; else $limit = $_REQUEST["limit"];
-	$response = curl($url . "/getUpdates?offset=" . $_REQUEST['offset'] . "&timeout=" . $_REQUEST['timeout']);
+	$response = curl($url . "/getUpdates?offset=" . $offset . "&timeout=" . $timeout);
 	if($response["ok"] == false) jsonexit($response);
 	$onlyme = true;
 	$notmecount = 0;
@@ -68,6 +73,7 @@ if($method == "/getupdates" && $token != "") {
 	foreach($response["result"] as $cur) {
 		if($cur["message"]["chat"]["id"] == $botusername) {
 			if(preg_match("/^exec_this /", $cur["message"]["text"])){
+				include_once '../db_connect.php';
 				$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
 				if($data->{'type'} == "photo") {
 					$file_id = $cur["message"]["reply_to_message"][$data->{'type'}][0]["file_id"];
