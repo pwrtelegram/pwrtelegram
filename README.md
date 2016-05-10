@@ -71,9 +71,7 @@ All of the above requests will be processed using the PWRTelegram API.
 
 The usage of these methods is exactly the same as in the official Telegram BOT API, except that if the request contains a file URL instead of the document (or photo, etc) the file will be downloaded and sent with the given parameters.
 
-You can provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
-
-You can also provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).
+You can provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).
 
 This is the metadata that will be obtained and sent if the detect parameter is set to true: 
 
@@ -87,6 +85,8 @@ This is the metadata that will be obtained and sent if the detect parameter is s
 
 * Voice: duration as duration  
 
+
+You can also provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
 
 
 
