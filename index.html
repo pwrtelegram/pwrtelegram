@@ -22,10 +22,26 @@
       <h1>
 <a id="pwrtelegram-api" class="anchor" href="#pwrtelegram-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pwrtelegram API</h1>
 
-<p>Version 1.0 beta 2.<br>
-Licensed under GPLv3.  </p>
+<p>Version 1.1 beta 1.<br>
+Licensed under AGPLv3.  </p>
 
 <p>This repository contains the source code for the pwrtelegram API, a boosted version of the official telegram bot API.</p>
+
+<p>The PWRTelegram API makes use of:  </p>
+
+<ul>
+<li>The <a href="https://github.com/mholt/caddy">Caddy</a> web server.</li>
+<li>
+<a href="https://hhvm.com">HHVM</a> as fastcgi engine</li>
+<li><a href="https://github.com/mhor/php-mediainfo">php-mediainfo</a></li>
+<li>A modified version of <a href="https://github.com/zyberspace/php-telegram-cli-client">php-telegram-cli-client</a>
+</li>
+<li>A modified version of <a href="https://github.com/pwrtelegram/tg">telegram-cli</a>
+</li>
+<li>A modified version of <a href="https://github.com/mcnemesis/proxy.php">proxy.php</a>
+</li>
+<li><a href="https://github.com/pwrtelegram/telegram-lua-load">telegram-lua-load</a></li>
+</ul>
 
 <h2>
 <a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features:</h2>
@@ -33,11 +49,18 @@ Licensed under GPLv3.  </p>
 <ul>
 <li>All of the official telegram bot API features plus:<br>
 </li>
-<li>Uploading of files up to 1.5 GB in size<br>
-</li>
 <li>Downloading of files up to 1.5 GB in size<br>
 </li>
-<li>Uploading of files using an url<br>
+<li>Anonymous file storage (the URL of downloaded files does not contain your bot's token)<br>
+</li>
+<li>Uploading of files up to 1.5 GB in size<br>
+</li>
+<li>Uploading of files using an url</li>
+<li>Uploading of any file/url with automagical type recognition<br>
+</li>
+<li>Optional automagical metadata recognition of sent files/URLs.<br>
+</li>
+<li>Deleting of text messages sent from the bot<br>
 </li>
 <li>
 <a href="https://telegram.me/danogentili">You tell me!</a><br>
@@ -47,11 +70,11 @@ Licensed under GPLv3.  </p>
 <h2>
 <a id="how-do-i-enable-it" class="anchor" href="#how-do-i-enable-it" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How do I enable it?</h2>
 
-<p>To enable it simply subsitute the url of the bot telegram API (<a href="https://API.telegram.org">https://API.telegram.org</a>) with the url of the pwrtelegram API (<a href="https://API.pwrtelegram.xyz">https://API.pwrtelegram.xyz</a>) in your telegram client.</p>
+<p>To enable it simply subsitute the url of the bot telegram API (<a href="https://api.telegram.org">https://api.telegram.org</a>) with the url of the pwrtelegram API (<a href="https://api.pwrtelegram.xyz">https://api.pwrtelegram.xyz</a>) in your telegram client.</p>
 
 <p>You can use this command to do it:</p>
 
-<p>sed -i 's/API.telegram.org/API.pwrtelegram.xyz/g' client.py</p>
+<p>sed -i 's/api.telegram.org/api.pwrtelegram.xyz/g' client.py</p>
 
 <p>The API will automagically do the rest :)  </p>
 
@@ -62,25 +85,21 @@ Licensed under GPLv3.  </p>
 
 <ul>
 <li><p>Please do not abuse of the API by uploading and/or downloading illegal or copyrighted material. The pwrtelegram API creator reserves the right to delete any illegal or copyrighted material that is found on his servers.  </p></li>
-<li><p>The PWRTelegram API does not store in any way your bot's token but it does store the bot's username, the sha256 sum of uploaded files and the file ID of uploaded and downloaded files.</p></li>
-<li>
-<p>The PWRTelegram API proxies all requests sent to it to API.telegram.org (later will be called official telegram API), except for:</p>
-
-<ul>
-<li>getUpdates requests.</li>
-</ul>
-</li>
+<li><p>The PWRTelegram API does not store in any way your bot's token but it does store the bot's username, the sha256 sum of uploaded files and the file ID and the size of uploaded and downloaded files.</p></li>
+<li><p>The PWRTelegram API proxies all requests sent to it to api.telegram.org (later will be called official telegram API), except for:</p></li>
+<li><p>getUpdates requests.</p></li>
 </ul>
 
-<p>The responses of this method will be passed trough a piece of code that filters out messages from @pwrtelegramAPI.</p>
+<p>The response of these requests will be passed trough a piece of code that will filter out messages from @pwrtelegramapi.</p>
 
 <ul>
 <li>getFile requests.</li>
 </ul>
 
-<p>If a getFile request is made and the file ID points to a file which size is bigger than 20 MB and/or if you provide a (GET or POST) parameter with name <code>store_on_pwrtelegram</code> and value y the request is intercepted and the file is downloaded using the PWRTelegram API, else the request is forwarded to the official telegram API.<br>
+<p>If a getFile request is made and the file ID points to a file which size is bigger than 20 MB and/or if you provide a (GET or POST) parameter with name <code>store_on_pwrtelegram</code> and boolean value <code>true</code> the request is intercepted and the file is downloaded using the PWRTelegram API, else the request is forwarded to the official telegram API.<br>
 The PWRTelegram API will then return a <a href="https://core.telegram.org/bots/API#file">File</a> object.<br>
-The file can be downloaded via the link <code>https://api.pwrtelegram.xyz/file/bot&lt;token&gt;/&lt;file_path&gt;</code>. If the file was downloaded using the PWRTelegram API than you can use the following url: <code>https://storage.pwrtelegram.xyz/&lt;file_path&gt;</code>.</p>
+The file can be downloaded via the link <code>https://api.pwrtelegram.xyz/file/bot&lt;token&gt;/&lt;file_path&gt;</code>.<br>
+If the file was downloaded using the PWRTelegram API than you can use the following anonymous url: <code>https://storage.pwrtelegram.xyz/&lt;file_path&gt;</code>.</p>
 
 <p>If the file was downloaded using the PWRTelegram API the download URL will be in the following format:  </p>
 
@@ -94,21 +113,182 @@ The file can be downloaded via the link <code>https://api.pwrtelegram.xyz/file/b
 </li>
 </ul>
 
-<p>If a sendDocument, sendPhoto, sendVideo, sendAudio or a sendVoice request is sent with a file which size is bigger than 40 MB, the API will pass the file to a function that will upload the file to telegram and return the uploaded file's id.  </p>
+<p>All of the above requests will be processed using the PWRTelegram API.  </p>
 
-<p>If a sendDocument, sendPhoto, sendVideo, sendAudio, sendVoice or a sendSticker request is sent with a URL in place of the document (or photo, etc) the PWRTelegram API will download the file (only if its size is smaller than 1.5 GB), upload it on telegram and return its file id.  </p>
+<p>The usage of these methods is exactly the same as in the official Telegram BOT API, except that if the request contains a file URL instead of the document (or photo, etc) the file will be downloaded and sent with the given parameters.</p>
 
-<p>If, due to any of the above conditions, the sent file or URL is uploaded using the PWRTelegram API, the next time you resend the same file (checked using sha256) the file won't be reuploaded and the file ID will be fetched from a database.</p>
+<p>You can provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  </p>
+
+<p>You can also provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).</p>
+
+<p>This is the metadata that will be obtained and sent if the detect parameter is set to true: </p>
+
+<ul>
+<li><p>Documents: file name as caption</p></li>
+<li><p>Photos: file name as caption</p></li>
+<li><p>Video: file name, width, height and duration as caption, width, height and duration</p></li>
+<li><p>Audio: track name, author, duration as title, author, duration</p></li>
+<li><p>Voice: duration as duration  </p></li>
+<li><p>sendFile</p></li>
+</ul>
+
+<p>Use this method to send any file/URL. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.</p>
+
+<p>This is the metadata that will be obtained and sent (only if it isn't already provided in the request) along with the file:</p>
+
+<ul>
+<li><p>Documents: file name as caption</p></li>
+<li><p>Photos: file name as caption</p></li>
+<li><p>Video: file name, width, height and duration as caption, width, height and duration</p></li>
+<li><p>Audio: track name, author, duration as title, author, duration</p></li>
+<li><p>Voice: duration as duration</p></li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th>Parameters</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chat_id</td>
+<td>Integer or String</td>
+<td>Yes</td>
+<td>Unique identifier for the target chat or username of the target channel (in the format @channelusername)</td>
+</tr>
+<tr>
+<td>message_id</td>
+<td>Integer</td>
+<td>Yes</td>
+<td>Unique identifier of the sent message</td>
+</tr>
+<tr>
+<td>file</td>
+<td>String</td>
+<td>Yes</td>
+<td>File to send. You can either pass a URL as String to send a file from a URL or upload a new file using <em>multipart/form-data</em>.</td>
+</tr>
+<tr>
+<td>caption</td>
+<td>String</td>
+<td>Optional</td>
+<td>File caption (will only be applied if the sent file/URL is a photo, a video or a document), 0-200 characters</td>
+</tr>
+<tr>
+<td>duration</td>
+<td>Integer</td>
+<td>Optional</td>
+<td>Duration of the sent file/URL in seconds (will only be applied if the sent file/URL is an audio file, a video or a voice recording)</td>
+</tr>
+<tr>
+<td>performer</td>
+<td>String</td>
+<td>Optional</td>
+<td>Performer of the sent file/URL (will only be applied if the sent file/URL is an audio file)</td>
+</tr>
+<tr>
+<td>title</td>
+<td>String</td>
+<td>Optional</td>
+<td>Title of the sent file/URL (will only be applied if the sent file/URL is an audio file)</td>
+</tr>
+<tr>
+<td>width</td>
+<td>Integer</td>
+<td>Optional</td>
+<td>Width of the sent file/URL (will only be applied if the sent file/URL is a video file)</td>
+</tr>
+<tr>
+<td>height</td>
+<td>Integer</td>
+<td>Optional</td>
+<td>Height of the sent file/URL (will only be applied if the sent file/URL is a video file)</td>
+</tr>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>Optional</td>
+<td>Name of the file to be sent. If set, the file will be sent with the specified file name.</td>
+</tr>
+<tr>
+<td>disable_notification</td>
+<td>Boolean</td>
+<td>Optional</td>
+<td>Sends the message silently. iOS users will not receive a notification, Android users will receive a notification with no sound.</td>
+</tr>
+<tr>
+<td>reply_to_message_id</td>
+<td>Integer</td>
+<td>Optional</td>
+<td>If the message is a reply, ID of the original message</td>
+</tr>
+<tr>
+<td>reply_markup</td>
+<td>InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardHide or ForceReply</td>
+<td>Optional</td>
+<td>Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to hide reply keyboard or to force a reply from the user.</td>
+</tr>
+</tbody>
+</table>
+
+<ul>
+<li>deleteMessage</li>
+</ul>
+
+<p>Use this method to delete text messages sent by the bot or via the bot (for inline bots).<br>
+On success, if the message is deleted by the bot, a json array is returned with the following values:</p>
+
+<ul>
+<li><p>ok =&gt; true</p></li>
+<li><p>result =&gt; "The message was deleted successfully."</p></li>
+</ul>
+
+<p>Otherwise the error is returned.</p>
+
+<table>
+<thead>
+<tr>
+<th>Parameters</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chat_id</td>
+<td>Integer or String</td>
+<td>No (see description)</td>
+<td>Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format @channelusername)</td>
+</tr>
+<tr>
+<td>message_id</td>
+<td>Integer</td>
+<td>No (see description)</td>
+<td>Required if inline_message_id is not specified. Unique identifier of the sent message</td>
+</tr>
+<tr>
+<td>inline_message_id</td>
+<td>String</td>
+<td>No (see description)</td>
+<td>Required if chat_id and message_id are not specified. Identifier of the inline message</td>
+</tr>
+</tbody>
+</table>
 
 <ul>
 <li><p>Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue.  </p></li>
 <li><p>For now the only supported message update method is getUpdates.  </p></li>
-<li><p>Please note that this API is still in beta and there might be small bugs. To report them contact <a href="https://telegram.me/danogentili">Daniil Gentili</a>  </p></li>
+<li><p>Please note that this API is still in beta and there might be small bugs. To report them contact <a href="https://telegram.me/danogentili">Daniil Gentili</a>.  </p></li>
 </ul>
 
-<p>For questions contact <a href="https://telegram.me/danogentili">https://telegram.me/danogentili</a></p>
+<p>For questions contact <a href="https://telegram.me/danogentili">https://telegram.me/danogentili</a> or the <a href="https://telegram.me/pwrtelegramgroup">official support group</a>.</p>
 
-<p>Share this API with all of your friends! :) </p>
+<p>Share this API and its offical channel (<a href="https://telegram.me/pwrtelegram">https://telegram.me/pwrtelegram</a>) with all of your friends! :) </p>
 
 <p>Feel free to contribute with pull Requests.  </p>
 
