@@ -15,7 +15,6 @@ If not, see <http://www.gnu.org/licenses/>.
 // logging
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
-
 $file_id = "";
 $homedir = __DIR__ . "/../";
 $methods = array("photo" => "photo", "audio" => "audio", "video" => "video", "document" => "document", "sticker" => "document", "voice" => "document", "file" => "");
@@ -25,11 +24,8 @@ $smethod = preg_replace("/.*\/send/", "", $method);
 $botusername = "140639228";
 $token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
 $url = "https://api.telegram.org/bot" . $token;
-$pwrtelegram_api = "https://api.pwrtelegram.xyz/";
+$pwrtelegram_api = "https://".$_SERVER["HTTP_HOST"]."/";
 $pwrtelegram_storage = "https://storage.pwrtelegram.xyz/";
-
-// beta version
-include '../beta.php';
 
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	include 'functions.php';
