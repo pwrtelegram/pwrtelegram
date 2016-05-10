@@ -29,7 +29,7 @@ $pwrtelegram_api = "https://api.pwrtelegram.xyz/";
 $pwrtelegram_storage = "https://storage.pwrtelegram.xyz/";
 
 // beta version
-include 'beta.php';
+include '../beta.php';
 
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	include 'functions.php';
