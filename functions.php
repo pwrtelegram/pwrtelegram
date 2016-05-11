@@ -143,14 +143,16 @@ function download($file_id) {
 	$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
 	$path = $result->{"result"};
 	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
-	$mediaInfo = new Mhor\MediaInfo\MediaInfo();
-	$mediaInfoContainer = $mediaInfo->getInfo($path);
-	$general = $mediaInfoContainer->getGeneral();
-	if($general->get("file_extension") == null) {
-		$newpath = $path . "." . preg_replace("/.*\s/", "", $general->get("format_extensions_usually_used"));
-		if(!rename($path, $newpath)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't append file extension.");
-		$path = $newpath;
-	}
+	try {
+		$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+		$mediaInfoContainer = $mediaInfo->getInfo($path);
+		$general = $mediaInfoContainer->getGeneral();
+		if($general->get("file_extension") == null) {
+			$newpath = $path . "." . preg_replace("/.*\s/", "", $general->get("format_extensions_usually_used"));
+			if(!rename($path, $newpath)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't append file extension.");
+			$path = $newpath;
+		}
+	} catch(Exception $e) { ; };
 	if(!checkdir($homedir . "/storage/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
 	$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
 	unlink($homedir . "/storage/" . $file_path);
@@ -261,15 +263,20 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 				case "audio":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration", "performer" => "performer", "track_name" => "title") as $orig => $param) { $newparams[$param] = $general->get($orig); };
+					$general = $mediaInfoContainer->getGeneral(); var_dump($general);exit;
+					foreach (array("duration" => "duration", "performer" => "performer", "track_name" => "title") as $orig => $param) {
+						try {
+							$newparams[$param] = $general->get($orig); 
+						} catch(Exception $e) { 
+						}; 
+					};
 					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
 					break;
 				case "voice":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
 					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration") as $orig => $param) { $newparams[$param] = $general->get($orig); };
+					foreach (array("duration" => "duration") as $orig => $param) { try { $newparams[$param] = $general->get($orig); } catch(Exception $e) { ; }; };
 					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
 					break;
 				case "video":
