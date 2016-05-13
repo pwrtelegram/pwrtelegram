@@ -21,9 +21,10 @@ The PWRTelegram API makes use of:
 * Downloading of files up to 1.5 GB in size  
 * Anonymous file storage (the URL of downloaded files does not contain your bot's token)  
 * Uploading of files up to 1.5 GB in size  
-* Uploading of files using an url
-* Uploading of any file/url with automagical type recognition  
-* Optional automagical metadata recognition of sent files/URLs.  
+* Uploading of files using an URL
+* Reuploading of files using a file ID and different file type or file name.
+* Uploading of any file/URL/file ID with automagical type recognition  
+* Optional automagical metadata recognition of sent files/URLs/file IDs.  
 * Deleting of text messages sent from the bot  
 * [You tell me!](https://telegram.me/danogentili)  
 

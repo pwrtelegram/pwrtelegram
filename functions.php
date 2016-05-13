@@ -196,14 +196,20 @@ function download($file_id) {
 	return $newresponse;
 }
 
-// Returninfo from file id
+/**
+ * Gets info from file id
+ *
+ * @param $file_id - The file id to recognize
+ *
+ * @return json with error or file info
+ */
 function get_finfo($file_id){
-	global $methods, $url;
+	global $methods, $url, $botusername;
 	$methods = array_keys($methods);
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
 	if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
-
+	$result = array("ok" => false);
 	$count = 0;
 	while($result["ok"] != true && $count < count($methods)) {
 		$result = curl($url . "/send" . $methods["$count"] . "?chat_id=" . $botusername . "&" . $methods["$count"] . "=" . $file_id);
@@ -212,28 +218,52 @@ function get_finfo($file_id){
 	$count--;
 	$info["ok"] = $result["ok"];
 	if($info["ok"] == true) {
-		$info["type"] = $methods[$count];
-		if($info["type"] == "photo") $info["file_size"] = $result["result"][$methods[$count]][0]["file_size"]; else $info["file_size"] = $result["result"][$methods[$count]]["file_size"];
+		$info["file_type"] = $methods[$count];
+		$info["file_id"] = $file_id;
+		if($info["file_type"] == "photo") $info["file_size"] = $result["result"][$methods[$count]][0]["file_size"]; else $info["file_size"] = $result["result"][$methods[$count]]["file_size"];
 	}
 	return $info;
 }
 
+/**
+ * Upload given file/URL/file id
+ *
+ * @param $file - The file/URL/file to upload
+ *
+ * @param $name - The file name to use when uploading, can be empty
+ * (in this case the file name will be obtained from the given file path/URL)
+ *
+ * @param $type - The type of file to use when uploading:
+ * can be document, photo, audio, voice, sticker, file or empty
+ * (in this case the type will default to file)
+ *
+ * @param $detect - Boolean, enables or disables metadata detection, defaults to false
+ *
+ * @param $forcename - Boolean, enables or disables file name forcing, defaults to false
+ * If set to false the file name to be stored in the database will be set to empty and the 
+ * associated file id will be reused the next time a file with the same hash and with $forcename set to false is sent.
+ *
+ * @return json with error or file id
+ */
 
 function upload($file, $name = "", $type = "", $detect = false, $forcename = false) {
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
+	if($name == "") $file_name = basename($file); else $file_name = basename($name);
+	if($detect == "") $detect = false;
+	if($type == "") $type = "file";
+	if($type == "file") $detect = true;
+	if($forcename == "") $forcename = false;
+	if($forcename) $name = basename($name); else $name = "";
+
 	include '../db_connect.php';
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage;
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir;
 	include 'beta.php';
 	include 'telegram_connect.php';
-	global $methods, $homedir;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
-	if($detect == "") $detect = false;
-	if($name == "") $fname = basename($file); else $fname = basename($name);
-	if($forcename) $name = basename($name); else $name = "";
-	if($type == "file") $detect = true;
 	if(!checkdir($homedir . "/ul/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
-	$path = $homedir . "ul/" . $me . "/" . $fname;
+	$path = $homedir . "/ul/" . $me . "/" . $file_name;
+
 	if(file_exists($file)) {
 		$size = filesize($file);
 		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
@@ -254,9 +284,17 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		curl_exec($ch);
 		curl_close($ch);
 		fclose($fp);
-	} else {
-		return curl($url . "/send" . $type . "?" . http_build_query($_REQUEST));
-	}
+	} else if(!preg_match('/[^A-Za-z0-9\-\_]/', $file)) {
+		$info = get_finfo($file);
+		if($info["ok"] != true) return array("ok" => false, "error_code" => 400, "description" => "Couldn't get info from file id.");
+		if($info["file_type"] == "") return array("ok" => false, "error_code" => 400, "description" => "File type is empty.");
+		if($type == "file") $type = $info["file_type"];
+		if($type != $info["file_type"] || $forcename == true) {
+			$downloadres = download($file);
+			if($res["result"]["file_path"] != "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file from file id.");
+			if(!rename($res["result"]["file_path"], $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
+		} return curl($url . "/send" . $type . "?" $type . "=" . $file . http_build_query($_REQUEST));
+	} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL/path.");
 
 	if($type == "file") {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -289,36 +327,36 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 				case "audio":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); var_dump($general);exit;
+					$general = $mediaInfoContainer->getGeneral(); 
 					foreach (array("duration" => "duration", "performer" => "performer", "track_name" => "title") as $orig => $param) {
 						try {
 							$newparams[$param] = $general->get($orig); 
-						} catch(Exception $e) { 
-						}; 
+						} catch(Exception $e) {
+						};
 					};
 					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
 					break;
 				case "voice":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration") as $orig => $param) { try { $newparams[$param] = $general->get($orig); } catch(Exception $e) { ; }; };
-					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
+					$general = $mediaInfoContainer->getGeneral();
+					try {
+						$newparams[$param] = round($general->get($orig)->__toString() / 1000);
+					} catch(Exception $e) { ; }; };
 					break;
 				case "video":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration", "width" => "width", "height" => "height") as $orig => $param) { $newparams[$param] = $general->get($orig); };
-					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
-					foreach (array("width" => "width", "height" => "height") as $orig => $param) { if($newparams[$param] !== null) $newparams[$param] = $newparams[$param]->__toString(); };
-					$newparams["caption"] = $fname;
+					$general = $mediaInfoContainer->getGeneral();
+					foreach (array("duration" => "duration", "width" => "width", "height" => "height") as $orig => $param) { try { $newparams[$param] = $general->get($orig)->__toString(); } catch(Exception $e) { ; }; };
+					if($newparams["duration"] != "") $newparams["duration"] = round($newparams["duration"] / 1000);
+					$newparams["caption"] = $file_name;
 					break;
 				case "photo":
-					$newparams["caption"] = $fname;
+					$newparams["caption"] = $file_name;
 					break;
 				case "document":
-					$newparams["caption"] = $fname;
+					$newparams["caption"] = $file_name;
 					break;
 			}
 	}
@@ -354,9 +392,10 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file.");
 	} else unlink($path);
 	$params[$type] = $file_id;
-	foreach($newparams as $wut => $newparam) { if($params["wut"] == "" && $newparam != "") $params["wut"] = $newparam; };
+	foreach($newparams as $wut => $newparam) {
+		if($params[$wut] == "" && $newparam != "") $params[$wut] = $newparam;
+	};
 	$res = curl($url . "/send" . $type . "?" . http_build_query($params));
-	//if($res["ok"] == true) $res["type"] = $type;
 	return $res;
 }
 
