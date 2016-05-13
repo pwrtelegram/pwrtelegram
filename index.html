@@ -55,15 +55,16 @@ Licensed under AGPLv3.  </p>
 </li>
 <li>Uploading of files up to 1.5 GB in size<br>
 </li>
-<li>Uploading of files using an url</li>
-<li>Uploading of any file/url with automagical type recognition<br>
+<li>Uploading of files using an URL</li>
+<li>Reuploading of files using a file ID and different file type or file name.</li>
+<li>Uploading of any file/URL/file ID with automagical type recognition.<br>
 </li>
-<li>Optional automagical metadata recognition of sent files/URLs.<br>
+<li>Optional automagical metadata recognition of sent files/URLs/file IDs.<br>
 </li>
 <li>Deleting of text messages sent from the bot<br>
 </li>
 <li>
-<a href="https://telegram.me/danogentili">You tell me!</a><br>
+<a href="https://telegram.me/pwrtelegramgroup">You tell me!</a><br>
 </li>
 </ul>
 
@@ -74,7 +75,8 @@ Licensed under AGPLv3.  </p>
 
 <p>You can use this command to do it:</p>
 
-<p>sed -i 's/api.telegram.org/api.pwrtelegram.xyz/g' client.py</p>
+<pre><code>sed -i 's/api\.telegram\.org/api\.pwrtelegram\.xyz/g' client.py
+</code></pre>
 
 <p>The API will automagically do the rest :)  </p>
 
@@ -117,9 +119,9 @@ If the file was downloaded using the PWRTelegram API than you can use the follow
 
 <p>The usage of these methods is exactly the same as in the official Telegram BOT API, except that if the request contains a file URL instead of the document (or photo, etc) the file will be downloaded and sent with the given parameters.</p>
 
-<p>You can provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  </p>
+<p>The same will happen if you send a file ID that links to a file which type is different from the one specified in the URL or if you also provide a file name along with the file ID.</p>
 
-<p>You can also provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).</p>
+<p>You can provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).</p>
 
 <p>This is the metadata that will be obtained and sent if the detect parameter is set to true: </p>
 
@@ -129,10 +131,15 @@ If the file was downloaded using the PWRTelegram API than you can use the follow
 <li><p>Video: file name, width, height and duration as caption, width, height and duration</p></li>
 <li><p>Audio: track name, author, duration as title, author, duration</p></li>
 <li><p>Voice: duration as duration  </p></li>
-<li><p>sendFile</p></li>
 </ul>
 
-<p>Use this method to send any file/URL. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.</p>
+<p>You can also provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  </p>
+
+<ul>
+<li>sendFile</li>
+</ul>
+
+<p>Use this method to send any file/URL/file ID. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.</p>
 
 <p>This is the metadata that will be obtained and sent (only if it isn't already provided in the request) along with the file:</p>
 
@@ -170,7 +177,7 @@ If the file was downloaded using the PWRTelegram API than you can use the follow
 <td>file</td>
 <td>String</td>
 <td>Yes</td>
-<td>File to send. You can either pass a URL as String to send a file from a URL or upload a new file using <em>multipart/form-data</em>.</td>
+<td>File to send. You can either pass a URL as String to send a file from a URL, or a file ID as a string to reupload a file already present on the Telegram servers or upload a new file using <em>multipart/form-data</em>.</td>
 </tr>
 <tr>
 <td>caption</td>
