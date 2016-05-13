@@ -10,19 +10,6 @@ See the GNU Affero General Public License for more details.
 You should have received a copy of the GNU General Public License along with the PWRTelegram API. 
 If not, see <http://www.gnu.org/licenses/>.
 */
-// curl wrapper
-function curl($url) {
-	// Get cURL resource
-	$curl = curl_init();
-	curl_setopt_array($curl, array(
-	    CURLOPT_RETURNTRANSFER => 1,
-	    CURLOPT_URL => preg_replace("/\s/", "%20", $url),
-	));
-	$res = curl_exec($curl);
-	curl_close($curl);
-	//var_export($res);
-	return json_decode($res, true);
-};
 /**
  * Returns the size of a file without downloading it, or -1 if the file
  * size could not be determined.
@@ -70,14 +57,6 @@ function curl_get_file_size( $url ) {
   return $result;
 }
 
-function checkurl($url) {
-	$ch = curl_init("$url");
-	curl_setopt($ch, CURLOPT_NOBODY, true);
-	curl_exec($ch);
-	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	curl_close($ch);
-	if($retcode == 200) { return true; } else { return false;  };
-}
 
 function checkbotuser($me) {
 	include 'telegram_connect.php';
@@ -97,10 +76,6 @@ function checkdir($dir) {
 		if(!mkdir($dir, 0777, true)) return false;
 	}
 	return true;
-}
-
-function jsonexit($wut) {
-	die(json_encode($wut));
 }
 
 function unlink_link($path) {
