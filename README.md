@@ -23,19 +23,19 @@ The PWRTelegram API makes use of:
 * Uploading of files up to 1.5 GB in size  
 * Uploading of files using an URL
 * Reuploading of files using a file ID and different file type or file name.
-* Uploading of any file/URL/file ID with automagical type recognition  
+* Uploading of any file/URL/file ID with automagical type recognition.  
 * Optional automagical metadata recognition of sent files/URLs/file IDs.  
 * Deleting of text messages sent from the bot  
-* [You tell me!](https://telegram.me/danogentili)  
+* [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
 ## How do I enable it?  
 
 To enable it simply subsitute the url of the bot telegram API (https://api.telegram.org) with the url of the pwrtelegram API (https://api.pwrtelegram.xyz) in your telegram client.
 
 You can use this command to do it:
-
+```
 sed -i 's/api\.telegram\.org/api\.pwrtelegram\.xyz/g' client.py
-
+```  
 The API will automagically do the rest :)  
 
 
@@ -72,6 +72,8 @@ All of the above requests will be processed using the PWRTelegram API.
 
 The usage of these methods is exactly the same as in the official Telegram BOT API, except that if the request contains a file URL instead of the document (or photo, etc) the file will be downloaded and sent with the given parameters.
 
+The same will happen if you send a file ID that links to a file which type is different from the one specified in the URL or if you also provide a file name along with the file ID.
+
 You can provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).
 
 This is the metadata that will be obtained and sent if the detect parameter is set to true: 
@@ -93,7 +95,7 @@ You can also provide a name parameter containing the name of the file to be sent
 
 * sendFile
 
-Use this method to send any file/URL. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.
+Use this method to send any file/URL/file ID. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.
 
 This is the metadata that will be obtained and sent (only if it isn't already provided in the request) along with the file:
 
@@ -111,7 +113,7 @@ This is the metadata that will be obtained and sent (only if it isn't already pr
 |----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
 | chat_id              	| Integer or String                                                              	| Yes      	| Unique identifier for the target chat or username of the target channel (in the format @channelusername)                                                                     	|
 | message_id           	| Integer                                                                        	| Yes      	| Unique identifier of the sent message                                                                                                                                        	|
-| file                 	| String                                                                         	| Yes      	| File to send. You can either pass a URL as String to send a file from a URL or upload a new file using *multipart/form-data*.                                                	|
+| file                 	| String                                                                         	| Yes      	| File to send. You can either pass a URL as String to send a file from a URL, or a file ID as a string to reupload a file already present on the Telegram servers or upload a new file using *multipart/form-data*.                                                	|
 | caption              	| String                                                                         	| Optional 	| File caption (will only be applied if the sent file/URL is a photo, a video or a document), 0-200 characters                                                                 	|
 | duration             	| Integer                                                                        	| Optional 	| Duration of the sent file/URL in seconds (will only be applied if the sent file/URL is an audio file, a video or a voice recording)                                          	|
 | performer            	| String                                                                         	| Optional 	| Performer of the sent file/URL (will only be applied if the sent file/URL is an audio file)                                                                                  	|
