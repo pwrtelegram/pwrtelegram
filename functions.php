@@ -10,6 +10,7 @@ See the GNU Affero General Public License for more details.
 You should have received a copy of the GNU General Public License along with the PWRTelegram API. 
 If not, see <http://www.gnu.org/licenses/>.
 */
+
 /**
  * Returns the size of a file without downloading it, or -1 if the file
  * size could not be determined.
@@ -25,7 +26,7 @@ function curl_get_file_size( $url ) {
   // Assume failure.
   $result = -1;
 
-  $curl = curl_init( $url );
+  $curl = curl_init(str_replace(' ', '%20', $url));
 
   // Issue a HEAD request and follow any redirects.
   curl_setopt( $curl, CURLOPT_NOBODY, true );
@@ -57,20 +58,38 @@ function curl_get_file_size( $url ) {
   return $result;
 }
 
-
+/**
+ * Check if tg-cli ever contacted contacted username, if not send a /start command
+ *
+ * @param $me - The username to check
+ *
+ * @return true if user is in dialoglist or if it was contacted successfully, false if it couldn't be contacted.
+ */
 function checkbotuser($me) {
 	include 'telegram_connect.php';
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage;
+	global $url;
+	// $me is the bot's username
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
-
+	// Get all of the usernames
 	$usernames = array();
+	ini_set("log_errors", 0);
 	foreach ($telegram->getDialogList() as $username){ $usernames[] = $username->username; };
-	if(!in_array($me, $usernames)) { // If never contacted bot send start command
+	ini_set("log_errors", 1);
+	// If never contacted bot send start command
+	if(!in_array($me, $usernames)) {
 		if(!$telegram->msg("@".$me, "/start")) return false;
 	}
 	return true;
 }
 
+
+/**
+ * Check dir exists
+ *
+ * @param $dir - The dir to check
+ *
+ * @return true if dir exists or if it was created successfully, false if it couldn't be created.
+ */
 function checkdir($dir) {
 	if (!file_exists($dir)) {
 		if(!mkdir($dir, 0777, true)) return false;
@@ -78,15 +97,29 @@ function checkdir($dir) {
 	return true;
 }
 
-function unlink_link($path) {
-	$rpath = readlink($path);
-	unlink($path);
+/**
+ * Remove symlink and destination path
+ *
+ * @param $symlink - The symlink to delete
+ *
+ * @return void
+ */
+function unlink_link($symlink) {
+	$rpath = readlink($symlink);
+	unlink($symlink);
 	unlink($rpath);
 }
 
+/**
+ * Download given file id and return json with error or downloaded path
+ *
+ * @param $file_id - The file id of the file to download
+ *
+ * @return json with error or file path
+ */
 function download($file_id) {
 	include '../db_connect.php';
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $homedir, $methods;
+	global $url, $pwrtelegram_storage, $homedir, $methods;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;");
 	$selectstmt->execute(array($file_id, $me));
@@ -111,44 +144,61 @@ function download($file_id) {
 		$count++;
 	};
 	$count--;
-
 	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user.");
+	if($result["result"]["message_id"] == false) return array("ok" => false, "error_code" => 400, "description" => "Reply message id is empty.");
+
 	$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
 	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
+
 	$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
 	$path = $result->{"result"};
 	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
+	if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file does not exist).");
+	if(!checkdir($homedir . "/storage/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
 	try {
 		$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 		$mediaInfoContainer = $mediaInfo->getInfo($path);
 		$general = $mediaInfoContainer->getGeneral();
-		if($general->get("file_extension") == null) {
-			$newpath = $path . "." . preg_replace("/.*\s/", "", $general->get("format_extensions_usually_used"));
-			if(!rename($path, $newpath)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't append file extension.");
-			$path = $newpath;
-		}
+		$ext = "";
+		try {
+			$ext = $general->get("file_extension");
+		} catch(Exception $e) { ; };
+		try {
+			$format = preg_replace("/.*\s/", "", $general->get("format_extensions_usually_used"));
+		} catch(Exception $e) { ; };
+		try {
+			$codec = preg_replace("/.*\s/", "", $general->get("codec_extensions_usually_used"));
+		} catch(Exception $e) { ; };
+		if($format == "") $format = $codec;
 	} catch(Exception $e) { ; };
-	if(!checkdir($homedir . "/storage/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
+
 	$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
+	if($ext == "" && $format != "") {
+		$file_path = $file_path . "." . $format;
+	}
+
 	unlink($homedir . "/storage/" . $file_path);
 	if(!symlink($path, $homedir . "/storage/" . $file_path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't symlink file to storage.");
 	if(!chmod($homedir . "/storage/" . $file_path, 0755)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't chmod file.");
+
 	$file_size = filesize($homedir . "/storage/" . $file_path);
+
 	$newresponse["ok"] = true;
 	$newresponse["result"]["file_id"] = $file_id;
 	$newresponse["result"]["file_path"] = $file_path;
 	$newresponse["result"]["file_size"] = $file_size;
+
 	$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=? AND bot=?;");
 	$delete = $delete_stmt->execute(array($file_id, $me));
 	$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size, bot) VALUES (?, ?, ?, ?);");
 	$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size, $me));
+
 	return $newresponse;
 }
 
+// Returninfo from file id
 function get_finfo($file_id){
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage;
-	include 'telegram_connect.php';
-	global $methods;
+	global $methods, $url;
 	$methods = array_keys($methods);
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
@@ -167,6 +217,7 @@ function get_finfo($file_id){
 	}
 	return $info;
 }
+
 
 function upload($file, $name = "", $type = "", $detect = false, $forcename = false) {
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
