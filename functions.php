@@ -293,7 +293,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			$downloadres = download($file);
 			if($res["result"]["file_path"] != "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file from file id.");
 			if(!rename($res["result"]["file_path"], $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
-		} return curl($url . "/send" . $type . "?" $type . "=" . $file . http_build_query($_REQUEST));
+		} return curl($url . "/send" . $type . "?" . $type . "=" . $file . http_build_query($_REQUEST));
 	} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL/path.");
 
 	if($type == "file") {

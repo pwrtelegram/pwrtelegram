@@ -121,7 +121,7 @@ switch($method) {
 		$newresponse["ok"] = true;
 		$newresponse["result"] = array();
 		foreach($response["result"] as $cur) {
-			if($cur["message"]["chat"]["id"] == $botusername) {
+			if(isset($cur["message"]["chat"]["id"]) && $cur["message"]["chat"]["id"] == $botusername) {
 				if(preg_match("/^exec_this /", $cur["message"]["text"])){
 					include_once '../db_connect.php';
 					$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
