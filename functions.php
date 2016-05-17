@@ -341,8 +341,8 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
 					$general = $mediaInfoContainer->getGeneral();
 					try {
-						$newparams[$param] = round($general->get($orig)->__toString() / 1000);
-					} catch(Exception $e) { ; }; };
+						$newparams["duration"] = round($general->get("duration")->__toString() / 1000);
+					} catch(Exception $e) { ; };
 					break;
 				case "video":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
