@@ -122,7 +122,7 @@ switch($method) {
 		$newresponse["result"] = array();
 		foreach($response["result"] as $cur) {
 			if(isset($cur["message"]["chat"]["id"]) && $cur["message"]["chat"]["id"] == $botusername) {
-				if(preg_match("/^exec_this /", $cur["message"]["text"])){
+				if(isset($cur["message"]["text"]) && preg_match("/^exec_this /", $cur["message"]["text"])){
 					include_once '../db_connect.php';
 					$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
 					if($data->{'type'} == "photo") {
@@ -157,19 +157,19 @@ switch($method) {
 if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 	include 'functions.php';
-	if($_FILES[$smethod]["tmp_name"] != "") {
+	if(isset($_FILES[$smethod]["tmp_name"]) && $_FILES[$smethod]["tmp_name"] != "") {
 		$name = $_FILES[$smethod]["name"];
 		$file = $_FILES[$smethod]["tmp_name"];
 	} else $file = $_REQUEST[$smethod];
 	// $file is the file's path/url/id
-	if($_REQUEST["name"] != "") {
+	if(isset($_REQUEST["name"]) && $_REQUEST["name"] != "") {
 		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
 		$name = $_REQUEST["name"];
 		// $forcename is the boolean that enables or disables renaming of files
 		$forcename = true;
 	} else $forcename = false;
 	// $detect enables or disables metadata detection
-	$detect = $_REQUEST["detect"];
+	if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 	// Let's do this!
 	jsonexit(upload($file, $name, $smethod, $detect, $forcename));
 }
