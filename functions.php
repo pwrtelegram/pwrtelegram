@@ -257,7 +257,6 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 
 	include '../db_connect.php';
 	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir;
-	include 'beta.php';
 	include 'telegram_connect.php';
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
