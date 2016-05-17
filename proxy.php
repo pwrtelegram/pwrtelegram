@@ -79,11 +79,9 @@ if ( 'GET' == $request_method ) {
 	$request_params = null;
 }
 
-// Get URL from `csurl` in GET or POST data, before falling back to X-Proxy-URL header.
 $request_url = "https://api.telegram.org/bot".$token.$method;
 $p_request_url = parse_url( $request_url );
 
-// csurl may exist in GET request methods
 
 // append query string for GET requests
 if ( $request_method == 'GET' && count( $request_params ) > 0 && (!array_key_exists( 'query', $p_request_url ) || empty( $p_request_url['query'] ) ) ) {
@@ -135,11 +133,6 @@ $response_headers = preg_split( '/(\r\n){1}/', $response_headers );
 
 
 foreach ( $response_headers as $key => $response_header ) {
-	// Rewrite the `Location` header, so clients will also use the proxy for redirects.
-	if ( preg_match( '/^Location:/', $response_header ) ) {
-		list($header, $value) = preg_split( '/: /', $response_header, 2 );
-		$response_header = 'Location: ' . $_SERVER['REQUEST_URI'] . '?csurl=' . $value;
-	}
 	if ( !preg_match( '/^(Transfer-Encoding):/', $response_header ) && !preg_match("/^Content-Length:/",$response_header)) {
 		header( $response_header, false );
 	}

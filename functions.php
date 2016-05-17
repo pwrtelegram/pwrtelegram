@@ -299,6 +299,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
 		$mime = finfo_file($finfo, $path);
 		finfo_close($finfo);
+error_log($mime);
 		switch($mime) {
 			case (preg_match('/^image\/(gif|png|jpeg|jpg|bmp|tiff).*/', $mime) ? true : false) :
 				$type = "photo";
