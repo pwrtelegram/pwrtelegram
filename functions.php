@@ -154,7 +154,6 @@ function download($file_id) {
 	$path = $result->{"result"};
 	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 	if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file does not exist).");
-	if(!checkdir($homedir . "/storage/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
 	try {
 		$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 		$mediaInfoContainer = $mediaInfo->getInfo($path);
@@ -176,12 +175,7 @@ function download($file_id) {
 	if($ext == "" && $format != "") {
 		$file_path = $file_path . "." . $format;
 	}
-
-	unlink($homedir . "/storage/" . $file_path);
-	if(!symlink($path, $homedir . "/storage/" . $file_path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't symlink file to storage.");
-	if(!chmod($homedir . "/storage/" . $file_path, 0755)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't chmod file.");
-
-	$file_size = filesize($homedir . "/storage/" . $file_path);
+	$file_size = filesize($path);
 
 	$newresponse["ok"] = true;
 	$newresponse["result"]["file_id"] = $file_id;
@@ -190,8 +184,8 @@ function download($file_id) {
 
 	$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_id=? AND bot=?;");
 	$delete = $delete_stmt->execute(array($file_id, $me));
-	$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size, bot) VALUES (?, ?, ?, ?);");
-	$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size, $me));
+	$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);");
+	$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size, $me, $path));
 
 	return $newresponse;
 }
@@ -299,7 +293,6 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
 		$mime = finfo_file($finfo, $path);
 		finfo_close($finfo);
-error_log($mime);
 		switch($mime) {
 			case (preg_match('/^image\/(gif|png|jpeg|jpg|bmp|tiff).*/', $mime) ? true : false) :
 				$type = "photo";
@@ -319,6 +312,7 @@ error_log($mime);
 			default:
 				$type = "document";
 		}
+		if(pathinfo($path)["extension"] == "webp") $type = "sticker";
 	};
 	$params = $_REQUEST;
 	$newparams = array();
