@@ -136,8 +136,8 @@ foreach ( $response_headers as $key => $response_header ) {
 	if ( !preg_match( '/^(Transfer-Encoding):/', $response_header ) && !preg_match("/^Content-Length:/",$response_header)) {
 		header( $response_header, false );
 	}
+	if($response_header == "Location: https://core.telegram.org/bots") header("Location: https://pwrtelegram.xyz");
 }
-
 // finally, output the content
 print($response_content);
 
