@@ -32,40 +32,38 @@ function find_txt($msgs) {
  * could not be determined.
  */
  
-function curl_get_file_size( $url ) {
-  // Assume failure.
-  $result = -1;
+function curl_get_file_size($url) {
+	// Assume failure.
+	$result = -1;
 
-  $curl = curl_init(str_replace(' ', '%20', $url));
+	$curl = curl_init(str_replace(' ', '%20', $url));
 
-  // Issue a HEAD request and follow any redirects.
-  curl_setopt( $curl, CURLOPT_NOBODY, true );
-  curl_setopt( $curl, CURLOPT_HEADER, true );
-  curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-  curl_setopt( $curl, CURLOPT_FOLLOWLOCATION, true );
+	// Issue a HEAD request and follow any redirects.
+	curl_setopt( $curl, CURLOPT_NOBODY, true );
+	curl_setopt( $curl, CURLOPT_HEADER, true );
+	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+	curl_setopt( $curl, CURLOPT_FOLLOWLOCATION, true );
 
-  $data = curl_exec( $curl );
-  curl_close( $curl );
+	$data = curl_exec( $curl );
+	curl_close( $curl );
 
-  if( $data ) {
-    $content_length = "unknown";
-    $status = "unknown";
+	if($data) {
+		$content_length = "unknown";
+		$status = "unknown";
+		if( preg_match( "/^HTTP\/1\.[01] (\d\d\d)/", $data, $matches ) ) {
+			$status = (int)$matches[1];
+		}
 
-    if( preg_match( "/^HTTP\/1\.[01] (\d\d\d)/", $data, $matches ) ) {
-      $status = (int)$matches[1];
-    }
+		if( preg_match( "/Content-Length: (\d+)/", $data, $matches ) ) {
+			$content_length = (int)$matches[1];
+		}
 
-    if( preg_match( "/Content-Length: (\d+)/", $data, $matches ) ) {
-      $content_length = (int)$matches[1];
-    }
-
-    // http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-    if( $status == 200 || ($status > 300 && $status <= 308) ) {
-      $result = $content_length;
-    }
-  }
-
-  return $result;
+		// http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+		if( $status == 200 || ($status > 300 && $status <= 308) ) {
+			$result = $content_length;
+		}
+	}
+	return $result;
 }
 
 /**
@@ -142,33 +140,52 @@ function download($file_id) {
 		$newresponse["result"]["file_size"] = $select["file_size"];
 		return $newresponse;
 	}
-
-	include 'telegram_connect.php';
 	$gmethods = array_keys($methods);
 
-	if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
-	$result = array("ok" => false);
-	$count = 0;
-	while($result["ok"] != true && $count < count($gmethods)) {
-		$result = curl($url . "/send" . $gmethods["$count"] . "?chat_id=" . $botusername . "&" . $gmethods["$count"] . "=" . $file_id);
-		$count++;
-	};
-	$count--;
-	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user.");
-	if($result["result"]["message_id"] == false) return array("ok" => false, "error_code" => 400, "description" => "Reply message id is empty.");
-
-	$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
-
-	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
-	$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
-	$path = $result->{"result"};
-	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
+	$result = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
+	if(isset($result["result"]["file_path"]) && $result["result"]["file_path"] != "" && checkurl("https://api.telegram.org/file/bot".$token."/".$result["result"]["file_path"])) {
+		$file_path = $result["result"]["file_path"];
+		if(!checkdir($homedir . "/storage/" . $me . "/" . dirname($file_path))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
+		set_time_limit(0);
+		$path = $homedir . "/storage/" . $me . "/" . $file_path;
+		$fp = fopen ($path, 'w+');
+		$ch = curl_init(str_replace(" ","%20", "https://api.telegram.org/file/bot".$token."/".$file_path));
+		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+		// write curl response to file
+		curl_setopt($ch, CURLOPT_FILE, $fp);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		// get curl response
+		curl_exec($ch);
+		curl_close($ch);
+		fclose($fp);
+		$file_path = $me . "/" . $file_path;
+	}
+	if(!file_exists($path)) {
+		include 'telegram_connect.php';
+		if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
+		$result = array("ok" => false);
+		$count = 0;
+		while($result["ok"] != true && $count < count($gmethods)) {
+			$result = curl($url . "/send" . $gmethods["$count"] . "?chat_id=" . $botusername . "&" . $gmethods["$count"] . "=" . $file_id);
+			$count++;
+		};
+		$count--;
+		if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user.");
+		if($result["result"]["message_id"] == false) return array("ok" => false, "error_code" => 400, "description" => "Reply message id is empty.");
+		$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
+		if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
+		$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
+		$path = $result->{"result"};
+		if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
+	}
 	if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file does not exist).");
+	$ext = '';
+	$format = '';
+	$codec = '';
 	try {
 		$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 		$mediaInfoContainer = $mediaInfo->getInfo($path);
 		$general = $mediaInfoContainer->getGeneral();
-		$ext = "";
 		try {
 			$ext = $general->get("file_extension");
 		} catch(Exception $e) { ; };
@@ -180,13 +197,11 @@ function download($file_id) {
 		} catch(Exception $e) { ; };
 		if($format == "") $format = $codec;
 	} catch(Exception $e) { ; };
-
 	$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
 	if($ext != $format && $format != "") {
 		$file_path = $file_path . "." . $format;
 	}
 	$file_size = filesize($path);
-
 	$newresponse["ok"] = true;
 	$newresponse["result"]["file_id"] = $file_id;
 	$newresponse["result"]["file_path"] = $file_path;
@@ -298,8 +313,10 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			if(!rename($res["result"]["file_path"], $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 			$size = filesize($path);
 		} return curl($url . "/send" . $type . "?" . $type . "=" . $file . http_build_query($_REQUEST));
-	} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL/path.");
-
+	} else {
+		if(filter_var($file, FILTER_VALIDATE_URL)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided URL.");
+		return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL.");
+	}
 	if($type == "file") {
 		$mime = '';
 		try {
@@ -374,7 +391,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			curl_setopt($ch, CURLOPT_POSTFIELDS, array('chat_id' => $botusername, $type => new \CURLFile($path))); 
 			$result = json_decode(curl_exec($ch), true);
 			curl_close($ch);
-			if($type == "photo") $file_id = end($file_id["result"][$type])["file_id"]; else $file_id = $result["result"][$type]["file_id"];
+			if($type == "photo") $file_id = end($result["result"][$type])["file_id"]; else $file_id = $result["result"][$type]["file_id"];
 		}
 		if($file_id != "") {
 			unlink($path);

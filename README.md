@@ -153,7 +153,7 @@ Otherwise the error is returned.
 
 ## Known bugs
 
-This API cannot download video and voice files. This is a bug of tg-cli.  
+This API cannot download video and voice files bigger than 20 mb. This is a bug of tg-cli.  
 The metadata recognition feature works only with files smaller than 40 mb.  
 
 
