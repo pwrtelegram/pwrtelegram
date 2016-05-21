@@ -141,6 +141,7 @@ function download($file_id) {
 		return $newresponse;
 	}
 	$gmethods = array_keys($methods);
+	include 'telegram_connect.php';
 	$path = '';
 	$result = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 	if(isset($result["result"]["file_path"]) && $result["result"]["file_path"] != "" && checkurl("https://api.telegram.org/file/bot".$token."/".$result["result"]["file_path"])) {
@@ -161,7 +162,6 @@ function download($file_id) {
 		$file_path = $me . "/" . $file_path;
 	}
 	if(!file_exists($path)) {
-		include 'telegram_connect.php';
 		if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
 		$result = array("ok" => false);
 		$count = 0;
