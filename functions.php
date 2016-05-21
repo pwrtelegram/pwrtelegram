@@ -127,7 +127,7 @@ function unlink_link($symlink) {
  */
 function download($file_id) {
 	include '../db_connect.php';
-	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername;
+	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername, $token;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;");
 	$selectstmt->execute(array($file_id, $me));
@@ -141,7 +141,7 @@ function download($file_id) {
 		return $newresponse;
 	}
 	$gmethods = array_keys($methods);
-
+	$path = '';
 	$result = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 	if(isset($result["result"]["file_path"]) && $result["result"]["file_path"] != "" && checkurl("https://api.telegram.org/file/bot".$token."/".$result["result"]["file_path"])) {
 		$file_path = $result["result"]["file_path"];
