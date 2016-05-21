@@ -18,8 +18,8 @@ if($_SERVER['REQUEST_URI'] == "/") {
 
 include '../db_connect.php';
 
-$bot = basename(dirname($_SERVER["REQUEST_URI"]));
 $file_path = preg_replace("/^\/*/", "", $_SERVER["REQUEST_URI"]);
+$bot = preg_replace('/\/.*$/', '', $file_path);
 $selectstmt = $pdo->prepare("SELECT real_file_path FROM dl WHERE file_path=? AND bot=? LIMIT 1;");
 $selectstmt->execute(array($file_path, $bot));
 $select = $selectstmt->fetch(PDO::FETCH_ASSOC);
