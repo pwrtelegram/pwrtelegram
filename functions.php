@@ -146,19 +146,21 @@ function download($file_id) {
 	$result = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
 	if(isset($result["result"]["file_path"]) && $result["result"]["file_path"] != "" && checkurl("https://api.telegram.org/file/bot".$token."/".$result["result"]["file_path"])) {
 		$file_path = $result["result"]["file_path"];
-		if(!checkdir($homedir . "/storage/" . $me . "/" . dirname($file_path))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
-		set_time_limit(0);
-		$path = $homedir . "/storage/" . $me . "/" . $file_path;
-		$fp = fopen ($path, 'w+');
-		$ch = curl_init(str_replace(" ","%20", "https://api.telegram.org/file/bot".$token."/".$file_path));
-		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-		// write curl response to file
-		curl_setopt($ch, CURLOPT_FILE, $fp);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		// get curl response
-		curl_exec($ch);
-		curl_close($ch);
-		fclose($fp);
+		$path = str_replace('//', '/', $homedir . "/storage/" . $me . "/" . $file_path);
+		if(!(file_exists($path) && filesize($path) == $result["result"]["file_size"])){
+			if(!checkdir(dirname($path))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
+			set_time_limit(0);
+			$fp = fopen ($path, 'w+');
+			$ch = curl_init(str_replace(" ","%20", "https://api.telegram.org/file/bot".$token."/".$file_path));
+			curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+			// write curl response to file
+			curl_setopt($ch, CURLOPT_FILE, $fp);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+			// get curl response
+			curl_exec($ch);
+			curl_close($ch);
+			fclose($fp);
+		}
 		$file_path = $me . "/" . $file_path;
 	}
 	if(!file_exists($path)) {
@@ -177,6 +179,7 @@ function download($file_id) {
 		$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
 		$path = $result->{"result"};
 		if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
+		$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
 	}
 	if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file does not exist).");
 	$ext = '';
@@ -197,7 +200,6 @@ function download($file_id) {
 		} catch(Exception $e) { ; };
 		if($format == "") $format = $codec;
 	} catch(Exception $e) { ; };
-	$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
 	if($ext != $format && $format != "") {
 		$file_path = $file_path . "." . $format;
 	}
