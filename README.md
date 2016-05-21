@@ -150,6 +150,13 @@ Otherwise the error is returned.
 
 * Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili).  
 
+
+## Known bugs
+
+This API cannot download video and voice files. This is a bug of tg-cli.  
+The metadata recognition feature works only with files smaller than 40 mb.  
+
+
 For questions contact https://telegram.me/danogentili or the [official support group](https://telegram.me/pwrtelegramgroup).
 
 Share this API and its offical channel (https://telegram.me/pwrtelegram) with all of your friends! :) 

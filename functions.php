@@ -11,6 +11,16 @@ You should have received a copy of the GNU General Public License along with the
 If not, see <http://www.gnu.org/licenses/>.
 */
 
+function find_txt($msgs) {
+	$ok = "";
+	foreach ($msgs as $msg) {
+		foreach ($msg as $key => $val) { 
+			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = "y";
+		}
+		if ($ok == "y") return $msg->reply_id;
+	}
+}
+
 /**
  * Returns the size of a file without downloading it, or -1 if the file
  * size could not be determined.
@@ -119,7 +129,7 @@ function unlink_link($symlink) {
  */
 function download($file_id) {
 	include '../db_connect.php';
-	global $url, $pwrtelegram_storage, $homedir, $methods;
+	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername;
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;");
 	$selectstmt->execute(array($file_id, $me));
@@ -137,7 +147,7 @@ function download($file_id) {
 	$gmethods = array_keys($methods);
 
 	if(!checkbotuser($me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat.");
-
+	$result = array("ok" => false);
 	$count = 0;
 	while($result["ok"] != true && $count < count($gmethods)) {
 		$result = curl($url . "/send" . $gmethods["$count"] . "?chat_id=" . $botusername . "&" . $gmethods["$count"] . "=" . $file_id);
@@ -148,8 +158,8 @@ function download($file_id) {
 	if($result["result"]["message_id"] == false) return array("ok" => false, "error_code" => 400, "description" => "Reply message id is empty.");
 
 	$result = curl($url . "/sendMessage?reply_to_message_id=" . $result["result"]["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
-	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
 
+	if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
 	$result = $telegram->getFile($me, $file_id, $methods[$gmethods[$count]]);
 	$path = $result->{"result"};
 	if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
@@ -172,7 +182,7 @@ function download($file_id) {
 	} catch(Exception $e) { ; };
 
 	$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
-	if($ext == "" && $format != "") {
+	if($ext != $format && $format != "") {
 		$file_path = $file_path . "." . $format;
 	}
 	$file_size = filesize($path);
@@ -250,7 +260,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 	if($forcename) $name = basename($name); else $name = "";
 
 	include '../db_connect.php';
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir;
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir, $botusername;
 	include 'telegram_connect.php';
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
@@ -264,14 +274,14 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 	} else if(checkurl($file)){
 		$size = curl_get_file_size($file);
-		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+		//if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
 		if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		set_time_limit(0);
 		$fp = fopen ($path, 'w+');
 		$ch = curl_init(str_replace(" ","%20",$file));
 		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
 		// write curl response to file
-		curl_setopt($ch, CURLOPT_FILE, $fp); 
+		curl_setopt($ch, CURLOPT_FILE, $fp);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		// get curl response
 		curl_exec($ch);
@@ -286,64 +296,57 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			$downloadres = download($file);
 			if($res["result"]["file_path"] != "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file from file id.");
 			if(!rename($res["result"]["file_path"], $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
+			$size = filesize($path);
 		} return curl($url . "/send" . $type . "?" . $type . "=" . $file . http_build_query($_REQUEST));
 	} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL/path.");
 
 	if($type == "file") {
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mime = finfo_file($finfo, $path);
-		finfo_close($finfo);
-		switch($mime) {
-			case (preg_match('/^image\/(gif|png|jpeg|jpg|bmp|tiff).*/', $mime) ? true : false) :
-				$type = "photo";
-				break;
-			case (preg_match('/^video\/mp4.*/', $mime) ? true : false) :
-				$type = "video";
-				break;
-			case (preg_match('/^image\/webp.*/', $mime) ? true : false) :
-				$type = "sticker";
-				break;
-			case (preg_match('/^audio\/mpeg.*/', $mime) ? true : false) :
-				$type = "audio";
-				break;
-			case (preg_match('/^audio\/ogg.*/', $mime) ? true : false) :
-				$type = "voice";
-				break;
-			default:
-				$type = "document";
+		$mime = '';
+		try {
+			$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+			$mediaInfoContainer = $mediaInfo->getInfo($path);
+			$mime = $mediaInfoContainer->getGeneral()->get("internet_media_type");
+		} catch(Exception $e) { ; };
+		$ext = pathinfo($path)["extension"];
+		if (preg_match('/^image\/.*/', $mime) && preg_match('/gif|png|jpeg|jpg|bmp|tif/', $ext)) {
+			$type = "photo";
+		} else if(preg_match('/^video\/.*/', $mime) && 'mp4' == $ext) {
+			$type = "video";
+		} else if($ext == "webp"){
+			$type = "sticker";
+		} else if(preg_match('/^audio\/.*/', $mime) && 'mp3' == $ext) {
+			$type = "audio";
+		} else if(preg_match('/^audio\/ogg/', $mime) && 'ogg' == $ext) {
+			$type = "voice";
+		} else {
+			$type = "document";
 		}
-		if(pathinfo($path)["extension"] == "webp") $type = "sticker";
 	};
 	$params = $_REQUEST;
 	$newparams = array();
-	if($detect == true) {
+	if($detect == true) { // This is pretty useless unless I figure out a way to pass the parameters to tg-cli.
 			switch($type) {
 				case "audio":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral(); 
-					foreach (array("duration" => "duration", "performer" => "performer", "track_name" => "title") as $orig => $param) {
+					$general = $mediaInfoContainer->getGeneral();
+					foreach (array("performer" => "performer", "track_name" => "title") as $orig => $param) {
 						try {
-							$newparams[$param] = $general->get($orig); 
+							$newparams[$param] = $general->get($orig);
 						} catch(Exception $e) {
 						};
 					};
-					if($newparams["duration"] !== null) $newparams["duration"] = round($newparams["duration"]->__toString() / 1000);
+					$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
 					break;
 				case "voice":
-					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral();
-					try {
-						$newparams["duration"] = round($general->get("duration")->__toString() / 1000);
-					} catch(Exception $e) { ; };
+					$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
 					break;
 				case "video":
 					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 					$mediaInfoContainer = $mediaInfo->getInfo($path);
 					$general = $mediaInfoContainer->getGeneral();
-					foreach (array("duration" => "duration", "width" => "width", "height" => "height") as $orig => $param) { try { $newparams[$param] = $general->get($orig)->__toString(); } catch(Exception $e) { ; }; };
-					if($newparams["duration"] != "") $newparams["duration"] = round($newparams["duration"] / 1000);
+					foreach (array("width" => "width", "height" => "height") as $orig => $param) { try { $newparams[$param] = $general->get($orig)->__toString(); } catch(Exception $e) { ; }; };
+					$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
 					$newparams["caption"] = $file_name;
 					break;
 				case "photo":
@@ -363,32 +366,44 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 
 	if($file_id == "") {
 		if(!checkbotuser($me)) { unlink($path); return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat."); };
-
-		$result = $telegram->pwrsendFile("@" . $me, $methods[$type], $path);
-		unlink($path);
-		if($result->{'error'} != "") return array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'});
-		$message_id = $result->{'id'};
-
-		if($message_id == "") return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
-
-		if($count == "0") {
-			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, type, bot, filename) VALUES (?, ?, ?, ?);");
-			$insert_stmt->execute(array($file_hash, $type, $me, $name));
+		if($size < 40000000){
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array( "Content-Type:multipart/form-data" )); 
+			curl_setopt($ch, CURLOPT_URL, $url . "/send" . $type . "?" . http_build_query($newparams));
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+			curl_setopt($ch, CURLOPT_POSTFIELDS, array('chat_id' => $botusername, $type => new \CURLFile($path))); 
+			$result = json_decode(curl_exec($ch), true);
+			curl_close($ch);
+			if($type == "photo") $file_id = end($file_id["result"][$type])["file_id"]; else $file_id = $result["result"][$type]["file_id"];
+		}
+		if($file_id != "") {
+			unlink($path);
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_id, file_hash, type, bot, filename) VALUES (?, ?, ?, ?, ?);");
+			$insert_stmt->execute(array($file_id, $file_hash, $type, $me, $name));
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
+		} else {
+			$result = $telegram->pwrsendFile("@" . $me, $methods[$type], $path);
+			unlink($path);
+			if($result->{'error'} != "") return array("ok" => false, "error_code" => $result->{'error_code'}, "description" => $result->{'error'});
+			$message_id = $result->{'id'};
+			if($message_id == "") return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
+			if($count == "0") {
+				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, type, bot, filename) VALUES (?, ?, ?, ?);");
+				$insert_stmt->execute(array($file_hash, $type, $me, $name));
+				$count = $insert_stmt->rowCount();
+				if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
+			}
+			if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "type" => $type, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
+			$response = curl($pwrtelegram_api . "/bot" . $token . "/getupdates");
+			$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
+			$select_stmt->execute(array($file_hash, $type, $me, $name));
+			$file_id = $select_stmt->fetchColumn();
 		}
-
-		if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "type" => $type, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
-		$response = curl($pwrtelegram_api . "/bot" . $token . "/getupdates");
-		$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
-		$select_stmt->execute(array($file_hash, $type, $me, $name));
-		$file_id = $select_stmt->fetchColumn();
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file.");
 	} else unlink($path);
+	if($params["caption"] == "" && isset($newparams["caption"]) && $newparams["caption"] != "") $params["caption"] = $newparams["caption"];
 	$params[$type] = $file_id;
-	foreach($newparams as $wut => $newparam) {
-		if($params[$wut] == "" && $newparam != "") $params[$wut] = $newparam;
-	};
 	$res = curl($url . "/send" . $type . "?" . http_build_query($params));
 	return $res;
 }

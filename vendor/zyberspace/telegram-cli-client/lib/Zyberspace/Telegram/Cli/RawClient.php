@@ -161,6 +161,7 @@ class RawClient
      */
     public function escapePeer($peer)
     {
+	$tmp = false;
         if(preg_match("/^@[^\s]*$/", $peer)) $tmp = $this->exec('resolve_username ' . preg_replace("/^@/", "", $peer));
         if($tmp != false) $peer = $tmp->print_name;
         return str_replace(' ', '_', $peer);

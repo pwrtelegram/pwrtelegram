@@ -1,4 +1,5 @@
  <?php
+
 // pwrtelegram script
 // by Daniil Gentili
 /*
@@ -18,13 +19,19 @@ ini_set("error_log", "/tmp/php-error-index.log");
 // Home dir
 $homedir = realpath(__DIR__ . "/../") . "/";
 // Available methods and their equivalent in tg-cli
-$methods = array("photo" => "photo", "audio" => "audio", "video" => "video", "document" => "document", "sticker" => "document", "voice" => "document", "file" => "");
+$methods = array(
+	"photo" => "photo",
+	"audio" => "audio",
+	"video" => "video",
+	"voice" => "document",
+	"sticker" => "document",
+	"document" => "document",
+	"file" => ""
+);
 // The uri without the query string
 $uri = "/" . preg_replace(array("/\?.*$/", "/^\//", "/[^\/]*\//"), '', $_SERVER['REQUEST_URI']);
 // The method
 $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
-// The sending method without the send keyword
-$smethod = preg_replace("/.*\/send/", "", $method);
 // The user id of @pwrtelegramapi
 $botusername = "140639228";
 // The bot's token
@@ -152,8 +159,15 @@ switch($method) {
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
+/*	case "/answerinlinequery":
+		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
+		if(!($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results array."));
+		break;*/
+// also setwebhook
 }
 
+// The sending method without the send keyword
+$smethod = preg_replace("/.*\/send/", "", $method);
 if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 	include 'functions.php';
@@ -167,7 +181,10 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 		$name = $_REQUEST["name"];
 		// $forcename is the boolean that enables or disables renaming of files
 		$forcename = true;
-	} else $forcename = false;
+	} else {
+		$name = '';
+		$forcename = false;
+	}
 	// $detect enables or disables metadata detection
 	if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 	// Let's do this!

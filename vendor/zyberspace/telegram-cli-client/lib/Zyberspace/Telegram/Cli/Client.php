@@ -461,17 +461,48 @@ class Client extends RawClient
      * @uses exec()
      * @uses escapePeer()
      */
+    public function getdFile($id, $type)
+    {
+	$res = shell_exec("telegram-cli --json --permanent-msg-ids -WNRe 'load_file $id' 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
+	error_log($res);
+	return json_decode($res);
+    }
     public function getFile($user, $file_id, $type)
     {
-	return json_decode(shell_exec("telegram-cli --json -WNs /usr/bin/download.lua --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1 | sed '/{\"event\":\"download\", \"result\":\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'"));
+	$script = escapeshellarg($GLOBALS['homedir'] . "telegram-lua-load/download.lua");
+	$res = shell_exec("telegram-cli --json -WNs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1 | sed '/{\"event\":\"download\", \"result\":\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
+	return json_decode($res);
     }
-    public function izigetFile($id)
+
+    public function getddFile($user, $file_id, $type)
     {
-	return json_decode(
-shell_exec("telegram-cli --json --permanent-msg-ids -WNe " . escapeshellarg("load_file ".$id)." 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"}/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'")
-);
+	$user = $this->escapePeer($user);
+	$loadprocess = "loadprocess_" . $file_id . $type;
+	$loadprocessfifo = "/tmp/loadprocess_" . $file_id . $type;
+	$searchcommand = "history " . $user;
+	posix_mkfifo($loadprocessfifo, 0755);
+	shell_exec('tmux new-session -d -s '.escapeshellarg($loadprocess).' "telegram-cli --json --permanent-msg-ids -WN &> ' . escapeshellarg($loadprocessfifo) . '"');
+	shell_exec('tmux send-keys -t "'.escapeshellarg($history).'
+"');
+	$shellresult = shell_exec('until echo "$line" | grep \'[{"service": false, "event": "message", "id":\';do read line;done < ' . escapeshellarg($loadprocessfifo));
+	error_log($shellresult);
+	$result = preg_replace('/.*\[{"service": false, "event": "message", "id":/', '[{"service": false, "event": "message", "id":', $shellresult);
+	error_log($result);
+	$result = json_decode($result, true);
+	array_search('green', array_reverse($array));
+	$loadcommand = "load_" . $type . " " . $file_id;
+
+//	$id = preg_replace("/^.*[{\"/", "[{\"", stream_get_contents($pipes[1]));
+//	fclose($pipes[1]);
+var_dump($id);exit;
+
+	//shell_exec("tmux new-session -d -s " . escapeshellarg("sendprocess_" . $file_id . $type) . " 
+//telegram-cli --json --permanent-msg-ids -WN " . 
+//escapeshellarg("load_file ".$id)." 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"}/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'")
+
+	return json_decode($res);
     }
-    public function oldgetFile($type, $id)
+    public function oldgetFile($user, $id, $type)
     {
 
         return $this->exec('load_' . $type . ' ' . $id);
