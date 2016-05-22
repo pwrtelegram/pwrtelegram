@@ -35,7 +35,7 @@ $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
 // The user id of @pwrtelegramapi
 $botusername = "140639228";
 // The bot's token
-$token = preg_replace(array("/^\/bot/", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
+$token = preg_replace(array("/^\/bot/", "/^\/file\/bot/", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
 // The api url with the token
 $url = "https://api.telegram.org/bot" . $token;
 // The url of this api
@@ -93,7 +93,40 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	if(checkurl($pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
 		$file_url = $pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
 	} else {
-		$file_url = "https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
+		if(checkurl("https://api.telegram.org/". $_SERVER['REQUEST_URI'])) {
+			include 'functions.php';
+			include '../db_connect.php';
+			$me = curl($url . "/getMe")["result"]["username"]; // get my username
+			$path = str_replace('//', '/', $homedir . "/storage/" . $me . "/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']));
+			$dl_url = "https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
+
+			if(!(file_exists($path) && filesize($path) == curl_get_file_size($dl_url))){
+				if(!checkdir(dirname($path))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
+				set_time_limit(0);
+				$fp = fopen ($path, 'w+');
+				$ch = curl_init(str_replace(" ","%20", $dl_url));
+				curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+				// write curl response to file
+				curl_setopt($ch, CURLOPT_FILE, $fp);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				// get curl response
+				curl_exec($ch);
+				curl_close($ch);
+				fclose($fp);
+			}
+			$file_path = $me . "/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
+
+			if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file does not exist).");
+			$file_size = filesize($path);
+
+			$delete_stmt = $pdo->prepare("DELETE FROM dl WHERE file_path=? AND bot=?;");
+			$delete = $delete_stmt->execute(array($file_path, $me));
+			$insert_stmt = $pdo->prepare("INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);");
+			$insert = $insert_stmt->execute(array($file_path, $file_size, $me, $path));
+		}
+		if(checkurl($pwrtelegram_storage . "/" . $file_path)) {
+			$file_url = $pwrtelegram_storage . $file_path;
+		} else $file_url = "https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
 	}
 	header("Location: " . $file_url);
 	die();

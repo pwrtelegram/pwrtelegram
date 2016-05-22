@@ -66,6 +66,9 @@ https://storage.pwrtelegram.xyz/botusername/filename.ext
 ```  
 This way you will be able to safely share the download URL without exposing your bot's token.  
 
+You can also trigger the caching of files already present on the telegram servers to the anonymous PWRTelegram storage server by downloading the file from the following URL: ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>```. The next time you can download files directly from the anonymous URL.  
+
+
  * sendDocument, sendPhoto, sendVideo, sendAudio, sendVoice, sendSticker requests.  
 
 All of the above requests will be processed using the PWRTelegram API.  

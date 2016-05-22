@@ -147,11 +147,12 @@ function download($file_id) {
 	if(isset($result["result"]["file_path"]) && $result["result"]["file_path"] != "" && checkurl("https://api.telegram.org/file/bot".$token."/".$result["result"]["file_path"])) {
 		$file_path = $result["result"]["file_path"];
 		$path = str_replace('//', '/', $homedir . "/storage/" . $me . "/" . $file_path);
-		if(!(file_exists($path) && filesize($path) == $result["result"]["file_size"])){
+		$dl_url = "https://api.telegram.org/file/bot".$token."/".$file_path;
+		if(!(file_exists($path) && filesize($path) == curl_get_file_size($dl_url))){
 			if(!checkdir(dirname($path))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
 			set_time_limit(0);
 			$fp = fopen ($path, 'w+');
-			$ch = curl_init(str_replace(" ","%20", "https://api.telegram.org/file/bot".$token."/".$file_path));
+			$ch = curl_init(str_replace(" ","%20", $dl_url));
 			curl_setopt($ch, CURLOPT_TIMEOUT, 50);
 			// write curl response to file
 			curl_setopt($ch, CURLOPT_FILE, $fp);
@@ -180,29 +181,30 @@ function download($file_id) {
 		$path = $result->{"result"};
 		if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 		$file_path = $me . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
+		$ext = '';
+		$format = '';
+		$codec = '';
+		try {
+			$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+			$mediaInfoContainer = $mediaInfo->getInfo($path);
+			$general = $mediaInfoContainer->getGeneral();
+			try {
+				$ext = $general->get("file_extension");
+			} catch(Exception $e) { ; };
+			try {
+				$format = preg_replace("/.*\s/", "", $general->get("format_extensions_usually_used"));
+			} catch(Exception $e) { ; };
+			try {
+				$codec = preg_replace("/.*\s/", "", $general->get("codec_extensions_usually_used"));
+			} catch(Exception $e) { ; };
+			if($format == "") $format = $codec;
+		} catch(Exception $e) { ; };
+		if($ext != $format && $format != "") {
+			$file_path = $file_path . "." . $format;
+		}
+
 	}
 	if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file does not exist).");
-	$ext = '';
-	$format = '';
-	$codec = '';
-	try {
-		$mediaInfo = new Mhor\MediaInfo\MediaInfo();
-		$mediaInfoContainer = $mediaInfo->getInfo($path);
-		$general = $mediaInfoContainer->getGeneral();
-		try {
-			$ext = $general->get("file_extension");
-		} catch(Exception $e) { ; };
-		try {
-			$format = preg_replace("/.*\s/", "", $general->get("format_extensions_usually_used"));
-		} catch(Exception $e) { ; };
-		try {
-			$codec = preg_replace("/.*\s/", "", $general->get("codec_extensions_usually_used"));
-		} catch(Exception $e) { ; };
-		if($format == "") $format = $codec;
-	} catch(Exception $e) { ; };
-	if($ext != $format && $format != "") {
-		$file_path = $file_path . "." . $format;
-	}
 	$file_size = filesize($path);
 	$newresponse["ok"] = true;
 	$newresponse["result"]["file_id"] = $file_id;
@@ -326,6 +328,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			$mediaInfoContainer = $mediaInfo->getInfo($path);
 			$mime = $mediaInfoContainer->getGeneral()->get("internet_media_type");
 		} catch(Exception $e) { ; };
+		if($mime == "") $mime = mime_content_type($path);
 		$ext = pathinfo($path)["extension"];
 		if (preg_match('/^image\/.*/', $mime) && preg_match('/gif|png|jpeg|jpg|bmp|tif/', $ext)) {
 			$type = "photo";
@@ -333,9 +336,9 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			$type = "video";
 		} else if($ext == "webp"){
 			$type = "sticker";
-		} else if(preg_match('/^audio\/.*/', $mime) && 'mp3' == $ext) {
+		} else if(preg_match('/^audio\/.*/', $mime) && preg_match('/mp3|flac/', $ext)) {
 			$type = "audio";
-		} else if(preg_match('/^audio\/ogg/', $mime) && 'ogg' == $ext) {
+		} else if(preg_match('/^audio\/ogg/', $mime)) {
 			$type = "voice";
 		} else {
 			$type = "document";
