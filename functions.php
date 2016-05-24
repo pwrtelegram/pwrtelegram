@@ -386,7 +386,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 
 	if($file_id == "") {
 		if(!checkbotuser($me)) { unlink($path); return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat."); };
-		if($size < 40000000){
+		if($size < 50000000){
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array( "Content-Type:multipart/form-data" )); 
 			curl_setopt($ch, CURLOPT_URL, $url . "/send" . $type . "?" . http_build_query($newparams));
@@ -411,12 +411,12 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			if(isset($result["error"]) && $result["error"] != "") return array("ok" => false, "error_code" => $result["error_code"], "description" => $result['error']);
 			$message_id = $result['id'];
 			if($message_id == "") return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
-			if($count == "0") {
-				$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, filename) VALUES (?, ?, ?);");
-				$insert_stmt->execute(array($file_hash, $me, $name));
-				$count = $insert_stmt->rowCount();
-				if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
-			}
+			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_hash=? AND bot=? AND filename=?;");
+			$insert_stmt->execute(array($file_hash, $me, $name));
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, filename) VALUES (?, ?, ?);");
+			$insert_stmt->execute(array($file_hash, $me, $name));
+			$count = $insert_stmt->rowCount();
+			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
 			if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
 			$response = curl($pwrtelegram_api . "/bot" . $token . "/getupdates");
 			$select_stmt = $pdo->prepare("SELECT file_id FROM ul WHERE file_hash=? AND bot=? AND filename=?;");

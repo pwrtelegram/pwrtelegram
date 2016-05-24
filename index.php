@@ -172,7 +172,7 @@ switch($method) {
 					if($type == "photo") {
 						$file_id = $cur["message"]["reply_to_message"][$type][0]["file_id"];
 					} else $file_id = $cur["message"]["reply_to_message"][$type]["file_id"];
-					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, type=? WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
+					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, type=? WHERE file_hash=? AND bot=? AND filename=?;");
 					$update_stmt->execute(array($file_id, $type, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
 				}
 				if($onlyme) $todo = $cur["update_id"] + 1;
@@ -196,10 +196,15 @@ switch($method) {
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
-/*	case "/answerinlinequery":
+/*
+	case "/answerinlinequery":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(!($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results array."));
-		break;*/
+		break;
+	case "/setwebhook":
+		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
+		break;
+*/
 // also setwebhook
 }
 
