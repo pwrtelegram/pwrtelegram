@@ -138,11 +138,11 @@ switch($method) {
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if($_REQUEST["file_id"] == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No file id was provided."));
 		include 'functions.php';
-		if($_REQUEST["store_on_pwrtelegram"] == true) jsonexit(download($_REQUEST['file_id']));
+/*		if($_REQUEST["store_on_pwrtelegram"] == true) jsonexit(download($_REQUEST['file_id']));
 		$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
-		if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big.*/", $response["description"])) {
-			jsonexit(download($_REQUEST["file_id"]));
-		} else jsonexit($response);
+		if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big/", $response["description"])) {
+		} else jsonexit($response);*/
+		jsonexit(download($_REQUEST["file_id"]));
 		break;
 	case "/getupdates":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));

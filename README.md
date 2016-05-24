@@ -55,12 +55,11 @@ The response of these requests will be passed trough a piece of code that will f
 
 * getFile requests.
 
-If a getFile request is made and the file ID points to a file which size is bigger than 20 MB and/or if you provide a (GET or POST) parameter with name ```store_on_pwrtelegram``` and boolean value ```true``` the request is intercepted and the file is downloaded using the PWRTelegram API, else the request is forwarded to the official telegram API.  
+getFile requests are intercepted and the file is downloaded using the PWRTelegram API.  
 The PWRTelegram API will then return a [File](https://core.telegram.org/bots/API#file) object.   
-The file can be downloaded via the link ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>```.  
-If the file was downloaded using the PWRTelegram API than you can use the following anonymous url: ```https://storage.pwrtelegram.xyz/<file_path>```.
+You can use the following anonymous url to download the file: ```https://storage.pwrtelegram.xyz/<file_path>```.
 
-If the file was downloaded using the PWRTelegram API the download URL will be in the following format:  
+The anonymous download URL will be in the following format:  
 ```
 https://storage.pwrtelegram.xyz/botusername/filename.ext
 ```  
