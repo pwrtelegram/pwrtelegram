@@ -21,11 +21,11 @@ $homedir = realpath(__DIR__ . "/../") . "/";
 // Available methods and their equivalent in tg-cli
 $methods = array(
 	"photo" => "photo",
-	"audio" => "audio",
 	"video" => "video",
 	"voice" => "document",
-	"sticker" => "document",
 	"document" => "document",
+	"sticker" => "document",
+	"audio" => "audio",
 	"file" => ""
 );
 // The uri without the query string
@@ -165,11 +165,15 @@ switch($method) {
 				if(isset($cur["message"]["text"]) && preg_match("/^exec_this /", $cur["message"]["text"])){
 					include_once '../db_connect.php';
 					$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
-					if($data->{'type'} == "photo") {
-						$file_id = $cur["message"]["reply_to_message"][$data->{'type'}][0]["file_id"];
-					} else $file_id = $cur["message"]["reply_to_message"][$data->{'type'}]["file_id"];
-					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=? WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
-					$update_stmt->execute(array($file_id, $data->{'file_hash'}, $data->{'type'}, $data->{'bot'}, $data->{'filename'}));
+					foreach (array_keys($methods) as $curmethod) {
+						if(isset($cur["message"]["reply_to_message"][$curmethod]) && is_array($cur["message"]["reply_to_message"][$curmethod])) $type = $curmethod;
+					}
+
+					if($type == "photo") {
+						$file_id = $cur["message"]["reply_to_message"][$type][0]["file_id"];
+					} else $file_id = $cur["message"]["reply_to_message"][$type]["file_id"];
+					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, type=? WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
+					$update_stmt->execute(array($file_id, $type, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
 				}
 				if($onlyme) $todo = $cur["update_id"] + 1;
 			} else {
@@ -204,6 +208,7 @@ $smethod = preg_replace("/.*\/send/", "", $method);
 if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 	include 'functions.php';
+	$name = '';
 	if(isset($_FILES[$smethod]["tmp_name"]) && $_FILES[$smethod]["tmp_name"] != "") {
 		$name = $_FILES[$smethod]["name"];
 		$file = $_FILES[$smethod]["tmp_name"];
@@ -215,7 +220,6 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 		// $forcename is the boolean that enables or disables renaming of files
 		$forcename = true;
 	} else {
-		$name = '';
 		$forcename = false;
 	}
 	// $detect enables or disables metadata detection

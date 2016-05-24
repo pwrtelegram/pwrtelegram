@@ -448,7 +448,7 @@ class Client extends RawClient
      	$type = escapeshellarg($type);
         $formattedPath = escapeshellarg($this->formatFileName($path));
 
-	return json_decode(shell_exec("telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1 | sed 's/^[^{]*{/{/;s/}[^}]*$/}/'"));
+	return json_decode(shell_exec("telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1 | sed 's/^[^{]*{/{/;s/}[^}]*$/}/'"), true);
     }
 
     /**
