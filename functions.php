@@ -269,17 +269,19 @@ function get_finfo($file_id){
  * @return json with error or file id
  */
 
-function upload($file, $name = "", $type = "", $detect = false, $forcename = false) {
+function upload($file, $name = "", $type = "", $detect = false, $forcename = false, $gettype = false) {
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir, $botusername;
+
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
 	if($name == "") $file_name = basename($file); else $file_name = basename($name);
 	if($detect == "") $detect = false;
+	if (!array_key_exists($type, $methods)) $type = "";
 	if($type == "") $type = "file";
 	if($type == "file") $detect = true;
 	if($forcename == "") $forcename = false;
 	if($forcename) $name = basename($name); else $name = "";
 
 	include '../db_connect.php';
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir, $botusername;
 	include 'telegram_connect.php';
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 
@@ -334,7 +336,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		} catch(Exception $e) { ; };
 		if($mime == "") $mime = mime_content_type($path);
 		$ext = pathinfo($path)["extension"];
-		if (preg_match('/^image\/.*/', $mime) && preg_match('/gif|png|jpeg|jpg|bmp|tif/', $ext)) {
+		if (preg_match('/^image\/.*/', $mime) && preg_match('/png|jpeg|jpg|bmp|tif/', $ext)) {
 			$type = "photo";
 		} else if(preg_match('/^video\/.*/', $mime) && 'mp4' == $ext && $audio >= 0) {
 			$type = "video";
@@ -443,6 +445,10 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 	if($params["caption"] == "" && isset($newparams["caption"]) && $newparams["caption"] != "") $params["caption"] = $newparams["caption"];
 	$params[$type] = $file_id;
 	$res = curl($url . "/send" . $type . "?" . http_build_query($params));
+	if($gettype == true) {
+		$res["file_type"] = $type;
+		$res["file_id"] = $file_id;
+	}
 	return $res;
 }
 

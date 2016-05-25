@@ -198,12 +198,46 @@ switch($method) {
 		break;
 	case "/answerinlinequery":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		if(!($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results array."));
+		if(!(isset($_REQUEST["inline_query_id"]) && $_REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
+		if(!(isset($_REQUEST["results"]) && $_REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
+		$results = json_decode($_REQUEST["results"], true);
+		$newresults = [];
+		if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
+		foreach ($results as $number => $result) {
+			$type = $result["type"];
+			if($type == "document" && !(isset($result["content_type"]) && $result["content_type"] != "")) $result
+			if (!(isset($result[$type . "_file_id"]) && $result[$type . "_file_id"] != "")) {
+				include_once 'functions.php';
+				if($result[$type . "_url"] == "" && isset($_FILES["inline_files"]["error"][$number]) && $_FILES["inline_files"]["error"][$number] == UPLOAD_ERR_OK) {
+					// $detect enables or disables metadata detection
+					// Let's do this!
+					$upload = json_decode(upload($_FILES["inline_files"]["tmp_name"][$number], $_FILES["inline_files"]["name"][$number], $type, $detect, true, false), true);
+					if(isset($upload["file_id"]) && $upload["file_id"] != "") $result[$type . "_file_id"] = $upload["file_id"];
+				}
+				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
+					if(curl_get_file_size($result[$type . "_url"]) > 40000000){
+						$upload = json_decode(upload($result[$type . "_url"], "", $type, $detect, true, false), true);
+						if(isset($upload["file_id"]) && $upload["file_id"] != "") {
+							$result[$type . "_file_id"] = $upload["file_id"];
+							$result["type"] = "cached_" . $type;
+							unset($result[$type . "_url"]);
+							unset($result["thumb_url"]);
+						}
+					}
+				}
+			}
+			$newresults[] = $result;
+		}
+		$newparams = $_REQUEST;
+		$newparams["results"] = json_encode($newresults);
+var_export($newparams);
+		jsonexit(curl($url . "/answerinlinequery?" . http_build_query($newparams)));
 		break;
 	case "/setwebhook":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		break;
 }
+
 
 // The sending method without the send keyword
 $smethod = preg_replace("/.*\/send/", "", $method);
@@ -220,14 +254,13 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
 		$name = $_REQUEST["name"];
 		// $forcename is the boolean that enables or disables renaming of files
-		$forcename = true;
-	} else {
-		$forcename = false;
-	}
+	};
+	$forcename = true;
+
 	// $detect enables or disables metadata detection
 	if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 	// Let's do this!
-	jsonexit(upload($file, $name, $smethod, $detect, $forcename));
+	jsonexit(upload($file, $name, $smethod, $detect, $forcename, false));
 }
 
 include "proxy.php";
