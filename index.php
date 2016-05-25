@@ -196,7 +196,6 @@ switch($method) {
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
-/*
 	case "/answerinlinequery":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(!($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results array."));
@@ -204,8 +203,6 @@ switch($method) {
 	case "/setwebhook":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		break;
-*/
-// also setwebhook
 }
 
 // The sending method without the send keyword

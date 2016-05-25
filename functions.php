@@ -85,7 +85,8 @@ function checkbotuser($me) {
 	ini_set("log_errors", 1);
 	// If never contacted bot send start command
 	if(!in_array($me, $usernames)) {
-		if(!$telegram->msg("@".$me, "/start")) return false;
+		$peer = $telegram->escapeUsername($me);
+		if(!$telegram->msg($peer, "/start")) return false;
 	}
 	return true;
 }
@@ -291,9 +292,13 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 	} else if(checkurl($file)){
 		$size = curl_get_file_size($file);
-		//if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
-		if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
+		if(!preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
+			//if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+			if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
+		}
 		set_time_limit(0);
+		shell_exec("wget -O " . escapeshellarg($path) . " " . escapeshellarg($file));
+/*
 		$fp = fopen ($path, 'w+');
 		$ch = curl_init(str_replace(" ","%20",$file));
 		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
@@ -303,7 +308,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		// get curl response
 		curl_exec($ch);
 		curl_close($ch);
-		fclose($fp);
+		fclose($fp);*/
 	} else if(!preg_match('/[^A-Za-z0-9\-\_]/', $file)) {
 		$info = get_finfo($file);
 		if($info["ok"] != true) return array("ok" => false, "error_code" => 400, "description" => "Couldn't get info from file id.");
@@ -325,12 +330,13 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 			$mediaInfoContainer = $mediaInfo->getInfo($path);
 			$mime = $mediaInfoContainer->getGeneral()->get("internet_media_type");
+			$audio = $mediaInfoContainer->getGeneral()->get("count_of_audio_streams");
 		} catch(Exception $e) { ; };
 		if($mime == "") $mime = mime_content_type($path);
 		$ext = pathinfo($path)["extension"];
 		if (preg_match('/^image\/.*/', $mime) && preg_match('/gif|png|jpeg|jpg|bmp|tif/', $ext)) {
 			$type = "photo";
-		} else if(preg_match('/^video\/.*/', $mime) && 'mp4' == $ext) {
+		} else if(preg_match('/^video\/.*/', $mime) && 'mp4' == $ext && $audio >= 0) {
 			$type = "video";
 		} else if($ext == "webp"){
 			$type = "sticker";
@@ -342,6 +348,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			$type = "document";
 		}
 	};
+
 	$params = $_REQUEST;
 	$newparams = array();
 	if($detect == true) { // This is pretty useless unless I figure out a way to pass the parameters to tg-cli.
@@ -394,19 +401,24 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 			curl_setopt($ch, CURLOPT_POSTFIELDS, array('chat_id' => $botusername, $type => new \CURLFile($path))); 
 			$result = json_decode(curl_exec($ch), true);
 			curl_close($ch);
-			foreach ($methods as $curmethod => $value) {
-				if(isset($result["result"][$curmethod]) && is_array($result["result"][$curmethod])) $type = $curmethod;
+			if($result["ok"] == true) {
+				foreach ($methods as $curmethod => $value) {
+					if(isset($result["result"][$curmethod]) && is_array($result["result"][$curmethod])) $type = $curmethod;
+				}
+				if($type == "photo") $file_id = end($result["result"][$type])["file_id"]; else $file_id = $result["result"][$type]["file_id"];
 			}
-			if($type == "photo") $file_id = end($result["result"][$type])["file_id"]; else $file_id = $result["result"][$type]["file_id"];
 		}
 		if($file_id != "") {
 			unlink($path);
+			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_id=? AND file_hash=? AND type=? AND bot=? AND filename=?;");
+			$insert_stmt->execute(array($file_id, $file_hash, $type, $me, $name));
 			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_id, file_hash, type, bot, filename) VALUES (?, ?, ?, ?, ?);");
 			$insert_stmt->execute(array($file_id, $file_hash, $type, $me, $name));
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
 		} else {
-			$result = $telegram->pwrsendFile("@" . $me, $methods[$type], $path);
+			$peer = $telegram->escapeUsername($me);
+			$result = $telegram->pwrsendFile($peer, $methods[$type], $path);
 			unlink($path);
 			if(isset($result["error"]) && $result["error"] != "") return array("ok" => false, "error_code" => $result["error_code"], "description" => $result['error']);
 			$message_id = $result['id'];
@@ -427,6 +439,7 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id.");
 
 	} else unlink($path);
+
 	if($params["caption"] == "" && isset($newparams["caption"]) && $newparams["caption"] != "") $params["caption"] = $newparams["caption"];
 	$params[$type] = $file_id;
 	$res = curl($url . "/send" . $type . "?" . http_build_query($params));
