@@ -9,7 +9,6 @@ class MediaInfoContainerTest extends \PHPUnit_Framework_TestCase
     private function createContainer()
     {
         $mediaInfoContainer = new MediaInfoContainer();
-
         $general = new General();
 
         $general->set('Format', 'MPEG Audio');
@@ -60,5 +59,25 @@ class MediaInfoContainerTest extends \PHPUnit_Framework_TestCase
         $array = $mediaInfoContainer->getGeneral()->__toArray();
 
         $this->assertTrue(is_array($array));
+    }
+
+    public function testToXML()
+    {
+        $mediaInfoContainer = $this->createContainer();
+
+        $xml = $mediaInfoContainer->__toXML();
+
+        $this->assertInstanceOf('SimpleXMLElement', $xml);
+    }
+
+    public function testToXMLType()
+    {
+        $mediaInfoContainer = $this->createContainer();
+
+        $general = $mediaInfoContainer->getGeneral();
+
+        $xml = $general->__toXML();
+
+        $this->assertInstanceOf('SimpleXMLElement', $xml);
     }
 }

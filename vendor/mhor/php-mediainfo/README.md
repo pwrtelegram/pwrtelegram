@@ -1,4 +1,4 @@
-#Php-MediaInfo [![Build Status](https://travis-ci.org/mhor/php-mediainfo.svg?branch=master)](https://travis-ci.org/mhor/php-mediainfo) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mhor/php-mediainfo/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mhor/php-mediainfo/?branch=master) [![Coverage Status](https://img.shields.io/coveralls/mhor/php-mediainfo.svg)](https://coveralls.io/r/mhor/php-mediainfo?branch=master) [![Packagist](https://img.shields.io/packagist/v/mhor/php-mediainfo.svg)](https://packagist.org/packages/mhor/php-mediainfo) [![Packagist](https://img.shields.io/packagist/dt/mhor/php-mediainfo.svg)](https://packagist.org/packages/mhor/php-mediainfo) [![StyleCI](https://styleci.io/repos/27673427/shield?style=flat)](https://styleci.io/repos/27673427)
+#Php-MediaInfo [![Build Status](https://travis-ci.org/mhor/php-mediainfo.svg?branch=master)](https://travis-ci.org/mhor/php-mediainfo) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mhor/php-mediainfo/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mhor/php-mediainfo/?branch=master) [![Scrutinizer Coverage](https://img.shields.io/scrutinizer/coverage/g/mhor/php-mediainfo.svg?maxAge=2592000)](https://scrutinizer-ci.com/g/mhor/php-mediainfo/) [![Packagist](https://img.shields.io/packagist/v/mhor/php-mediainfo.svg)](https://packagist.org/packages/mhor/php-mediainfo) [![Packagist](https://img.shields.io/packagist/dt/mhor/php-mediainfo.svg)](https://packagist.org/packages/mhor/php-mediainfo) [![StyleCI](https://styleci.io/repos/27673427/shield?style=flat)](https://styleci.io/repos/27673427)
 
 ## Introduction
 
@@ -222,13 +222,14 @@ $mediaInfo->setConfig('command', '/usr/local/bin/mediainfo');
 $mediaInfoContainer = $mediaInfo->getInfo('music.mp3');
 ```
 
-### MediaInfoContainer to JSON and Array
+### MediaInfoContainer to JSON, Array or XML
 ```php
 $mediaInfo = new MediaInfo();
 $mediaInfoContainer = $mediaInfo->getInfo('music.mp3');
 
 $json = json_encode($mediaInfoContainer);
 $array = $mediaInfoContainer->__toArray();
+$xml = $mediaInfoContainer->__toXML();
 ```
 
 ### Symfony integration

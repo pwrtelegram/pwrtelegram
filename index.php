@@ -1,4 +1,4 @@
- <?php
+<?php
 
 // pwrtelegram script
 // by Daniil Gentili
@@ -196,7 +196,7 @@ switch($method) {
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
-	case "/answerinlinequery":
+	case "/answerinlinequerby":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(!(isset($_REQUEST["inline_query_id"]) && $_REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
 		if(!(isset($_REQUEST["results"]) && $_REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
@@ -205,7 +205,6 @@ switch($method) {
 		if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 		foreach ($results as $number => $result) {
 			$type = $result["type"];
-			if($type == "document" && !(isset($result["content_type"]) && $result["content_type"] != "")) $result
 			if (!(isset($result[$type . "_file_id"]) && $result[$type . "_file_id"] != "")) {
 				include_once 'functions.php';
 				if($result[$type . "_url"] == "" && isset($_FILES["inline_files"]["error"][$number]) && $_FILES["inline_files"]["error"][$number] == UPLOAD_ERR_OK) {
@@ -215,7 +214,7 @@ switch($method) {
 					if(isset($upload["file_id"]) && $upload["file_id"] != "") $result[$type . "_file_id"] = $upload["file_id"];
 				}
 				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
-					if(curl_get_file_size($result[$type . "_url"]) > 40000000){
+//					if(curl_get_file_size($result[$type . "_url"]) > 40000000){
 						$upload = json_decode(upload($result[$type . "_url"], "", $type, $detect, true, false), true);
 						if(isset($upload["file_id"]) && $upload["file_id"] != "") {
 							$result[$type . "_file_id"] = $upload["file_id"];
@@ -223,9 +222,19 @@ switch($method) {
 							unset($result[$type . "_url"]);
 							unset($result["thumb_url"]);
 						}
-					}
+					
 				}
 			}
+/*			if($type == "document" && !(isset($result["content_type"]) && $result["content_type"] != "")) {
+				include_once 'telegram_connect.php';
+				$result["mime_type"] = 'application/octet-stream';
+				try {
+					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+					$mediaInfoContainer = $mediaInfo->getInfo($result["document_url"]);
+					$result["mime_type"] = $mediaInfoContainer->getGeneral()->get("internet_media_type");
+				} catch(Exception $e) { ; };
+			}*/
+
 			$newresults[] = $result;
 		}
 		$newparams = $_REQUEST;

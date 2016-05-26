@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "55b00d6a74fa67dd4eef46cb397f65ca",
-    "content-hash": "3230b8227d87e0480f7ff5ac7bf73d5b",
+    "hash": "bcb6da98b3cada437b7ab0382d8a343b",
+    "content-hash": "c156e25cf59f3484b5a4aa9923950c84",
     "packages": [
         {
             "name": "alchemy/binary-driver",
@@ -182,16 +182,16 @@
         },
         {
             "name": "mhor/php-mediainfo",
-            "version": "2.0.0",
+            "version": "2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mhor/php-mediainfo.git",
-                "reference": "37e4e1a88b7812468fb09fa553dfa90e3d64a06a"
+                "reference": "d39ab01046cd3bb355468e1f87c0a0cee6ccaf80"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/37e4e1a88b7812468fb09fa553dfa90e3d64a06a",
-                "reference": "37e4e1a88b7812468fb09fa553dfa90e3d64a06a",
+                "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/d39ab01046cd3bb355468e1f87c0a0cee6ccaf80",
+                "reference": "d39ab01046cd3bb355468e1f87c0a0cee6ccaf80",
                 "shasum": ""
             },
             "require": {
@@ -200,9 +200,7 @@
                 "symfony/process": "~2.3|~3.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "~4.0",
-                "satooshi/php-coveralls": "0.7.*@dev",
-                "squizlabs/php_codesniffer": "~2.0"
+                "phpunit/phpunit": "~4.0"
             },
             "type": "library",
             "extra": {
@@ -226,7 +224,7 @@
                 }
             ],
             "description": "PHP wrapper around the mediainfo command",
-            "time": "2016-05-02 20:49:25"
+            "time": "2016-05-22 11:16:17"
         },
         {
             "name": "monolog/monolog",

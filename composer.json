@@ -1,7 +1,7 @@
 {
     "require": {
         "zyberspace/telegram-cli-client": "^0.4.1",
-        "mhor/php-mediainfo": "^2.0",
+        "mhor/php-mediainfo": "^2.2",
         "php-ffmpeg/php-ffmpeg": "^0.6.1",
         "php-ffmpeg/extras": "^0.3.1"
     }

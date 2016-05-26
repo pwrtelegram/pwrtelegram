@@ -2,6 +2,7 @@
 
 namespace Mhor\MediaInfo\Container;
 
+use Mhor\MediaInfo\DumpTrait;
 use Mhor\MediaInfo\Type\AbstractType;
 use Mhor\MediaInfo\Type\Audio;
 use Mhor\MediaInfo\Type\General;
@@ -13,6 +14,8 @@ use Mhor\MediaInfo\Type\Video;
 
 class MediaInfoContainer implements \JsonSerializable
 {
+    use DumpTrait;
+
     const GENERAL_CLASS = 'Mhor\MediaInfo\Type\General';
     const AUDIO_CLASS = 'Mhor\MediaInfo\Type\Audio';
     const IMAGE_CLASS = 'Mhor\MediaInfo\Type\Image';
@@ -221,25 +224,5 @@ class MediaInfoContainer implements \JsonSerializable
     private function addOther(Other $other)
     {
         $this->others[] = $other;
-    }
-
-    /**
-     * Convert the object into array.
-     *
-     * @return array
-     */
-    public function jsonSerialize()
-    {
-        return get_object_vars($this);
-    }
-
-    /**
-     * Dump object to array.
-     *
-     * @return array
-     */
-    public function __toArray()
-    {
-        return $this->jsonSerialize();
     }
 }

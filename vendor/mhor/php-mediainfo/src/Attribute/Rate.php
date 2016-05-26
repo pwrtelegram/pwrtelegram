@@ -2,8 +2,12 @@
 
 namespace Mhor\MediaInfo\Attribute;
 
+use Mhor\MediaInfo\DumpTrait;
+
 class Rate implements AttributeInterface
 {
+    use DumpTrait;
+
     /**
      * @var int
      */

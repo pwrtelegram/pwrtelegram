@@ -14,6 +14,21 @@ class MediaInfoCommandBuilderTest extends \PHPUnit_Framework_TestCase
         $this->filePath = __DIR__.'/../fixtures/test.mp3';
     }
 
+    public function testBuilderCommandWithUrl()
+    {
+        $mediaInfoCommandBuilder = new MediaInfoCommandBuilder();
+        $mediaInfoCommandRunner = $mediaInfoCommandBuilder->buildMediaInfoCommandRunner('https://example.org/');
+
+        $equalsMediaInfoCommandRunner = new MediaInfoCommandRunner('https://example.org/');
+        $this->assertEquals($equalsMediaInfoCommandRunner, $mediaInfoCommandRunner);
+
+        $mediaInfoCommandBuilder = new MediaInfoCommandBuilder();
+        $mediaInfoCommandRunner = $mediaInfoCommandBuilder->buildMediaInfoCommandRunner('http://example.org/');
+
+        $equalsMediaInfoCommandRunner = new MediaInfoCommandRunner('http://example.org/');
+        $this->assertEquals($equalsMediaInfoCommandRunner, $mediaInfoCommandRunner);
+    }
+
     /**
      * @expectedException \Exception
      */

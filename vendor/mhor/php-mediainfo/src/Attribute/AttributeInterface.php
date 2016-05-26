@@ -2,7 +2,7 @@
 
 namespace Mhor\MediaInfo\Attribute;
 
-interface AttributeInterface
+interface AttributeInterface extends \JsonSerializable
 {
     /**
      * @return string

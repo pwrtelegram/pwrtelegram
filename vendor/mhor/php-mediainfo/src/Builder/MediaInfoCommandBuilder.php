@@ -15,14 +15,16 @@ class MediaInfoCommandBuilder
      */
     public function buildMediaInfoCommandRunner($filepath, array $configuration = array())
     {
-        $fileSystem = new Filesystem();
+        if (filter_var($filepath, FILTER_VALIDATE_URL) === false) {
+            $fileSystem = new Filesystem();
 
-        if (!$fileSystem->exists($filepath)) {
-            throw new \Exception('File doesn\'t exist');
-        }
+            if (!$fileSystem->exists($filepath)) {
+                throw new \Exception('File doesn\'t exist');
+            }
 
-        if (is_dir($filepath)) {
-            throw new \Exception('You must specify a filename, not a directory name');
+            if (is_dir($filepath)) {
+                throw new \Exception('You must specify a filename, not a directory name');
+            }
         }
 
         $configuration = $configuration + array(

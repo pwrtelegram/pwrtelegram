@@ -35,10 +35,10 @@ class MediaInfoOutputParser extends AbstractXmlOutputParser
 
         $mediaInfoContainerBuilder = new MediaInfoContainerBuilder($ignoreUnknownTrackTypes);
         $mediaInfoContainerBuilder->setVersion($this->parsedOutput['@attributes']['version']);
-
+error_log(var_export($this->parsedOutput, true));
         foreach ($this->parsedOutput['File']['track'] as $trackType) {
             try {
-                if(isset($trackType['@attributes']['type'])) $mediaInfoContainerBuilder->addTrackType($trackType['@attributes']['type'], $trackType);
+                $mediaInfoContainerBuilder->addTrackType($trackType['@attributes']['type'], $trackType);
             } catch (UnknownTrackTypeException $ex) {
                 if (!$ignoreUnknownTrackTypes) {
                     // rethrow exception
