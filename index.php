@@ -1,5 +1,4 @@
 <?php
-
 // pwrtelegram script
 // by Daniil Gentili
 /*
@@ -210,12 +209,12 @@ switch($method) {
 				if($result[$type . "_url"] == "" && isset($_FILES["inline_files"]["error"][$number]) && $_FILES["inline_files"]["error"][$number] == UPLOAD_ERR_OK) {
 					// $detect enables or disables metadata detection
 					// Let's do this!
-					$upload = json_decode(upload($_FILES["inline_files"]["tmp_name"][$number], $_FILES["inline_files"]["name"][$number], $type, $detect, true, false), true);
+					$upload = json_decode(upload($_FILES["inline_files"]["tmp_name"][$number], $_FILES["inline_files"]["name"][$number], $type, $detect, true), true);
 					if(isset($upload["file_id"]) && $upload["file_id"] != "") $result[$type . "_file_id"] = $upload["file_id"];
 				}
 				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
 //					if(curl_get_file_size($result[$type . "_url"]) > 40000000){
-						$upload = json_decode(upload($result[$type . "_url"], "", $type, $detect, true, false), true);
+						$upload = json_decode(upload($result[$type . "_url"], "", $type, $detect, true), true);
 						if(isset($upload["file_id"]) && $upload["file_id"] != "") {
 							$result[$type . "_file_id"] = $upload["file_id"];
 							$result["type"] = "cached_" . $type;
@@ -269,7 +268,12 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	// $detect enables or disables metadata detection
 	if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 	// Let's do this!
-	jsonexit(upload($file, $name, $smethod, $detect, $forcename, false));
+	$upload = upload($file, $name, $smethod, $detect, $forcename);
+	if($upload["ok"] == true) {
+	 	$params = $_REQUEST;
+		$params[$upload["file_type"]] = $upload["file_id"];
+	 	jsonexit(curl($url . "/send" . $upload["file_type"] . "?" . http_build_query($params)));
+	}
 }
 
 include "proxy.php";

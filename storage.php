@@ -17,6 +17,14 @@ if($_SERVER['REQUEST_URI'] == "/") {
 }
 
 include '../db_connect.php';
+function checkurl($url) {
+	$ch = curl_init(str_replace(' ', '%20', $url));
+	curl_setopt($ch, CURLOPT_NOBODY, true);
+	curl_exec($ch);
+	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	curl_close($ch);
+	if($retcode == 200) { return true; } else { return false;  };
+}
 
 $file_path = preg_replace("/^\/*/", "", $_SERVER["REQUEST_URI"]);
 $bot = preg_replace('/\/.*$/', '', $file_path);
@@ -109,6 +117,12 @@ if (is_file($file_path))
 		
 		// file save was a success
 		@fclose($file);
+		rename($file_path, $file_path.".2rm");
+		if(checkurl("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]")) {
+			unlink($file_path.".2rm");
+		} else {
+			rename($file_path.".2rm", $file_path);
+		}
 		exit;
 	}
 	else 
