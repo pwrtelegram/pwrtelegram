@@ -288,6 +288,8 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 
 	if(!checkdir($homedir . "/ul/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
 	$path = $homedir . "/ul/" . $me . "/" . $file_name;
+error_log(var_export($file, true));
+
 	if(file_exists($file)) {
 		$size = filesize($file);
 		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
@@ -295,11 +297,13 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 	} else if(checkurl($file)){
 		$size = curl_get_file_size($file);
+
 		if(preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
 			$select_stmt = $pdo->prepare("SELECT * FROM dl WHERE file_path=?;");
-			$select_stmt->execute(array( preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file)));
+			$select_stmt->execute(array(preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file)));
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
 			$info = get_finfo($fetch["file_id"]);
+error_log(var_export($info, true));
 			if($info["ok"] == true && $info["file_type"] != "") {
 				if($type == "file") $type = $info["file_type"];
 				if($type == $info["file_type"] && $forcename != true) return $info;

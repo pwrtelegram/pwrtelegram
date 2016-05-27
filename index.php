@@ -1,4 +1,5 @@
 <?php
+
 // pwrtelegram script
 // by Daniil Gentili
 /*
@@ -89,6 +90,7 @@ function jsonexit($wut) {
 	die(json_encode($wut));
 }
 
+
 // If request comes from telegram webhook
 if(preg_match("|^/hook|", $method)) {
 	$hook = preg_replace("|^/hook/|", '', $method);
@@ -99,6 +101,12 @@ if(preg_match("|^/hook|", $method)) {
 	curl_close($ch);
 }
 
+function escapeJsonString($value) {
+	$escapers = array("\\", "/", "\n", "\r", "\t", "\x08", "\x0c");
+	$replacements = array("\\\\", "\\/", "\\n", "\\r", "\\t", "\\f", "\\b");
+	$result = str_replace($escapers, $replacements, $value);
+	return $result;
+}
 
 // If requesting a file
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
@@ -143,6 +151,7 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	header("Location: " . $file_url);
 	die();
 };
+
 
 // Else use a nice case switch
 switch($method) {
@@ -212,24 +221,23 @@ switch($method) {
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(!(isset($_REQUEST["inline_query_id"]) && $_REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
 		if(!(isset($_REQUEST["results"]) && $_REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
-		$results = json_decode($_REQUEST["results"], true);
-		$newresults = [];
+		$results = json_decode(escapeJsonString($_REQUEST["results"]), true);
+		$newresults = array();
 		if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 		foreach ($results as $number => $result) {
 			$type = $result["type"];
 			if (!(isset($result[$type . "_file_id"]) && $result[$type . "_file_id"] != "")) {
 				include_once 'functions.php';
-				if($result[$type . "_url"] == "" && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
+				if(!(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
 					// $detect enables or disables metadata detection
 					// Let's do this!
-					$upload = upload($_FILES["inline_file" . $number]["tmp_name"], $_FILES["inline_file" . $number]["name"], $type, $detect, true);
+					$upload = upload($_FILES["inline_file" . $number]["tmp_name"], $_FILES["inline_file" . $number]["name"]);
 					if(isset($upload["file_id"]) && $upload["file_id"] != "") $result[$type . "_file_id"] = $upload["file_id"];
 				}
 				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
-					$upload = upload($result[$type . "_url"], "", $type, $detect, true);
+					$upload = upload($result[$type . "_url"]);
 					if(isset($upload["file_id"]) && $upload["file_id"] != "") {
 						$result[$type . "_file_id"] = $upload["file_id"];
-						$result["type"] = "cached_" . $type;
 						unset($result[$type . "_url"]);
 						unset($result["thumb_url"]);
 					}
@@ -241,7 +249,9 @@ switch($method) {
 		$newparams = $_REQUEST;
 		$newparams["results"] = json_encode($newresults);
 error_log(var_export($newparams, true));
-		jsonexit(curl($url . "/answerinlinequery?" . http_build_query($newparams)));
+		$json = curl($url . "/answerinlinequery?" . http_build_query($newparams));
+error_log(var_export($json, true));
+		jsonexit($json);
 		break;
 	case "/setwebhook":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
