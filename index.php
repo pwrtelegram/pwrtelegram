@@ -15,6 +15,7 @@ If not, see <http://www.gnu.org/licenses/>.
 // logging
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
+
 // Home dir
 $homedir = realpath(__DIR__ . "/../") . "/";
 // Available methods and their equivalent in tg-cli
@@ -41,6 +42,7 @@ $url = "https://api.telegram.org/bot" . $token;
 $pwrtelegram_api = "https://".$_SERVER["HTTP_HOST"]."/";
 // The url of the storage
 $pwrtelegram_storage = "https://storage.pwrtelegram.xyz/";
+
 
 /**
  * Returns 
@@ -86,6 +88,17 @@ function checkurl($url) {
 function jsonexit($wut) {
 	die(json_encode($wut));
 }
+
+// If request comes from telegram webhook
+if(preg_match("|^/hook|", $method)) {
+	$hook = preg_replace("|^/hook/|", '', $method);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url . "/send" . $type . "?" . http_build_query($newparams));
+	curl_setopt($ch, CURLOPT_POSTFIELDS, array('chat_id' => $botusername, $type => new \CURLFile($path))); 
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+}
+
 
 // If requesting a file
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
@@ -195,7 +208,7 @@ switch($method) {
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
-	case "/answerinlinequerby":
+	case "/answerinlinequery":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(!(isset($_REQUEST["inline_query_id"]) && $_REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
 		if(!(isset($_REQUEST["results"]) && $_REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
@@ -206,39 +219,28 @@ switch($method) {
 			$type = $result["type"];
 			if (!(isset($result[$type . "_file_id"]) && $result[$type . "_file_id"] != "")) {
 				include_once 'functions.php';
-				if($result[$type . "_url"] == "" && isset($_FILES["inline_files"]["error"][$number]) && $_FILES["inline_files"]["error"][$number] == UPLOAD_ERR_OK) {
+				if($result[$type . "_url"] == "" && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
 					// $detect enables or disables metadata detection
 					// Let's do this!
-					$upload = json_decode(upload($_FILES["inline_files"]["tmp_name"][$number], $_FILES["inline_files"]["name"][$number], $type, $detect, true), true);
+					$upload = upload($_FILES["inline_file" . $number]["tmp_name"], $_FILES["inline_file" . $number]["name"], $type, $detect, true);
 					if(isset($upload["file_id"]) && $upload["file_id"] != "") $result[$type . "_file_id"] = $upload["file_id"];
 				}
 				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
-//					if(curl_get_file_size($result[$type . "_url"]) > 40000000){
-						$upload = json_decode(upload($result[$type . "_url"], "", $type, $detect, true), true);
-						if(isset($upload["file_id"]) && $upload["file_id"] != "") {
-							$result[$type . "_file_id"] = $upload["file_id"];
-							$result["type"] = "cached_" . $type;
-							unset($result[$type . "_url"]);
-							unset($result["thumb_url"]);
-						}
-					
+					$upload = upload($result[$type . "_url"], "", $type, $detect, true);
+					if(isset($upload["file_id"]) && $upload["file_id"] != "") {
+						$result[$type . "_file_id"] = $upload["file_id"];
+						$result["type"] = "cached_" . $type;
+						unset($result[$type . "_url"]);
+						unset($result["thumb_url"]);
+					}
 				}
 			}
-/*			if($type == "document" && !(isset($result["content_type"]) && $result["content_type"] != "")) {
-				include_once 'telegram_connect.php';
-				$result["mime_type"] = 'application/octet-stream';
-				try {
-					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($result["document_url"]);
-					$result["mime_type"] = $mediaInfoContainer->getGeneral()->get("internet_media_type");
-				} catch(Exception $e) { ; };
-			}*/
 
 			$newresults[] = $result;
 		}
 		$newparams = $_REQUEST;
 		$newparams["results"] = json_encode($newresults);
-var_export($newparams);
+error_log(var_export($newparams, true));
 		jsonexit(curl($url . "/answerinlinequery?" . http_build_query($newparams)));
 		break;
 	case "/setwebhook":
@@ -248,7 +250,7 @@ var_export($newparams);
 
 
 // The sending method without the send keyword
-$smethod = preg_replace("/.*\/send/", "", $method);
+$smethod = preg_replace(array("|.*/send|", "|.*/upload|"), "", $method);
 if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 	include 'functions.php';
@@ -269,11 +271,11 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 	// Let's do this!
 	$upload = upload($file, $name, $smethod, $detect, $forcename);
-	if($upload["ok"] == true) {
+	if($upload["ok"] == true && !preg_match("|^/upload|", $method)) {
 	 	$params = $_REQUEST;
 		$params[$upload["file_type"]] = $upload["file_id"];
 	 	jsonexit(curl($url . "/send" . $upload["file_type"] . "?" . http_build_query($params)));
-	}
+	} else jsonexit($upload);
 }
 
 include "proxy.php";
