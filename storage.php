@@ -54,7 +54,7 @@ class FileServe {
 		header('Content-Type: ' . $this->content_type);
 		header('Content-Transfer-Encoding: Binary');
 		header('Content-disposition: attachment: filename="' . $this->filename . '"');
-		
+		$fileChunk = '';
 		do {
 			echo $fileChunk;
 			if($throttle > 0) usleep($throttle);
@@ -89,6 +89,10 @@ if($_SERVER["REQUEST_METHOD"] == "HEAD") {
 	$servefile = false;
 } else $servefile = true;
 
+if(empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off"){ $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; header('HTTP/1.1 301 Moved Permanently'); header('Location: ' . $redirect); exit(); }
+
+error_log($_SERVER["REQUEST_METHOD"]);
+
 try {
 	include '../db_connect.php';
 	$file_path = preg_replace("/^\/*/", "", $_SERVER["REQUEST_URI"]);
@@ -97,21 +101,10 @@ try {
 	$selectstmt->execute(array($file_path, $bot));
 	$select = $selectstmt->fetch(PDO::FETCH_ASSOC);
 	if(!($selectstmt->rowCount() > 0)) throw new Exception("Could not fetch real file path from database.");
+	header("Cache-Control: max-age=31556926;");
 	$fSrv = new FileServe($select["real_file_path"]);
 	$fSrv->serve(0, $servefile);
-	session_write_close();
-	if($servefile) {
-		rename($select["real_file_path"], $select["real_file_path"].".2rm");
-		$ch = curl_init(str_replace(' ', '%20', "https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]));
-		curl_setopt($ch, CURLOPT_HEADER, true );
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true );
-		curl_setopt($ch, CURLOPT_NOBODY, true);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-		curl_exec($ch);
-		$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		curl_close($ch);
-		if($retcode == 200) { unlink($select["real_file_path"].".2rm"); } else { rename($select["real_file_path"].".2rm", $select["real_file_path"]);  };
-	}
+	exec("tmux new-session -d 'bash " . __DIR__ . "/storagerm.sh " . escapeshellarg($select["real_file_path"]) . " " . escapeshellarg("https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]) . "'");
 } catch(Exception $e) {
 	header_remove();
 	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
