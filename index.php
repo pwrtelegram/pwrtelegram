@@ -79,8 +79,10 @@ function curl($url, $json = true) {
 function checkurl($url) {
 	$ch = curl_init(str_replace(' ', '%20', $url));
 	curl_setopt($ch, CURLOPT_NOBODY, true);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 50);
 	curl_exec($ch);
 	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+error_log($url . $retcode. curl_error($ch));
 	curl_close($ch);
 	if($retcode == 200) { return true; } else { return false;  };
 }
@@ -239,11 +241,9 @@ switch($method) {
 					if(isset($upload["file_id"]) && $upload["file_id"] != "") {
 						$result[$type . "_file_id"] = $upload["file_id"];
 						unset($result[$type . "_url"]);
-						unset($result["thumb_url"]);
 					}
 				}
 			}
-
 			$newresults[] = $result;
 		}
 		$newparams = $_REQUEST;
@@ -254,10 +254,22 @@ error_log(var_export($json, true));
 		jsonexit($json);
 		break;
 	case "/setwebhook":
+		include_once '../db_connect.php';
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
+		if(isset($_REQUEST["url"]) && $_REQUEST["url"] != "") {
+			$insert_stmt = $pdo->prepare("DELETE FROM hooks WHERE bot=? AND filename=? AND file_size=?;");
+			$insert_stmt->execute(array($me));
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, filename, file_size) VALUES (?, ?, ?, ?);");
+			$insert_stmt->execute(array($me, hash("sha256", $_REQUEST["url"])));
+			$count = $insert_stmt->rowCount();
+			if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't insert hook hash into database."));
+			$newparams = $_REQUEST;
+			$newparams["url"] = $pwrtelegram_api . "bot" . $token . "/hook/" . $newparams["url"];
+			jsonexit(curl($url . "/answerinlinequery?" . http_build_query($newparams)));
+
+		}
 		break;
 }
-
 
 // The sending method without the send keyword
 $smethod = preg_replace(array("|.*/send|", "|.*/upload|"), "", $method);
@@ -265,22 +277,25 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 	include 'functions.php';
 	$name = '';
+	$forcename = false;
 	if(isset($_FILES[$smethod]["tmp_name"]) && $_FILES[$smethod]["tmp_name"] != "") {
 		$name = $_FILES[$smethod]["name"];
 		$file = $_FILES[$smethod]["tmp_name"];
+		$forcename = true;
 	} else $file = $_REQUEST[$smethod];
 	// $file is the file's path/url/id
 	if(isset($_REQUEST["name"]) && $_REQUEST["name"] != "") {
 		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
 		$name = $_REQUEST["name"];
+		$forcename = true;
 		// $forcename is the boolean that enables or disables renaming of files
 	};
-	$forcename = true;
+	if(isset($_REQUEST["forcename"]) && $_REQUEST["forcename"] != "") {
+		$forcename = $_REQUEST["forcename"];
+	}
 
-	// $detect enables or disables metadata detection
-	if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 	// Let's do this!
-	$upload = upload($file, $name, $smethod, $detect, $forcename);
+	$upload = upload($file, $name, $smethod, $forcename);
 	if($upload["ok"] == true && !preg_match("|^/upload|", $method)) {
 	 	$params = $_REQUEST;
 		$params[$upload["file_type"]] = $upload["file_id"];

@@ -12,12 +12,12 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 
 function find_txt($msgs) {
-	$ok = "";
+	$ok = false;
 	foreach ($msgs as $msg) {
 		foreach ($msg as $key => $val) { 
-			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = "y";
+			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = true;
 		}
-		if ($ok == "y") return $msg->reply_id;
+		if ($ok) return $msg->reply_id;
 	}
 }
 
@@ -212,7 +212,7 @@ function download($file_id) {
 	$delete = $delete_stmt->execute(array($file_id, $me));
 	$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);");
 	$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size, $me, $path));
-
+	shell_exec("wget -qO/dev/null ". escapeshellarg("https://storage.pwrtelegram.xyz/" . $file_path));
 	return $newresponse;
 }
 
@@ -261,7 +261,6 @@ function get_finfo($file_id){
  * can be document, photo, audio, voice, sticker, file or empty
  * (in this case the type will default to file)
  *
- * @param $detect - Boolean, enables or disables metadata detection, defaults to false
  *
  * @param $forcename - Boolean, enables or disables file name forcing, defaults to false
  * If set to false the file name to be stored in the database will be set to empty and the 
@@ -270,15 +269,13 @@ function get_finfo($file_id){
  * @return json with error or file id
  */
 
-function upload($file, $name = "", $type = "", $detect = false, $forcename = false) {
+function upload($file, $name = "", $type = "", $forcename = false) {
 	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir, $botusername;
 
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
 	if($name == "") $file_name = basename($file); else $file_name = basename($name);
-	if($detect == "") $detect = false;
 	if (!array_key_exists($type, $methods)) $type = "";
 	if($type == "") $type = "file";
-	if($type == "file") $detect = true;
 	if($forcename == "") $forcename = false;
 	if($forcename) $name = basename($name); else $name = "";
 
@@ -288,33 +285,35 @@ function upload($file, $name = "", $type = "", $detect = false, $forcename = fal
 
 	if(!checkdir($homedir . "/ul/" . $me)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't create storage directory.");
 	$path = $homedir . "/ul/" . $me . "/" . $file_name;
-error_log(var_export($file, true));
-
 	if(file_exists($file)) {
 		$size = filesize($file);
 		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
 		if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
-	} else if(checkurl($file)){
-		$size = curl_get_file_size($file);
-
-		if(preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
-			$select_stmt = $pdo->prepare("SELECT * FROM dl WHERE file_path=?;");
-			$select_stmt->execute(array(preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file)));
+	} else if(filter_var($file, FILTER_VALIDATE_URL)) {
+/*		if(preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
+			$select_stmt = $pdo->prepare("SELECT * FROM dl WHERE file_path=? AND bot=?;");
+			$select_stmt->execute(array(preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file), $me));
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
-			$info = get_finfo($fetch["file_id"]);
-error_log(var_export($info, true));
-			if($info["ok"] == true && $info["file_type"] != "") {
+			$count2 = $select_stmt->rowCount();
+			$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_id=? AND bot=?;");
+			$select_stmt->execute(array($fetch["file_id"], $me));
+			$info = $select_stmt->fetch(PDO::FETCH_ASSOC);
+			$count = $select_stmt->rowCount();
+			if($count > 0 && $info["file_id"] != "") {
 				if($type == "file") $type = $info["file_type"];
-				if($type == $info["file_type"] && $forcename != true) return $info;
+				if($type == $info["file_type"] && $name == $info["filename"]) return $info;
 			}
-		} else {
+		}*/
+		if(checkurl($file)){
+			$size = curl_get_file_size($file);
 			//if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
 			if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
-		}
-		set_time_limit(0);
-		shell_exec("wget -O " . escapeshellarg($path) . " " . escapeshellarg($file));
-		$size = filesize($path);
+			set_time_limit(0);
+			shell_exec("wget -O " . escapeshellarg($path) . " " . escapeshellarg($file));
+			$size = filesize($path);
+		} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided URL.");
+
 /*
 		$fp = fopen ($path, 'w+');
 		$ch = curl_init(str_replace(" ","%20",$file));
@@ -331,14 +330,13 @@ error_log(var_export($info, true));
 		if($info["ok"] != true) return array("ok" => false, "error_code" => 400, "description" => "Couldn't get info from file id.");
 		if($info["file_type"] == "") return array("ok" => false, "error_code" => 400, "description" => "File type is empty.");
 		if($type == "file") $type = $info["file_type"];
-		if($type != $info["file_type"] || $forcename == true) {
+		if($type != $info["file_type"] || $name != "") {
 			$downloadres = download($file);
 			if($res["result"]["file_path"] != "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file from file id.");
 			if(!rename($res["result"]["file_path"], $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 			$size = filesize($path);
-		} return $info;
+		} else return $info;
 	} else {
-		if(filter_var($file, FILTER_VALIDATE_URL)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided URL.");
 		return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL.");
 	}
 	if($type == "file") {
@@ -368,38 +366,47 @@ error_log(var_export($info, true));
 
 
 	$newparams = array();
-	if($detect == true) { // This is pretty useless unless I figure out a way to pass the parameters to tg-cli.
-			switch($type) {
-				case "audio":
-					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral();
-					foreach (array("performer" => "performer", "track_name" => "title") as $orig => $param) {
-						try {
-							$newparams[$param] = $general->get($orig);
-						} catch(Exception $e) {
-						};
-					};
-					$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-					break;
-				case "voice":
-					$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-					break;
-				case "video":
-					$mediaInfo = new Mhor\MediaInfo\MediaInfo();
-					$mediaInfoContainer = $mediaInfo->getInfo($path);
-					$general = $mediaInfoContainer->getGeneral();
-					foreach (array("width" => "width", "height" => "height") as $orig => $param) { try { $newparams[$param] = $general->get($orig)->__toString(); } catch(Exception $e) { ; }; };
-					$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-					$newparams["caption"] = $file_name;
-					break;
-				case "photo":
-					$newparams["caption"] = $file_name;
-					break;
-				case "document":
-					$newparams["caption"] = $file_name;
-					break;
-			}
+	switch($type) {
+		case "audio":
+			$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+			$mediaInfoContainer = $mediaInfo->getInfo($path);
+			$general = $mediaInfoContainer->getGeneral();
+			foreach (array("performer" => "performer", "track_name" => "title") as $orig => $param) {
+				$newparams[$param] = "";
+				try {
+					$newparams[$param] = $general->get($orig);
+				} catch(Exception $e) {
+				};
+			};
+			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+			break;
+		case "voice":
+			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+			break;
+		case "video":
+			$mediaInfo = new Mhor\MediaInfo\MediaInfo();
+			$mediaInfoContainer = $mediaInfo->getInfo($path);
+			$general = $mediaInfoContainer->getGeneral();
+			foreach (array("width" => "width", "height" => "height") as $orig => $param) {
+				$newparams[$param] = "";
+				try {
+					$newparams[$param] = $general->get($orig)->__toString(); 
+				} catch(Exception $e) { ; };
+			};
+			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+			$newparams["caption"] = $file_name;
+			break;
+		case "photo":
+			$newparams["caption"] = $file_name;
+			break;
+		case "document":
+			$newparams["caption"] = $file_name;
+			break;
+	}
+	foreach ($newparams as $param => $val) {
+		if(isset($_REQUEST[$param]) && $_REQUEST[$param] != "") {
+			$newparams[$param] = $_REQUEST[$param];
+		}
 	}
 
 	$file_hash = hash_file('sha256', $path);
@@ -407,7 +414,6 @@ error_log(var_export($info, true));
 	$select_stmt->execute(array($file_hash, $type, $me, $name));
 	$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
 	$file_id = $fetch["file_id"];
-	$file_size = $fetch["file_size"];
 
 	$count = $select_stmt->rowCount();
 
@@ -427,7 +433,6 @@ error_log(var_export($info, true));
 				}
 				if($type == "photo") $fetch = end($result["result"][$type]); else $fetch = $result["result"][$type];
 	 	 		$file_id = $fetch["file_id"];
-
 			}
 		}
 		if($file_id != "") {
@@ -461,10 +466,11 @@ error_log(var_export($info, true));
 			if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file.");
 		}
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id.");
-
-	} else unlink($path);
-
-	if($_REQUEST["caption"] == "" && isset($newparams["caption"]) && $newparams["caption"] != "") $res["caption"] = $newparams["caption"];
+	} else {
+		unlink($path);
+		$size = $fetch["file_size"];
+	}
+	if(!(isset($_REQUEST["caption"]) && $_REQUEST["caption"] != "") && isset($newparams["caption"]) && $newparams["caption"] != "") $res["caption"] = $newparams["caption"];
 	$res["file_size"] = $size;
 	$res["file_type"] = $type;
 	$res["file_id"] = $file_id;
