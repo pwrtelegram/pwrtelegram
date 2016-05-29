@@ -78,8 +78,11 @@ function curl($url, $json = true) {
 
 function checkurl($url) {
 	$ch = curl_init(str_replace(' ', '%20', $url));
+//	curl_setopt( $ch, CURLOPT_HEADER, true );
+	curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 	curl_setopt($ch, CURLOPT_NOBODY, true);
 	curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+	curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
 	curl_exec($ch);
 	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 error_log($url . $retcode. curl_error($ch));
@@ -296,7 +299,7 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 
 	// Let's do this!
 	$upload = upload($file, $name, $smethod, $forcename);
-	if($upload["ok"] == true && !preg_match("|^/upload|", $method)) {
+	if($upload["ok"] == true && preg_match("|^/send|", $method)) {
 	 	$params = $_REQUEST;
 		$params[$upload["file_type"]] = $upload["file_id"];
 	 	jsonexit(curl($url . "/send" . $upload["file_type"] . "?" . http_build_query($params)));

@@ -291,7 +291,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 	} else if(filter_var($file, FILTER_VALIDATE_URL)) {
-/*		if(preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
+		if(preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
 			$select_stmt = $pdo->prepare("SELECT * FROM dl WHERE file_path=? AND bot=?;");
 			$select_stmt->execute(array(preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file), $me));
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
@@ -304,7 +304,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 				if($type == "file") $type = $info["file_type"];
 				if($type == $info["file_type"] && $name == $info["filename"]) return $info;
 			}
-		}*/
+		}
 		if(checkurl($file)){
 			$size = curl_get_file_size($file);
 			//if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");

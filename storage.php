@@ -1,151 +1,126 @@
 <?php
+ini_set("log_errors", 1);
+ini_set("error_log", "/tmp/php-error-index.log");
+
+
 /**
- * Copyright 2012 Armand Niculescu - MediaDivision.com
- * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
- * THIS SOFTWARE IS PROVIDED BY THE FREEBSD PROJECT "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE FREEBSD PROJECT OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+ * FileServe
+ *
+ * Class that serves a file from disk to a client.
+ *
+ * @package		FileServe
+ * @author		Kenny <0@kenny.cat>
+ * @license		The Unlicense (http://unlicense.org)
+*/
+class FileServe {
+	private $stream;
+	private $filename;
+	
+	const FILE_BUFFER = 8192; //buffer 8192 KByte of the file on every read. You might want to play with this value.
+	const CONTENT_TYPE = "application/octet-stream";
+	
+	/**
+
+	 ** Constructor
+	 *
+	 * Called when instantiating the class.
+	 *
+	 * @param str $filename Filename of the file to be read.
+	 * @throws Exception if input file doesn't exist or cannot be read
+	 */
+	public function __construct($filename) {
+		if(!file_exists($filename)) throw new Exception("The given input file does not exist.");
+		$this->stream = fopen($filename, 'r');
+		$this->filename = basename($filename);
+		$this->content_type = mime_content_type($filename);
+		if($this->content_type == null) $this->content_type = self::CONTENT_TYPE;
+		if($this->stream === false) throw new Exception("Could not read file. Please check permissions.");
+		else return true;
+	}
+	
+	/**
+	 * Serve file
+	 *
+	 * Starts serving the file to the client.
+	 *
+	 * @throws Exception if stream dead or file empty
+	 * @param $throttle (optional) Defines amount of throttle in the transmission in nanoseconds. Defaults to no throttle.
+	 * @return true after transmission completed
+	 */
+	public function serve($throttle = 0, $doserve = true) {
+		if(!is_resource($this->stream)) throw new Exception("The stream has gone away. This should not occur.");
+		if(feof($this->stream)) throw new Exception("The file is empty.");
+		
+		header('Content-Type: ' . $this->content_type);
+		header('Content-Transfer-Encoding: Binary');
+		header('Content-disposition: attachment: filename="' . $this->filename . '"');
+		
+		do {
+			echo $fileChunk;
+			if($throttle > 0) usleep($throttle);
+		} while (false !== ($fileChunk = $this->readChunk()) && $doserve == true);
+		
+		return true;
+	}
+	
+	/**
+	 * Get next chunk
+	 *
+	 * Gets a chunk from the file and returns it.
+	 *
+	 * @return str chunk if chunk read correctly, false if file pointer is EOF
+	 */
+	 private function readChunk() {
+	 	if(feof($this->stream)) return false;
+	 	$chunk = fread($this->stream, self::FILE_BUFFER);
+	 	return $chunk;
+	 }
+}
 
 if($_SERVER['REQUEST_URI'] == "/") {
- header("HTTP/1.1 418 I'm a teapot");
- echo '<html>
+	header("HTTP/1.1 418 I'm a teapot");
+	exit('<html>
 <h1>418 I&apos;m a teapot.</h1><br>
 <p>My little teapot, my little teapot, oooh oooh oooh oooh...</p>
-</html>';
- exit;
+</html>');
 }
 
-include '../db_connect.php';
-function checkurl($url) {
-	$ch = curl_init(str_replace(' ', '%20', $url));
-	curl_setopt($ch, CURLOPT_NOBODY, true);
-	curl_exec($ch);
-	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	curl_close($ch);
-	if($retcode == 200) { return true; } else { return false;  };
-}
+if($_SERVER["REQUEST_METHOD"] == "HEAD") {
+	$servefile = false;
+} else $servefile = true;
 
-$file_path = preg_replace("/^\/*/", "", $_SERVER["REQUEST_URI"]);
-$bot = preg_replace('/\/.*$/', '', $file_path);
-$selectstmt = $pdo->prepare("SELECT real_file_path FROM dl WHERE file_path=? AND bot=? LIMIT 1;");
-$selectstmt->execute(array($file_path, $bot));
-$select = $selectstmt->fetch(PDO::FETCH_ASSOC);
-if($selectstmt->rowCount() == "1" && is_file($select["real_file_path"])) {
-	$file_path = $select["real_file_path"];
-} else $file_path = "";
-
-
-$path_parts = pathinfo($_SERVER['REQUEST_URI']);
-$file_name  = $path_parts['basename'];
-$file_dir = realpath(__DIR__ . $path_parts['dirname']);
-$file_ext = $path_parts['extension'];
-
-
-// make sure the file exists
-if (is_file($file_path))
-{
-	$file_size  = filesize($file_path);
-	$file = @fopen($file_path,"rb");
-	if ($file)
-	{
-		header("Content-Disposition: attachment; filename=\"$file_name\"");
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mime = finfo_file($finfo, $file_path);
-		finfo_close($finfo);
-		header("Content-Type: " . $mime);
-
-		//check if http_range is sent by browser (or download manager)
-		if(isset($_SERVER['HTTP_RANGE']))
-		{
-			list($size_unit, $range_orig) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-			if ($size_unit == 'bytes')
-			{
-				//multiple ranges could be specified at the same time, but for simplicity only serve the first range
-				//http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
-				list($range, $extra_ranges) = explode(',', $range_orig, 2);
-			}
-			else
-			{
-				$range = '';
-				header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-				header("Cache-Control: post-check=0, pre-check=0", false);
-				header("Pragma: no-cache");
-				header('HTTP/1.1 416 Requested Range Not Satisfiable');
-				exit;
-			}
-		}
-		else
-		{
-			$range = '';
-		}
-		error_reporting(0);
-
-		//figure out download piece from range (if set)
-		list($seek_start, $seek_end) = explode('-', $range, 2);
-
-		//set start and end based on range (if set), else set defaults
-		//also check for invalid ranges.
-		$seek_end   = (empty($seek_end)) ? ($file_size - 1) : min(abs(intval($seek_end)),($file_size - 1));
-		$seek_start = (empty($seek_start) || $seek_end < abs(intval($seek_start))) ? 0 : max(abs(intval($seek_start)),0);
-	 
-		//Only send partial content header if downloading a piece of the file (IE workaround)
-		if ($seek_start > 0 || $seek_end < ($file_size - 1))
-		{
-			header('HTTP/1.1 206 Partial Content');
-			header('Content-Range: bytes '.$seek_start.'-'.$seek_end.'/'.$file_size);
-			header('Content-Length: '.($seek_end - $seek_start + 1));
-		}
-		else { header("Content-Length: $file_size"); };
-		header('Accept-Ranges: bytes');
-		if($_SERVER['REQUEST_METHOD'] == "HEAD") exit;
-		set_time_limit(0);
-		fseek($file, $seek_start);
-		
-		while(!feof($file)) 
-		{
-			// Turn off all error reporting
-			print(@fread($file, 1024*8));
-			ob_flush();
-			flush();
-			if (connection_status()!=0) 
-			{
-				@fclose($file);
-				exit;
-			}			
-		}
-		
-		// file save was a success
-		@fclose($file);
-		rename($file_path, $file_path.".2rm");
-		if(checkurl("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]")) {
-			unlink($file_path.".2rm");
-		} else {
-			rename($file_path.".2rm", $file_path);
-		}
-		exit;
+try {
+	include '../db_connect.php';
+	$file_path = preg_replace("/^\/*/", "", $_SERVER["REQUEST_URI"]);
+	$bot = preg_replace('/\/.*$/', '', $file_path);
+	$selectstmt = $pdo->prepare("SELECT real_file_path FROM dl WHERE file_path=? AND bot=? LIMIT 1;");
+	$selectstmt->execute(array($file_path, $bot));
+	$select = $selectstmt->fetch(PDO::FETCH_ASSOC);
+	if(!($selectstmt->rowCount() > 0)) throw new Exception("Could not fetch real file path from database.");
+	$fSrv = new FileServe($select["real_file_path"]);
+	$fSrv->serve(0, $servefile);
+	session_write_close();
+	if($servefile) {
+		rename($select["real_file_path"], $select["real_file_path"].".2rm");
+		$ch = curl_init(str_replace(' ', '%20', "https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]));
+		curl_setopt($ch, CURLOPT_HEADER, true );
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true );
+		curl_setopt($ch, CURLOPT_NOBODY, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+		curl_exec($ch);
+		$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		curl_close($ch);
+		if($retcode == 200) { unlink($select["real_file_path"].".2rm"); } else { rename($select["real_file_path"].".2rm", $select["real_file_path"]);  };
 	}
-	else 
-	{
-		// file couldn't be opened
-		header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-		header("Cache-Control: post-check=0, pre-check=0", false);
-		header("Pragma: no-cache");
-		header("HTTP/1.0 404 File not found");
-		exit;
-	}
-	exit;
-
+} catch(Exception $e) {
+	header_remove();
+	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+	header("Cache-Control: post-check=0, pre-check=0", false);
+	header("Pragma: no-cache");
+	header("HTTP/1.0 404 File not found");
+	exit('<html>
+<h1>404 File not found.</h1><br>
+<p>Caught exception: '. $e->getMessage() .'</p>
+</html>');
 }
-else
-{
-		// file does not exist
-		header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-		header("Cache-Control: post-check=0, pre-check=0", false);
-		header("Pragma: no-cache");
-		header("HTTP/1.0 404 File not found");
-		exit;
-}
-?>
-
-
+exit;
