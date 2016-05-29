@@ -85,7 +85,7 @@ function checkurl($url) {
 	curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
 	curl_exec($ch);
 	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-error_log($url . $retcode. curl_error($ch));
+//	error_log($url . $retcode. curl_error($ch));
 	curl_close($ch);
 	if($retcode == 200) { return true; } else { return false;  };
 }
@@ -256,7 +256,7 @@ error_log(var_export($newparams, true));
 error_log(var_export($json, true));
 		jsonexit($json);
 		break;
-	case "/setwebhook":
+	case "/donutsetwebhook":
 		include_once '../db_connect.php';
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(isset($_REQUEST["url"]) && $_REQUEST["url"] != "") {
@@ -265,7 +265,7 @@ error_log(var_export($json, true));
 			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, filename, file_size) VALUES (?, ?, ?, ?);");
 			$insert_stmt->execute(array($me, hash("sha256", $_REQUEST["url"])));
 			$count = $insert_stmt->rowCount();
-			if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't insert hook hash into database."));
+			if($count != 1) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't insert hook hash into database."));
 			$newparams = $_REQUEST;
 			$newparams["url"] = $pwrtelegram_api . "bot" . $token . "/hook/" . $newparams["url"];
 			jsonexit(curl($url . "/answerinlinequery?" . http_build_query($newparams)));

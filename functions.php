@@ -304,15 +304,21 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 				if($type == "file") $type = $info["file_type"];
 				if($type == $info["file_type"] && $name == $info["filename"]) return $info;
 			}
-		}
+		}/*
 		if(checkurl($file)){
-			$size = curl_get_file_size($file);
-			//if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
-			if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
-			set_time_limit(0);
-			shell_exec("wget -O " . escapeshellarg($path) . " " . escapeshellarg($file));
-			$size = filesize($path);
-		} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided URL.");
+			$size = curl_get_file_size($file);*/
+		set_time_limit(0);
+		shell_exec("wget -Q 1610612736 -O " . escapeshellarg($path) . " " . escapeshellarg($file));
+		$size = filesize($path);
+		if($size < 1) {
+			unlink($path);
+			return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+		}
+		if($size > 1610612736) {
+			unlink($path);
+			return array("ok" => false, "error_code" => 400, "description" => "File too big.");
+		}
+//		} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided URL.");
 
 /*
 		$fp = fopen ($path, 'w+');
