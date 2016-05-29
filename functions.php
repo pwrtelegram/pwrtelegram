@@ -212,7 +212,7 @@ function download($file_id) {
 	$delete = $delete_stmt->execute(array($file_id, $me));
 	$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);");
 	$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size, $me, $path));
-	shell_exec("wget -qO/dev/null ". escapeshellarg("https://storage.pwrtelegram.xyz/" . $file_path));
+//	shell_exec("wget -qO/dev/null ". escapeshellarg("https://storage.pwrtelegram.xyz/" . $file_path));
 	return $newresponse;
 }
 

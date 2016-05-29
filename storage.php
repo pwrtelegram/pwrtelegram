@@ -98,7 +98,7 @@ if (is_file($file_path))
 		}
 		else { header("Content-Length: $file_size"); };
 		header('Accept-Ranges: bytes');
-    
+		if($_SERVER['REQUEST_METHOD'] == "HEAD") exit;
 		set_time_limit(0);
 		fseek($file, $seek_start);
 		
