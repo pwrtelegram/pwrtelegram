@@ -442,15 +442,14 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			$result = $telegram->pwrsendFile($peer, $methods[$type], $path);
 			unlink($path);
 			if(isset($result["error"]) && $result["error"] != "") return array("ok" => false, "error_code" => $result["error_code"], "description" => $result['error']);
-			$message_id = $result['id'];
-			if($message_id == "") return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
+			if(!(isset($result["id"]) && $result["id"] != "")) return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
 			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;");
 			$insert_stmt->execute(array($file_hash, $me, $name, $size));
 			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);");
 			$insert_stmt->execute(array($file_hash, $me, $name, $size));
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
-			if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
+			if(!$telegram->replymsg($result["id"], "exec_this " . json_encode(array("file_hash" => $file_hash, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
 			$response = curl($pwrtelegram_api . "/bot" . $token . "/getupdates");
 			$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;");
 			$select_stmt->execute(array($file_hash, $me, $name));

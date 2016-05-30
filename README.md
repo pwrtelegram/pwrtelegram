@@ -26,7 +26,8 @@ This API is written and maintained by @danog ([@danogentili on telegram](https:/
 * Uploading of files using an URL
 * Reuploading of files using a file ID and different file type or file name.
 * Uploading of any file/URL/file ID with automagical type recognition.  
-* Optional automagical metadata recognition of sent files/URLs/file IDs.  
+* Uploading of any file/URL/file ID without sending the file to a specific user.  
+* Automagical metadata recognition of sent files/URLs/file IDs.  
 * Deleting of text messages sent from the bot  
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
