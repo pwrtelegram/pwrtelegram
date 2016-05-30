@@ -464,11 +464,8 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		unlink($path);
 		$size = $fetch["file_size"];
 	}
-	if(!(isset($_REQUEST["caption"]) && $_REQUEST["caption"] != "") && isset($newparams["caption"]) && $newparams["caption"] != "") $res["caption"] = $newparams["caption"];
-	$res["file_size"] = $size;
-	$res["file_type"] = $type;
-	$res["file_id"] = $file_id;
-	$res["ok"] = true;
+	$res = array("ok" => true, "result" => array("file_size" => $size, "file_type" => $type, "file_id" => $file_id));
+	if(!(isset($_REQUEST["caption"]) && $_REQUEST["caption"] != "") && isset($newparams["caption"]) && $newparams["caption"] != "") $res["result"]["caption"] = $newparams["caption"];
 	return $res;
 }
 

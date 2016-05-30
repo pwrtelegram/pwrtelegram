@@ -14,6 +14,8 @@ The PWRTelegram API makes use of:
 * A modified version of [proxy.php](https://github.com/mcnemesis/proxy.php)
 * [telegram-lua-load](https://github.com/pwrtelegram/telegram-lua-load)
 
+This API is written and maintained by @danog ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially @itskenny0 ([@shitposting on telegram](https://telegram.me/shitposting)).  
+
 
 ## Features:  
 
@@ -76,9 +78,9 @@ The usage of these methods is exactly the same as in the official Telegram BOT A
 
 The same will happen if you send a file ID that links to a file which type is different from the one specified in the URL or if you also provide a file name along with the file ID.
 
-You can provide a detect parameter: if the value of this parameter is set to true, the PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).
+The PWRTelegram API will automagically obtain the metadata of the provided file/URL and send it along with the file itself (only if it isn't already present in the request).
 
-This is the metadata that will be obtained and sent if the detect parameter is set to true: 
+This is the metadata that will be obtained and sent: 
 
 * Documents: file name as caption
 
@@ -99,7 +101,7 @@ You can also provide a name parameter containing the name of the file to be sent
 
 Use this method to send any file/URL/file ID. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.
 
-This is the metadata that will be obtained and sent (only if it isn't already provided in the request) along with the file:
+This is the metadata that will be obtained and sent (only if not present in the request) along with the file:
 
 * Documents: file name as caption
 
@@ -126,6 +128,27 @@ This is the metadata that will be obtained and sent (only if it isn't already pr
 | disable_notification 	| Boolean                                                                        	| Optional 	| Sends the message silently. iOS users will not receive a notification, Android users will receive a notification with no sound.                                              	|
 | reply_to_message_id  	| Integer                                                                        	| Optional 	| If the message is a reply, ID of the original message                                                                                                                        	|
 | reply_markup         	| InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardHide or ForceReply 	| Optional 	| Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to hide reply keyboard or to force a reply from the user. 	|
+
+
+* uploadFile, uploadDocument, uploadAudio, uploadVideo, uploadVoice, uploadPhoto, uploadSticker
+
+These methods can be used to upload files to telegram without sending them to a particular user. Their usage is exactly the same as for their sendMethod counterparts, except that the chat_id, disable_notification, reply_to_message_id, reply_markup parameters will be ignored.  
+
+On success, they will return a json array containing the following elements:
+
+* ok => true
+
+* result =>
+
+ * file_id => Uploaded file id
+
+ * file_type => Uploaded file type
+
+ * file_size => Uploaded file size
+
+ * file_id => Optional caption of uploaded file id (to send when calling a send method).
+
+Otherwise the error is returned.
 
 
 * deleteMessage
@@ -156,7 +179,7 @@ Otherwise the error is returned.
 ## Known bugs
 
 This API cannot download video and voice files bigger than 20 mb. This is a bug of tg-cli.  
-The metadata recognition feature works only with files smaller than 40 mb.  
+The metadata recognition feature works only with files smaller than 50 mb.  
 
 
 For questions contact https://telegram.me/danogentili or the [official support group](https://telegram.me/pwrtelegramgroup).
