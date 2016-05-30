@@ -295,20 +295,21 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			$select_stmt = $pdo->prepare("SELECT * FROM dl WHERE file_path=? AND bot=?;");
 			$select_stmt->execute(array(preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file), $me));
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
-			$count2 = $select_stmt->rowCount();
-			$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_id=? AND bot=?;");
-			$select_stmt->execute(array($fetch["file_id"], $me));
-			$info = $select_stmt->fetch(PDO::FETCH_ASSOC);
 			$count = $select_stmt->rowCount();
-			if($count > 0 && $info["file_id"] != "") {
-				if($type == "file") $type = $info["file_type"];
-				if($type == $info["file_type"] && $name == $info["filename"]) return $info;
-			}
-		}/*
-		if(checkurl($file)){
-			$size = curl_get_file_size($file);*/
+			if($count > 0 && isset($fetch["file_id"]) && $fetch["file_id"] != "") {
+				$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_id=? AND bot=?;");
+				$select_stmt->execute(array($fetch["file_id"], $me));
+				$info = $select_stmt->fetch(PDO::FETCH_ASSOC);
+				$count = $select_stmt->rowCount();
+				if($count > 0 && isset($info["file_id"]) && $info["file_id"] != "" && isset($info["file_type"]) && $info["file_type"] != "" && isset($info["file_name"])) {
+					if($type == "file") $type = $info["file_type"];
+					if($type == $info["file_type"] && $name == $info["file_name"]) return $info;
+				}
+			};
+		}
 		set_time_limit(0);
-		shell_exec("wget -Q 1610612736 -O " . escapeshellarg($path) . " " . escapeshellarg($file));
+		shell_exec("wget -qQ 1610612736 -O " . escapeshellarg($path) . " " . escapeshellarg($file));
+		if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 		$size = filesize($path);
 		if($size < 1) {
 			unlink($path);
@@ -318,19 +319,6 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			unlink($path);
 			return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		}
-//		} else return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided URL.");
-
-/*
-		$fp = fopen ($path, 'w+');
-		$ch = curl_init(str_replace(" ","%20",$file));
-		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-		// write curl response to file
-		curl_setopt($ch, CURLOPT_FILE, $fp);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		// get curl response
-		curl_exec($ch);
-		curl_close($ch);
-		fclose($fp);*/
 	} else if(!preg_match('/[^A-Za-z0-9\-\_]/', $file)) {
 		$info = get_finfo($file);
 		if($info["ok"] != true) return array("ok" => false, "error_code" => 400, "description" => "Couldn't get info from file id.");
@@ -416,7 +404,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 	}
 
 	$file_hash = hash_file('sha256', $path);
-	$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_hash=? AND type=? AND bot=? AND filename=?;");
+	$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;");
 	$select_stmt->execute(array($file_hash, $type, $me, $name));
 	$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
 	$file_id = $fetch["file_id"];
@@ -443,9 +431,9 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		}
 		if($file_id != "") {
 			unlink($path);
-			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_id=? AND file_hash=? AND type=? AND bot=? AND filename=? AND file_size=?;");
+			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_id=? AND file_hash=? AND file_type=? AND bot=? AND file_name=? AND file_size=?;");
 			$insert_stmt->execute(array($file_id, $file_hash, $type, $me, $name, $size));
-			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_id, file_hash, type, bot, filename, file_size) VALUES (?, ?, ?, ?, ?, ?);");
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_id, file_hash, file_type, bot, file_name, file_size) VALUES (?, ?, ?, ?, ?, ?);");
 			$insert_stmt->execute(array($file_id, $file_hash, $type, $me, $name, $size));
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
@@ -456,15 +444,15 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			if(isset($result["error"]) && $result["error"] != "") return array("ok" => false, "error_code" => $result["error_code"], "description" => $result['error']);
 			$message_id = $result['id'];
 			if($message_id == "") return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
-			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_hash=? AND bot=? AND filename=? AND file_size=?;");
+			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;");
 			$insert_stmt->execute(array($file_hash, $me, $name, $size));
-			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, filename, file_size) VALUES (?, ?, ?, ?);");
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);");
 			$insert_stmt->execute(array($file_hash, $me, $name, $size));
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
 			if(!$telegram->replymsg($message_id, "exec_this " . json_encode(array("file_hash" => $file_hash, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
 			$response = curl($pwrtelegram_api . "/bot" . $token . "/getupdates");
-			$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_hash=? AND bot=? AND filename=?;");
+			$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;");
 			$select_stmt->execute(array($file_hash, $me, $name));
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
 			$file_id = $fetch["file_id"];

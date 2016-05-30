@@ -50,16 +50,16 @@ class FileServe {
 	public function serve($throttle = 0, $doserve = true) {
 		if(!is_resource($this->stream)) throw new Exception("The stream has gone away. This should not occur.");
 		if(feof($this->stream)) throw new Exception("The file is empty.");
-		
 		header('Content-Type: ' . $this->content_type);
 		header('Content-Transfer-Encoding: Binary');
 		header('Content-disposition: attachment: filename="' . $this->filename . '"');
 		$fileChunk = '';
-		do {
-			echo $fileChunk;
-			if($throttle > 0) usleep($throttle);
-		} while (false !== ($fileChunk = $this->readChunk()) && $doserve == true);
-		
+		if($doserve) {
+			do {
+				echo $fileChunk;
+				if($throttle > 0) usleep($throttle);
+			} while (false !== ($fileChunk = $this->readChunk()));
+		};
 		return true;
 	}
 	

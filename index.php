@@ -198,7 +198,7 @@ switch($method) {
 					if($type == "photo") {
 						$file_id = $cur["message"]["reply_to_message"][$type][0]["file_id"];
 					} else $file_id = $cur["message"]["reply_to_message"][$type]["file_id"];
-					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, type=? WHERE file_hash=? AND bot=? AND filename=?;");
+					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;");
 					$update_stmt->execute(array($file_id, $type, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
 				}
 				if($onlyme) $todo = $cur["update_id"] + 1;
@@ -260,9 +260,9 @@ error_log(var_export($json, true));
 		include_once '../db_connect.php';
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if(isset($_REQUEST["url"]) && $_REQUEST["url"] != "") {
-			$insert_stmt = $pdo->prepare("DELETE FROM hooks WHERE bot=? AND filename=? AND file_size=?;");
+			$insert_stmt = $pdo->prepare("DELETE FROM hooks WHERE bot=? AND file_name=? AND file_size=?;");
 			$insert_stmt->execute(array($me));
-			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, filename, file_size) VALUES (?, ?, ?, ?);");
+			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);");
 			$insert_stmt->execute(array($me, hash("sha256", $_REQUEST["url"])));
 			$count = $insert_stmt->rowCount();
 			if($count != 1) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't insert hook hash into database."));
