@@ -233,11 +233,15 @@ switch($method) {
 			$type = $result["type"];
 			if (!(isset($result[$type . "_file_id"]) && $result[$type . "_file_id"] != "")) {
 				include_once 'functions.php';
-				if(!(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
+				if((!isset($result[$type . "_url"]) || $result[$type . "_url"] == "") && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
 					// $detect enables or disables metadata detection
 					// Let's do this!
 					$upload = upload($_FILES["inline_file" . $number]["tmp_name"], $_FILES["inline_file" . $number]["name"]);
-					if(isset($upload["result"]["file_id"]) && $upload["result"]["file_id"] != "") $result[$type . "_file_id"] = $upload["result"]["file_id"];
+
+					if(isset($upload["result"]["file_id"]) && $upload["result"]["file_id"] != "") {
+						unset($result[$type . "_url"]);
+						$result[$type . "_file_id"] = $upload["result"]["file_id"];
+					}
 				}
 				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
 					$upload = upload($result[$type . "_url"]);
@@ -296,7 +300,7 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 
 	// Let's do this!
 	$upload = upload($file, $name, $smethod, $forcename);
-	if($upload["ok"] == true && preg_match("|^/send|", $method)) {
+	if(isset($upload["ok"]) && $upload["ok"] == true && preg_match("|^/send|", $method)) {
 	 	$params = $_REQUEST;
 		$params[$upload["result"]["file_type"]] = $upload["result"]["file_id"];
 	 	jsonexit(curl($url . "/send" . $upload["result"]["file_type"] . "?" . http_build_query($params)));

@@ -1,7 +1,7 @@
 <?php
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
-
+error_log($_SERVER["REQUEST_URI"]);
 
 /**
  * FileServe
