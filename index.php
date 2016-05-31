@@ -255,9 +255,9 @@ switch($method) {
 		}
 		$newparams = $_REQUEST;
 		$newparams["results"] = json_encode($newresults);
-error_log(var_export($newparams, true));
+//error_log(var_export($newparams, true));
 		$json = curl($url . "/answerinlinequery?" . http_build_query($newparams));
-error_log(var_export($json, true));
+//error_log(var_export($json, true));
 		jsonexit($json);
 		break;
 	case "/donutsetwebhook":

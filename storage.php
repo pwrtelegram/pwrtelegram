@@ -71,6 +71,8 @@ class FileServe {
 	 * @return str chunk if chunk read correctly, false if file pointer is EOF
 	 */
 	 private function readChunk() {
+		ob_flush():
+		flush();
 	 	if(feof($this->stream)) return false;
 	 	$chunk = fread($this->stream, self::FILE_BUFFER);
 	 	return $chunk;
