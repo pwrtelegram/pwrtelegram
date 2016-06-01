@@ -42,7 +42,8 @@ $url = "https://api.telegram.org/bot" . $token;
 // The url of this api
 $pwrtelegram_api = "https://".$_SERVER["HTTP_HOST"]."/";
 // The url of the storage
-$pwrtelegram_storage = "https://storage.pwrtelegram.xyz/";
+include 'storage_url.php';
+$pwrtelegram_storage = "https://".$pwrtelegram_storage_domain."/";
 
 
 /**

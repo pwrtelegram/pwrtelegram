@@ -212,7 +212,7 @@ function download($file_id) {
 	$delete = $delete_stmt->execute(array($file_id, $me));
 	$insert_stmt = $pdo->prepare("INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);");
 	$insert = $insert_stmt->execute(array($file_id, $file_path, $file_size, $me, $path));
-//	shell_exec("wget -qO/dev/null ". escapeshellarg("https://storage.pwrtelegram.xyz/" . $file_path));
+//	shell_exec("wget -qO/dev/null ". escapeshellarg($pwrtelegram_storage . $file_path));
 	return $newresponse;
 }
 
@@ -270,7 +270,7 @@ function get_finfo($file_id){
  */
 
 function upload($file, $name = "", $type = "", $forcename = false) {
-	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $methods, $homedir, $botusername;
+	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $pwrtelegram_storage_domain, $methods, $homedir, $botusername;
 
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
 	if($name == "") $file_name = basename($file); else $file_name = basename($name);
@@ -291,9 +291,9 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 	} else if(filter_var($file, FILTER_VALIDATE_URL)) {
-		if(preg_match("|^http(s)?://storage.pwrtelegram.xyz/|", $file)) {
+		if(preg_match("|^http(s)?://".$pwrtelegram_storage_domain."/|", $file)) {
 			$select_stmt = $pdo->prepare("SELECT * FROM dl WHERE file_path=? AND bot=?;");
-			$select_stmt->execute(array(preg_replace("|^http(s)?://storage.pwrtelegram.xyz/|", "", $file), $me));
+			$select_stmt->execute(array(preg_replace("|^http(s)?://".$pwrtelegram_storage_domain."/|", "", $file), $me));
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
 			$count = $select_stmt->rowCount();
 			if($count > 0 && isset($fetch["file_id"]) && $fetch["file_id"] != "") {
