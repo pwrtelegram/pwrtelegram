@@ -55,6 +55,7 @@ class FileServe {
 		header('Content-disposition: attachment: filename="' . $this->filename . '"');
 		$fileChunk = '';
 		if($doserve) {
+			error_reporting(0);
 			do {
 				echo $fileChunk;
 				if($throttle > 0) usleep($throttle);
