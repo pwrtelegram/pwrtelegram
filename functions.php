@@ -145,7 +145,7 @@ function download($file_id) {
 
 	include 'telegram_connect.php';
 	$path = '';
-	$result = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
+	$result = curl($url . "/getFile?file_id=" . $file_id);
 	if(isset($result["result"]["file_path"]) && $result["result"]["file_path"] != "" && checkurl("https://api.telegram.org/file/bot".$token."/".$result["result"]["file_path"])) {
 		$file_path = $result["result"]["file_path"];
 		$path = str_replace('//', '/', $homedir . "/storage/" . $me . "/" . $file_path);
@@ -326,9 +326,21 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		if($type == "file") $type = $info["file_type"];
 		if($type != $info["file_type"] || $name != "") {
 			$downloadres = download($file);
-			if($res["result"]["file_path"] != "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file from file id.");
-			if(!rename($res["result"]["file_path"], $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
+			if(!(isset($downloadres["result"]["file_path"]) && $downloadres["result"]["file_path"] != "")) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file from file id.");
+			$file_name = basename($downloadres["result"]["file_path"]);
+			$path = $homedir . "/ul/" . $me . "/" . $file_name;
+			set_time_limit(0);
+			shell_exec("wget -qQ 1610612736 -O " . escapeshellarg($path) . " " . escapeshellarg($pwrtelegram_storage . $downloadres["result"]["file_path"]));
+			if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 			$size = filesize($path);
+			if($size < 1) {
+				unlink($path);
+				return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+			}
+			if($size > 1610612736) {
+				unlink($path);
+				return array("ok" => false, "error_code" => 400, "description" => "File too big.");
+			}
 		} else return $info;
 	} else {
 		return array("ok" => false, "error_code" => 400, "description" => "Couldn't use the provided file id/URL.");

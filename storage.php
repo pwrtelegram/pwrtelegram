@@ -106,7 +106,7 @@ try {
 	header("Cache-Control: max-age=31556926;");
 	$fSrv = new FileServe($select["real_file_path"]);
 	$fSrv->serve(0, $servefile);
-	exec("tmux new-session -d 'bash " . __DIR__ . "/storagerm.sh " . escapeshellarg($select["real_file_path"]) . " " . escapeshellarg("https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]) . "'");
+//	exec("tmux new-session -d 'bash " . __DIR__ . "/storagerm.sh " . escapeshellarg($select["real_file_path"]) . " " . escapeshellarg("https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]) . "'");
 } catch(Exception $e) {
 	header_remove();
 	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
