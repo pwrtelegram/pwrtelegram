@@ -34,7 +34,6 @@ $uri = "/" . preg_replace(array("/\?.*$/", "/^\//", "/[^\/]*\//"), '', $_SERVER[
 // The method
 $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
 // The user id of @pwrtelegramapi
-$botusername = "140639228";
 function getuserid() {
 	return shell_exec("telegram-cli -e 'get_self' --json -R | sed '/{\"peer_id\": /!d;s/.*{\"peer_id\": //g;s/,.*//g'");
 }
@@ -46,7 +45,7 @@ $url = "https://api.telegram.org/bot" . $token;
 // The url of this api
 $pwrtelegram_api = "https://".$_SERVER["HTTP_HOST"]."/";
 // The url of the storage
-include 'storage_url.php';
+include '../storage_url.php';
 $pwrtelegram_storage = "https://".$pwrtelegram_storage_domain."/";
 
 
