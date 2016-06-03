@@ -140,7 +140,6 @@ foreach ( $response_headers as $key => $response_header ) {
 }
 // finally, output the content
 print($response_content);
-
 function csajax_debug_message( $message )
 {
 	if ( true == CSAJAX_DEBUG ) {

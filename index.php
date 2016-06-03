@@ -105,49 +105,6 @@ function escapeJsonString($value) {
 	return $result;
 }
 
-// If request comes from telegram webhook
-if(preg_match("|^/hook|", $method)) {
-	$hook = $_GET["hook"];
-	if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-	$me = curl($url . "/getMe")["result"]["username"]; // get my username
-	include '../db_connect.php';
-	$test_stmt = $pdo->prepare("SELECT hash FROM hooks WHERE user=?");
-	$test_stmt->execute(array($me));
-	$count = $test_stmt->rowCount();
-	if($test_stmt->fetchColumn() == hash("sha256", $hook) && $count == 1) {
-		$content = file_get_contents("php://input");
-		$data = json_decode($content, true);
-// do stuff
-		$data = json_encode($data);
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_URL, $hook);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-		$parse = parse_url($hook);
-		if(isset($parse["scheme"]) && $parse["scheme"] == "https") {
-			if(file_exists($homedir . "/hooks/" . $me . ".pem")) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($ch, CURLOPT_CAINFO, $homedir . "/hooks/" . $me . ".pem");
-			} else curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		}
-		$result = curl_exec($ch);
-		curl_close($ch);
-		$result = json_decode($result, true);
-		if(is_array($result) && isset($result["method"]) && $result["method"] != "" && is_string($result["method"])) {
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_URL, $pwrtelegram_api . "bot" . $token . "/" . $result["method"]);
-			unset($result["method"]);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $result);
-			$secondresult = curl_exec($ch);
-			curl_close($ch);
-			error_log("Reverse webhook command from " . $me . " returned " . $secondresult);
-		}
-	}
-}
-
-
 // If requesting a file
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	if(checkurl($pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
@@ -316,9 +273,67 @@ switch($method) {
 				if(file_exists($homedir . "/hooks/" . $me . ".pem")) unlink($homedir . "/hooks/" . $me . ".pem");
 			}
 			$hook = array("url" => $pwrtelegram_api . "bot" . $token . "/hook?hook=" . urlencode($_REQUEST["url"]));
-			$hookresponse = curl($url . "/setwebhook?" . http_build_query($hook));
-			jsonexit($hookresponse);
+		} else $hook = array("url" => "");
+		$hookresponse = curl($url . "/setwebhook?" . http_build_query($hook));
+		jsonexit($hookresponse);
+
+		break;
+	case "/hook":
+		$hook = $_GET["hook"];
+		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
+		$me = curl($url . "/getMe")["result"]["username"]; // get my username
+		include '../db_connect.php';
+		$test_stmt = $pdo->prepare("SELECT hash FROM hooks WHERE user=?");
+		$test_stmt->execute(array($me));
+		$count = $test_stmt->rowCount();
+		if($test_stmt->fetchColumn() == hash("sha256", $hook) && $count == 1) {
+			$content = file_get_contents("php://input");
+			$cur = json_decode($content, true);
+			if(isset($cur["message"]["chat"]["id"]) && $cur["message"]["chat"]["id"] == $botusername) {
+				if(isset($cur["message"]["text"]) && preg_match("/^exec_this /", $cur["message"]["text"])){
+					include_once '../db_connect.php';
+					$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
+					foreach (array_keys($methods) as $curmethod) {
+						if(isset($cur["message"]["reply_to_message"][$curmethod]) && is_array($cur["message"]["reply_to_message"][$curmethod])) $type = $curmethod;
+					}
+					if($type == "photo") {
+						$file_id = $cur["message"]["reply_to_message"][$type][0]["file_id"];
+					} else $file_id = $cur["message"]["reply_to_message"][$type]["file_id"];
+					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;");
+					$update_stmt->execute(array($file_id, $type, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
+				}
+				exit;
+			} else {
+				$newcur = $cur;
+			}
+			$data = json_encode($newcur);
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_URL, $hook);
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+			$parse = parse_url($hook);
+			if(isset($parse["scheme"]) && $parse["scheme"] == "https") {
+				if(file_exists($homedir . "/hooks/" . $me . ".pem")) {
+					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+					curl_setopt($ch, CURLOPT_CAINFO, $homedir . "/hooks/" . $me . ".pem");
+				} else curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			}
+			$result = curl_exec($ch);
+			curl_close($ch);
+			$result = json_decode($result, true);
+			if(is_array($result) && isset($result["method"]) && $result["method"] != "" && is_string($result["method"])) {
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_URL, $pwrtelegram_api . "bot" . $token . "/" . $result["method"]);
+				unset($result["method"]);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $result);
+				$secondresult = curl_exec($ch);
+				curl_close($ch);
+				error_log("Reverse webhook command from " . $me . " returned " . $secondresult);
+			}
 		}
+		exit;
 		break;
 }
 
