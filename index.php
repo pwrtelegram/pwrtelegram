@@ -184,14 +184,14 @@ switch($method) {
 					include_once '../db_connect.php';
 					$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
 					foreach (array_keys($methods) as $curmethod) {
-						if(isset($cur["message"]["reply_to_message"][$curmethod]) && is_array($cur["message"]["reply_to_message"][$curmethod])) $type = $curmethod;
+						if(isset($cur["message"]["reply_to_message"][$curmethod]) && is_array($cur["message"]["reply_to_message"][$curmethod])) $ftype = $curmethod;
 					}
 
-					if($type == "photo") {
-						$file_id = $cur["message"]["reply_to_message"][$type][0]["file_id"];
-					} else $file_id = $cur["message"]["reply_to_message"][$type]["file_id"];
+					if($ftype == "photo") {
+						$file_id = $cur["message"]["reply_to_message"][$ftype][0]["file_id"];
+					} else $file_id = $cur["message"]["reply_to_message"][$ftype]["file_id"];
 					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;");
-					$update_stmt->execute(array($file_id, $type, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
+					$update_stmt->execute(array($file_id, $ftype, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
 				}
 				if($onlyme) $todo = $cur["update_id"] + 1;
 			} else {
@@ -224,24 +224,25 @@ switch($method) {
 		$newresults = array();
 		if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 		foreach ($results as $number => $result) {
-			$type = $result["type"];
-			if (!(isset($result[$type . "_file_id"]) && $result[$type . "_file_id"] != "")) {
+			if (!(isset($result[$result["type"] . "_file_id"]) && $result[$result["type"] . "_file_id"] != "")) {
 				include_once 'functions.php';
-				if((!isset($result[$type . "_url"]) || $result[$type . "_url"] == "") && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
+				if((!isset($result[$result["type"] . "_url"]) || $result[$result["type"] . "_url"] == "") && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
 					// $detect enables or disables metadata detection
 					// Let's do this!
 					$upload = upload($_FILES["inline_file" . $number]["tmp_name"], $_FILES["inline_file" . $number]["name"]);
 
 					if(isset($upload["result"]["file_id"]) && $upload["result"]["file_id"] != "") {
-						unset($result[$type . "_url"]);
-						$result[$type . "_file_id"] = $upload["result"]["file_id"];
+						unset($result[$result["type"] . "_url"]);
+						if($result["type"] == "file") $result["type"] = $upload["result"]["file_type"];
+						$result[$result["type"] . "_file_id"] = $upload["result"]["file_id"];
 					}
 				}
-				if(isset($result[$type . "_url"]) && $result[$type . "_url"] != "") {
-					$upload = upload($result[$type . "_url"]);
+				if(isset($result[$result["type"] . "_url"]) && $result[$result["type"] . "_url"] != "") {
+					$upload = upload($result[$result["type"] . "_url"]);
 					if(isset($upload["result"]["file_id"]) && $upload["result"]["file_id"] != "") {
-						$result[$type . "_file_id"] = $upload["result"]["file_id"];
-						unset($result[$type . "_url"]);
+						unset($result[$result["type"] . "_url"]);
+						if($result["type"] == "file") $result["type"] = $upload["result"]["file_type"];
+						$result[$result["type"] . "_file_id"] = $upload["result"]["file_id"];
 					}
 				}
 			}
@@ -294,13 +295,13 @@ switch($method) {
 					include_once '../db_connect.php';
 					$data = json_decode(preg_replace("/^exec_this /", "", $cur["message"]["text"]));
 					foreach (array_keys($methods) as $curmethod) {
-						if(isset($cur["message"]["reply_to_message"][$curmethod]) && is_array($cur["message"]["reply_to_message"][$curmethod])) $type = $curmethod;
+						if(isset($cur["message"]["reply_to_message"][$curmethod]) && is_array($cur["message"]["reply_to_message"][$curmethod])) $ftype = $curmethod;
 					}
-					if($type == "photo") {
-						$file_id = $cur["message"]["reply_to_message"][$type][0]["file_id"];
-					} else $file_id = $cur["message"]["reply_to_message"][$type]["file_id"];
+					if($ftype == "photo") {
+						$file_id = $cur["message"]["reply_to_message"][$ftype][0]["file_id"];
+					} else $file_id = $cur["message"]["reply_to_message"][$ftype]["file_id"];
 					$update_stmt = $pdo->prepare("UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;");
-					$update_stmt->execute(array($file_id, $type, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
+					$update_stmt->execute(array($file_id, $ftype, $data->{'file_hash'}, $data->{'bot'}, $data->{'filename'}));
 				}
 				exit;
 			} else {
