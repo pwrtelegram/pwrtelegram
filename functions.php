@@ -80,9 +80,7 @@ function checkbotuser($me) {
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	// Get all of the usernames
 	$usernames = array();
-	ini_set("log_errors", 0);
-	foreach ($telegram->getDialogList() as $username){ $usernames[] = $username->username; };
-	ini_set("log_errors", 1);
+	foreach ($telegram->getDialogList() as $username){ if(isset($username->username)) $usernames[] = $username->username; };
 	// If never contacted bot send start command
 	if(!in_array($me, $usernames)) {
 		$peer = $telegram->escapeUsername($me);
