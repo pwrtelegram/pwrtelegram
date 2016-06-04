@@ -36,7 +36,7 @@ It is hosted by [the awesome Bothosting](http://baum.xyz).
 * Both webhooks and getupdates are supported.
 * webhook requests can be recieved even on insecure http servers.
 * [It is open source](https://github.com/pwrtelegram)!
-* [It can be installed on your own server](https://github.com/pwrtelegram-backend)!
+* [It can be installed on your own server](https://github.com/pwrtelegram/pwrtelegram-backend)!
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
 ## How do I enable it?  
