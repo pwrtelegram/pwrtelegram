@@ -21,7 +21,7 @@ This API is written and maintained by @danog ([@danogentili on telegram](https:/
 
 * All of the official telegram bot API features plus:  
 * Downloading of files up to 1.5 GB in size  
-* Anonymous file storage (the URL of downloaded files does not contain your bot's token)  
+* Anonymous file storage (the URL of downloaded files does not contain your bot's token)
 * Uploading of files up to 1.5 GB in size  
 * Uploading of files using an URL
 * Reuploading of files using a file ID and different file type or file name.
@@ -29,6 +29,10 @@ This API is written and maintained by @danog ([@danogentili on telegram](https:/
 * Uploading of any file/URL/file ID without sending the file to a specific user.  
 * Automagical metadata recognition of sent files/URLs/file IDs.  
 * Deleting of text messages sent from the bot  
+* Uploading of files bigger than 5 megabytes with inline queries (supports both URLs and direct uploads)
+* Automatical type recognition for files sent using answerinlinequery 
+* Both webhooks and getupdates are supported.
+* webhook requests can be recieved even on insecure http servers.
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
 ## How do I enable it?  
@@ -39,7 +43,19 @@ You can use this command to do it:
 ```
 sed -i 's/api\.telegram\.org/api\.pwrtelegram\.xyz/g' client.py
 ```  
+
+The client can be written in any language, not necessarily python.
+
+Or you can manually substitute ```api.telegram.org``` with ```api.pwrtelegram.xyz``` in your bot,
+
+If you use webhooks you must recall the setwebhook method.  
+
 The API will automagically do the rest :)  
+
+Also please insert the following text in the response to the /start command:  
+```
+This makes use of the @pwrtelegram bot API to enhance its features.
+```
 
 
 ## How do I use it?
@@ -50,9 +66,9 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 
 * The PWRTelegram API does not store in any way your bot's token but it does store the bot's username, the sha256 sum of uploaded files and the file ID and the size of uploaded and downloaded files.
 
-* The PWRTelegram API proxies all requests sent to it to api.telegram.org (later will be called official telegram API), except for:
+* The methods used by the PWRTelegram API are the same ones used in the official telegram bot API, but they also have some additional features and in certain cases their behaviour is slightly modified (don't worry, that won't break your clients). There are also some methods that work only with the PWRTelegram API. Here's a list:
 
-* getUpdates requests.
+* getUpdates and webhook requests.
 
 The response of these requests will be passed trough a piece of code that will filter out messages from @pwrtelegramapi.
 
@@ -170,17 +186,27 @@ Otherwise the error is returned.
 | inline_message_id 	| String            	| No (see description) 	| Required if chat_id and message_id are not specified. Identifier of the inline message                                                                   	|
 
 
-* Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue.  
+* Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue (this limitation is only present if you use getupdates).  
 
-* For now the only supported message update method is getUpdates.  
+* You can use both getupdates and webhooks to get updates
 
-* Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili).  
+Only remember that you will have to repeat the setwebhook request to enable proxying trough the PWRTelegram API.
+
+* answerInlineQuery
+
+The usage if this method is exactly the same as in the official telegram bot api, except that you can provide URLs to files bigger than 5 megabytes and you can set the file type to ```file``` to enable automatical type and metadata recognition.
+
+You can also upload files using via POST: you just have to upload the files with parameter name equal to ```inline_file0``` where 0 is the number of the file. The number has to be equal to the array index of the InlineQueryResult that will feature that file. The type_url field of that InlineQueryResult must also be empty.
+
+Please note that it's better to upload the big files using the [upload](#uploadFile) methods and store the file ids instead of uploading them directly using the answerInlineQuery method.  
+
+
+* Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili) or [open an issue](https://github.com/pwrtelegram/pwrtelegram/issues) or [submit a pull request with a fix](https://github.com/pwrtelegram/pwrtelegram) or write to [@pwrtelegramgroup](https://telegram.me/pwrtelegramgroup).  
 
 
 ## Known bugs
 
-This API cannot download video and voice files bigger than 20 mb. This is a bug of tg-cli.  
-The metadata recognition feature works only with files smaller than 50 mb.  
+See the issues of the repos of the [pwrtelegram organization](https://github.com/pwrtelegram).
 
 
 For questions contact https://telegram.me/danogentili or the [official support group](https://telegram.me/pwrtelegramgroup).

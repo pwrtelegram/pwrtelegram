@@ -362,6 +362,7 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	$upload = upload($file, $name, $smethod, $forcename);
 	if(isset($upload["ok"]) && $upload["ok"] == true && preg_match("|^/send|", $method)) {
 	 	$params = $_REQUEST;
+		if(isset($upload["result"]["caption"]) && $upload["result"]["caption"] != "") $params["caption"] = $upload["result"]["caption"];
 		$params[$upload["result"]["file_type"]] = $upload["result"]["file_id"];
 	 	jsonexit(curl($url . "/send" . $upload["result"]["file_type"] . "?" . http_build_query($params)));
 	} else jsonexit($upload);

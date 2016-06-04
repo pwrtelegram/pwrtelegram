@@ -383,6 +383,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 				};
 			};
 			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+			$newparams["caption"] = $file_name;
 			break;
 		case "voice":
 			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
@@ -474,7 +475,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		$size = $fetch["file_size"];
 	}
 	$res = array("ok" => true, "result" => array("file_size" => $size, "file_type" => $type, "file_id" => $file_id));
-	if(!(isset($_REQUEST["caption"]) && $_REQUEST["caption"] != "") && isset($newparams["caption"]) && $newparams["caption"] != "") $res["result"]["caption"] = $newparams["caption"];
+	if(isset($newparams["caption"]) && $newparams["caption"] != "") $res["result"]["caption"] = $newparams["caption"];
 	return $res;
 }
 
