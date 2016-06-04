@@ -14,14 +14,15 @@ The PWRTelegram API makes use of:
 * A modified version of [proxy.php](https://github.com/mcnemesis/proxy.php)
 * [telegram-lua-load](https://github.com/pwrtelegram/telegram-lua-load)
 
-This API is written and maintained by @danog ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially @itskenny0 ([@shitposting on telegram](https://telegram.me/shitposting)).  
+This API is written and maintained by [@danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [@itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)).  
 
 It is hosted by [the awesome Bothosting](http://baum.xyz).
 
+The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/BayernPars).
 
 ## Features:  
 
-* All of the official telegram bot API features plus:  
+All of the official telegram bot API features plus:  
 * Downloading of files up to 1.5 GB in size  
 * Anonymous file storage (the URL of downloaded files does not contain your bot's token)
 * Uploading of files up to 1.5 GB in size  
