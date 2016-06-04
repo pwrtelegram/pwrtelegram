@@ -16,6 +16,8 @@ The PWRTelegram API makes use of:
 
 This API is written and maintained by @danog ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially @itskenny0 ([@shitposting on telegram](https://telegram.me/shitposting)).  
 
+It is hosted by [the awesome Bothosting](http://baum.xyz).
+
 
 ## Features:  
 
@@ -33,6 +35,8 @@ This API is written and maintained by @danog ([@danogentili on telegram](https:/
 * Automatical type recognition for files sent using answerinlinequery 
 * Both webhooks and getupdates are supported.
 * webhook requests can be recieved even on insecure http servers.
+* (https://github.com/pwrtelegram)[It is open source]!
+* (https://github.com/pwrtelegram-backend)[It can be installed on your own server]!
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
 ## How do I enable it?  
@@ -54,7 +58,7 @@ The API will automagically do the rest :)
 
 Also please insert the following text in the response to the /start command:  
 ```
-This makes use of the @pwrtelegram bot API to enhance its features.
+This bot makes use of the @pwrtelegram bot API to enhance its features.
 ```
 
 
@@ -198,7 +202,7 @@ The usage if this method is exactly the same as in the official telegram bot api
 
 You can also upload files using via POST: you just have to upload the files with parameter name equal to ```inline_file0``` where 0 is the number of the file. The number has to be equal to the array index of the InlineQueryResult that will feature that file. The type_url field of that InlineQueryResult must also be empty.
 
-Please note that it's better to upload the big files using the [upload](#uploadFile) methods and store the file ids instead of uploading them directly using the answerInlineQuery method.  
+Please note that it's better to upload the big files using the upload methods and store the file ids instead of uploading them directly using the answerInlineQuery method.  
 
 
 * Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili) or [open an issue](https://github.com/pwrtelegram/pwrtelegram/issues) or [submit a pull request with a fix](https://github.com/pwrtelegram/pwrtelegram) or write to [@pwrtelegramgroup](https://telegram.me/pwrtelegramgroup).  
@@ -208,10 +212,19 @@ Please note that it's better to upload the big files using the [upload](#uploadF
 
 See the issues of the repos of the [pwrtelegram organization](https://github.com/pwrtelegram).
 
+## How can I help?
+
+You can help by doing one or more of the following things:
+
+* Proofreading this documentation and sending a message to the [official support group](https://telegram.me/pwrtelegramgroup) if you have some corrections.
+* Peer reviewing the source code of this API and reporting bugs by contacting [Daniil Gentili](https://telegram.me/danogentili) or [opening an issue](https://github.com/pwrtelegram/pwrtelegram/issues) or [submitting a pull request with a fix](https://github.com/pwrtelegram/pwrtelegram) or writing to [@pwrtelegramgroup](https://telegram.me/pwrtelegramgroup).  
+* Starring the [repositories of the project](https://github.com/pwrtelegram) and sharing it around with your friends :)
+
+## More info
 
 For questions contact https://telegram.me/danogentili or the [official support group](https://telegram.me/pwrtelegramgroup).
 
-Share this API and its offical channel (https://telegram.me/pwrtelegram) with all of your friends! :) 
+Share this API and its official channel (https://telegram.me/pwrtelegram) with all of your friends! :) 
 
 Feel free to contribute with pull Requests.  
 
