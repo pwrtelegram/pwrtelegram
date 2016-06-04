@@ -35,8 +35,8 @@ It is hosted by [the awesome Bothosting](http://baum.xyz).
 * Automatical type recognition for files sent using answerinlinequery 
 * Both webhooks and getupdates are supported.
 * webhook requests can be recieved even on insecure http servers.
-* (https://github.com/pwrtelegram)[It is open source]!
-* (https://github.com/pwrtelegram-backend)[It can be installed on your own server]!
+* [https://github.com/pwrtelegram](It is open source)!
+* [https://github.com/pwrtelegram-backend](It can be installed on your own server)!
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
 ## How do I enable it?  
