@@ -32,11 +32,6 @@ $methods = array(
 $uri = "/" . preg_replace(array("/\?.*$/", "/^\//", "/[^\/]*\//"), '', $_SERVER['REQUEST_URI']);
 // The method
 $method = "/" . strtolower(preg_replace("/.*\//", "", $uri));
-// The user id of @pwrtelegramapi
-function getuserid() {
-	return shell_exec("telegram-cli -e 'get_self' --json -R | sed '/{\"peer_id\": /!d;s/.*{\"peer_id\": //g;s/,.*//g'");
-}
-//$botusername = getuserid();
 // The bot's token
 $token = preg_replace(array("/^\/bot/", "/^\/file\/bot/", "/\/.*/"), '', $_SERVER['REQUEST_URI']);
 // The api url with the token

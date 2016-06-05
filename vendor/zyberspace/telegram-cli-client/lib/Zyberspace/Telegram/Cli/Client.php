@@ -448,7 +448,7 @@ class Client extends RawClient
      	$type = escapeshellarg($type);
         $formattedPath = escapeshellarg($this->formatFileName($path));
 
-	return json_decode(shell_exec("telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1 | sed 's/^[^{]*{/{/;s/}[^}]*$/}/'"), true);
+	return json_decode(shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1 | sed 's/^[^{]*{/{/;s/}[^}]*$/}/'"), true);
     }
 
     /**
@@ -463,14 +463,14 @@ class Client extends RawClient
      */
     public function getdFile($id, $type)
     {
-	$res = shell_exec("telegram-cli --json --permanent-msg-ids -WNRe 'load_file $id' 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
+	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe 'load_file $id' 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
 	error_log($res);
 	return json_decode($res);
     }
     public function getFile($user, $file_id, $type)
     {
 	$script = escapeshellarg($GLOBALS['homedir'] . "telegram-lua-load/download.lua");
-	$res = shell_exec("telegram-cli --json -WNs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1 | sed '/{\"event\":\"download\", \"result\":\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
+	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json -WNs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1 | sed '/{\"event\":\"download\", \"result\":\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
 	return json_decode($res);
     }
 
@@ -481,7 +481,7 @@ class Client extends RawClient
 	$loadprocessfifo = "/tmp/loadprocess_" . $file_id . $type;
 	$searchcommand = "history " . $user;
 	posix_mkfifo($loadprocessfifo, 0755);
-	shell_exec('tmux new-session -d -s '.escapeshellarg($loadprocess).' "telegram-cli --json --permanent-msg-ids -WN &> ' . escapeshellarg($loadprocessfifo) . '"');
+	shell_exec('tmux new-session -d -s '.escapeshellarg($loadprocess).' $GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WN &> ' . escapeshellarg($loadprocessfifo) . '"');
 	shell_exec('tmux send-keys -t "'.escapeshellarg($history).'
 "');
 	$shellresult = shell_exec('until echo "$line" | grep \'[{"service": false, "event": "message", "id":\';do read line;done < ' . escapeshellarg($loadprocessfifo));
