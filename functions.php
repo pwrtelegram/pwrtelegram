@@ -170,11 +170,12 @@ function download($file_id) {
 		$info = get_finfo($file_id);
 		if($info["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't forward file to download user.");
 		if($info["message_id"] == '') return array("ok" => false, "error_code" => 400, "description" => "Reply message id is empty.");
+		if(shell_exec("ps aux | grep -v grep | grep " . escapeshellarg("telegram-cli --json -WNs /home/pwrtelegram/pwrtelegram/telegram-lua-load/download.lua --lua-param " . $me . " " . $file_id . " " . $methods[$info["file_type"]]) . " | tr -d '\n'") != "") return array("ok" => true, "error_code" => 202, "description" => "File is already being downloaded. Please try again later.");
 		$result = curl($url . "/sendMessage?reply_to_message_id=" . $info["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
 		if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
 		$result = $telegram->getFile($me, $file_id, $methods[$info["file_type"]]);
+		if(!isset($result->{"result"}) || $result->{"result"} == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 		$path = $result->{"result"};
-		if($path == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 		$file_path = $me . "/" . $info["file_type"] . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
 		$ext = '';
 		$format = '';
@@ -345,6 +346,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 	}
 	if($type == "file") {
 		$mime = '';
+		$ext = '';
 		try {
 			$mediaInfo = new Mhor\MediaInfo\MediaInfo();
 			$mediaInfoContainer = $mediaInfo->getInfo($path);
@@ -352,7 +354,8 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			$audio = $mediaInfoContainer->getGeneral()->get("count_of_audio_streams");
 		} catch(Exception $e) { ; };
 		if($mime == "") $mime = mime_content_type($path);
-		$ext = pathinfo($path)["extension"];
+		$pathinfo = pathinfo($path);
+		if(isset($pathinfo["extension"]) && $pathinfo["extension"] != "") $ext = $pathinfo["extension"];
 		if (preg_match('/^image\/.*/', $mime) && preg_match('/png|jpeg|jpg|bmp|tif/', $ext)) {
 			$type = "photo";
 		} else if(preg_match('/^video\/.*/', $mime) && 'mp4' == $ext && $audio >= 0) {

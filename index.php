@@ -110,6 +110,7 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	if(checkurl($pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
 		$file_url = $pwrtelegram_storage . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
 	} else {
+		$file_path = '';
 		if(checkurl("https://api.telegram.org/". $_SERVER['REQUEST_URI'])) {
 			include 'functions.php';
 			include '../db_connect.php';
