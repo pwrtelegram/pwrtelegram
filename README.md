@@ -14,7 +14,7 @@ The PWRTelegram API makes use of:
 * A modified version of [proxy.php](https://github.com/mcnemesis/proxy.php)
 * [telegram-lua-load](https://github.com/pwrtelegram/telegram-lua-load)
 
-This API is written and maintained by [danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)).  
+This API is written and maintained by [danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)) and [Rondoozle](https://github.com/Rondoozle) ([@POTUS on Telegram](https://telegram.me/POTUS)).  
 
 It is hosted by [the awesome Bothosting](http://baum.xyz).
 
