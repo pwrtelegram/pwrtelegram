@@ -103,7 +103,18 @@ function checkdir($dir) {
 	}
 	return true;
 }
-
+/**
+ * Try to remove file
+ *
+ * @param $file - The file to delete
+ *
+ * @return boolean
+ */
+function try_unlink($file) {
+	if(file_exists($file)){
+		return unlink($file);
+	} else return false;
+}
 /**
  * Remove symlink and destination path
  *
@@ -113,8 +124,8 @@ function checkdir($dir) {
  */
 function unlink_link($symlink) {
 	$rpath = readlink($symlink);
-	unlink($symlink);
-	unlink($rpath);
+	try_unlink($symlink);
+	try_unlink($rpath);
 }
 
 /**
@@ -311,11 +322,11 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 		$size = filesize($path);
 		if($size < 1) {
-			unlink($path);
+			try_unlink($path);
 			return array("ok" => false, "error_code" => 400, "description" => "File too small.");
 		}
 		if($size > 1610612736) {
-			unlink($path);
+			try_unlink($path);
 			return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		}
 	} else if(!preg_match('/[^A-Za-z0-9\-\_]/', $file)) {
@@ -333,11 +344,11 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			if(!file_exists($path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 			$size = filesize($path);
 			if($size < 1) {
-				unlink($path);
+				try_unlink($path);
 				return array("ok" => false, "error_code" => 400, "description" => "File too small.");
 			}
 			if($size > 1610612736) {
-				unlink($path);
+				try_unlink($path);
 				return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 			}
 		} else return $info;
@@ -386,7 +397,6 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 				};
 			};
 			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-			$newparams["caption"] = $file_name;
 			break;
 		case "voice":
 			$newparams["duration"] = shell_exec("ffprobe -show_format ".escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
@@ -426,7 +436,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 	$count = $select_stmt->rowCount();
 
 	if($file_id == "") {
-		if(!checkbotuser($me)) { unlink($path); return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat."); };
+		if(!checkbotuser($me)) { try_unlink($path); return array("ok" => false, "error_code" => 400, "description" => "Couldn't initiate chat."); };
 		if($size < 50000000){
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array( "Content-Type:multipart/form-data" )); 
@@ -444,7 +454,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			}
 		}
 		if($file_id != "") {
-			unlink($path);
+			try_unlink($path);
 			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_id=? AND file_hash=? AND file_type=? AND bot=? AND file_name=? AND file_size=?;");
 			$insert_stmt->execute(array($file_id, $file_hash, $type, $me, $name, $size));
 			$insert_stmt = $pdo->prepare("INSERT INTO ul (file_id, file_hash, file_type, bot, file_name, file_size) VALUES (?, ?, ?, ?, ?, ?);");
@@ -454,7 +464,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		} else {
 			$peer = $telegram->escapeUsername($me);
 			$result = $telegram->pwrsendFile($peer, $methods[$type], $path);
-			unlink($path);
+			try_unlink($path);
 			if(isset($result["error"]) && $result["error"] != "") return array("ok" => false, "error_code" => $result["error_code"], "description" => $result['error']);
 			if(!(isset($result["id"]) && $result["id"] != "")) return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
 			$insert_stmt = $pdo->prepare("DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;");
@@ -474,7 +484,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		}
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id.");
 	} else {
-		unlink($path);
+		try_unlink($path);
 		$size = $fetch["file_size"];
 	}
 	$res = array("ok" => true, "result" => array("file_size" => $size, "file_type" => $type, "file_id" => $file_id));

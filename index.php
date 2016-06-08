@@ -217,13 +217,12 @@ switch($method) {
 		if(!(isset($_REQUEST["inline_query_id"]) && $_REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
 		if(!(isset($_REQUEST["results"]) && $_REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
 		$results = json_decode(escapeJsonString($_REQUEST["results"]), true);
+		if($results == false) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't decode results json."));
 		$newresults = array();
-		if(isset($_REQUEST["detect"])) $detect = $_REQUEST["detect"]; else $detect = '';
 		foreach ($results as $number => $result) {
 			if (!(isset($result[$result["type"] . "_file_id"]) && $result[$result["type"] . "_file_id"] != "")) {
 				include_once 'functions.php';
 				if((!isset($result[$result["type"] . "_url"]) || $result[$result["type"] . "_url"] == "") && isset($_FILES["inline_file" . $number]["error"]) && $_FILES["inline_file" . $number]["error"] == UPLOAD_ERR_OK) {
-					// $detect enables or disables metadata detection
 					// Let's do this!
 					$upload = upload($_FILES["inline_file" . $number]["tmp_name"], $_FILES["inline_file" . $number]["name"]);
 
