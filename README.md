@@ -124,7 +124,7 @@ This is the metadata that will be obtained and sent:
 * Voice: duration as duration  
 
 
-You can also provide a filename parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
+You can also provide a ```file_name``` parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
 
 
 
