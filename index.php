@@ -352,6 +352,12 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 		$forcename = true;
 		// $forcename is the boolean that enables or disables renaming of files
 	};
+	if(isset($_REQUEST["file_name"]) && $_REQUEST["file_name"] != "") {
+		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
+		$name = $_REQUEST["file_name"];
+		$forcename = true;
+		// $forcename is the boolean that enables or disables renaming of files
+	};
 
 	// Let's do this!
 	$upload = upload($file, $name, $smethod, $forcename);

@@ -124,7 +124,7 @@ This is the metadata that will be obtained and sent:
 * Voice: duration as duration  
 
 
-You can also provide a name parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
+You can also provide a filename parameter containing the name of the file to be sent (this is useful when sending files from a URL). If this parameter is set the PWRTelegram API will rename the file/URL you sent and resend the file with the new file name.  
 
 
 
@@ -155,7 +155,7 @@ This is the metadata that will be obtained and sent (only if not present in the 
 | title                	| String                                                                         	| Optional 	| Title of the sent file/URL (will only be applied if the sent file/URL is an audio file)                                                                                      	|
 | width                	| Integer                                                                        	| Optional 	| Width of the sent file/URL (will only be applied if the sent file/URL is a video file)                                                                                       	|
 | height               	| Integer                                                                        	| Optional 	| Height of the sent file/URL (will only be applied if the sent file/URL is a video file)                                                                                      	|
-| name                 	| String                                                                         	| Optional 	| Name of the file to be sent. If set, the file will be sent with the specified file name.                                                                                     	|
+| file_name            	| String                                                                         	| Optional 	| Name of the file to be sent. If set, the file will be sent with the specified file name.                                                                                     	|
 | disable_notification 	| Boolean                                                                        	| Optional 	| Sends the message silently. iOS users will not receive a notification, Android users will receive a notification with no sound.                                              	|
 | reply_to_message_id  	| Integer                                                                        	| Optional 	| If the message is a reply, ID of the original message                                                                                                                        	|
 | reply_markup         	| InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardHide or ForceReply 	| Optional 	| Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to hide reply keyboard or to force a reply from the user. 	|

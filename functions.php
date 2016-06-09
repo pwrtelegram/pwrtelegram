@@ -278,7 +278,7 @@ function get_finfo($file_id){
  *
  * @return json with error or file id
  */
-
+// function upload($file, $uploadata = array()) {
 function upload($file, $name = "", $type = "", $forcename = false) {
 	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $pwrtelegram_storage_domain, $methods, $homedir, $botusername;
 
