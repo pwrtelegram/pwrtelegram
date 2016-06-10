@@ -203,12 +203,11 @@ switch($method) {
 		break;
 	case "/deletemessage":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		if(!($_REQUEST["inline_message_id"] != '' || ($_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != ''))) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing required parameters."));
-		if($_REQUEST["inline_message_id"] != "") {
+		if(isset($_REQUEST["inline_message_id"]) && $_REQUEST["inline_message_id"] != "") {
 			$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id=" . $_REQUEST["inline_message_id"]); 
-		} else {
+		} else if(isset($_REQUEST["message_id"]) && isset($_REQUEST["chat_id"]) && $_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != '') {
 			$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id=" . $_REQUEST["message_id"] . "&chat_id=" . $_REQUEST["chat_id"]);
-		};
+		} else jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing required parameters."));
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
@@ -340,11 +339,14 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 	include 'functions.php';
 	$name = '';
 	$forcename = false;
+	$file = '';
 	if(isset($_FILES[$smethod]["tmp_name"]) && $_FILES[$smethod]["tmp_name"] != "") {
 		$name = $_FILES[$smethod]["name"];
 		$file = $_FILES[$smethod]["tmp_name"];
 		$forcename = true;
-	} else $file = $_REQUEST[$smethod];
+	} else {
+		if(isset($_REQUEST[$smethod])) $file = $_REQUEST[$smethod];
+	}
 	// $file is the file's path/url/id
 	if(isset($_REQUEST["name"]) && $_REQUEST["name"] != "") {
 		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]

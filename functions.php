@@ -297,7 +297,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 	$path = $homedir . "/ul/" . $me . "/" . $file_name;
 	if(file_exists($file)) {
 		$size = filesize($file);
-		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+		if($size < 1) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download the file (file size is 0).");
 		if($size > 1610612736) return array("ok" => false, "error_code" => 400, "description" => "File too big.");
 		if(!rename($file, $path)) return array("ok" => false, "error_code" => 400, "description" => "Couldn't rename file.");
 	} else if(filter_var($file, FILTER_VALIDATE_URL)) {
@@ -323,7 +323,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 		$size = filesize($path);
 		if($size < 1) {
 			try_unlink($path);
-			return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+			return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file size us 0).");
 		}
 		if($size > 1610612736) {
 			try_unlink($path);
@@ -345,7 +345,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			$size = filesize($path);
 			if($size < 1) {
 				try_unlink($path);
-				return array("ok" => false, "error_code" => 400, "description" => "File too small.");
+				return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file (file size is 0).");
 			}
 			if($size > 1610612736) {
 				try_unlink($path);

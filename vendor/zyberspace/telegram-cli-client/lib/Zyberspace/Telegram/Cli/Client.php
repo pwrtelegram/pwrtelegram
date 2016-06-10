@@ -474,34 +474,6 @@ class Client extends RawClient
 	return json_decode($res);
     }
 
-    public function getddFile($user, $file_id, $type)
-    {
-	$user = $this->escapePeer($user);
-	$loadprocess = "loadprocess_" . $file_id . $type;
-	$loadprocessfifo = "/tmp/loadprocess_" . $file_id . $type;
-	$searchcommand = "history " . $user;
-	posix_mkfifo($loadprocessfifo, 0755);
-	shell_exec('tmux new-session -d -s '.escapeshellarg($loadprocess).' $GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WN &> ' . escapeshellarg($loadprocessfifo) . '"');
-	shell_exec('tmux send-keys -t "'.escapeshellarg($history).'
-"');
-	$shellresult = shell_exec('until echo "$line" | grep \'[{"service": false, "event": "message", "id":\';do read line;done < ' . escapeshellarg($loadprocessfifo));
-	error_log($shellresult);
-	$result = preg_replace('/.*\[{"service": false, "event": "message", "id":/', '[{"service": false, "event": "message", "id":', $shellresult);
-	error_log($result);
-	$result = json_decode($result, true);
-	array_search('green', array_reverse($array));
-	$loadcommand = "load_" . $type . " " . $file_id;
-
-//	$id = preg_replace("/^.*[{\"/", "[{\"", stream_get_contents($pipes[1]));
-//	fclose($pipes[1]);
-var_dump($id);exit;
-
-	//shell_exec("tmux new-session -d -s " . escapeshellarg("sendprocess_" . $file_id . $type) . " 
-//telegram-cli --json --permanent-msg-ids -WN " . 
-//escapeshellarg("load_file ".$id)." 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"}/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'")
-
-	return json_decode($res);
-    }
     public function oldgetFile($user, $id, $type)
     {
 
