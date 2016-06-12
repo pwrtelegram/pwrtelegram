@@ -79,6 +79,17 @@ class FileServe {
 	 	return $chunk;
 	 }
 }
+if(isset($_POST["dl"]) && $_POST["dl"] != "") {
+	header_remove();
+	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+	header("Cache-Control: post-check=0, pre-check=0", false);
+	header("Pragma: no-cache");
+	include 'functions.php';
+	foreach ($_POST as $key => $value) {
+		$GLOBALS[$key] = $value;
+	}
+	exit(json_encode(download($file_id)));
+}
 
 if($_SERVER['REQUEST_URI'] == "/") {
 	header("HTTP/1.1 418 I'm a teapot");

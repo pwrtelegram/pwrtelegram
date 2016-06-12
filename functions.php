@@ -136,8 +136,19 @@ function unlink_link($symlink) {
  * @return json with error or file path
  */
 function download($file_id) {
-	include '../db_connect.php';
 	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername, $token;
+	if($_SERVER["HTTP_HOST"] != $storage_domain) {
+		$GLOBALS["file_id"] = $file_id;
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_URL, $pwrtelegram_storage);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $GLOBALS);
+		$result = curl_exec($ch);
+		curl_close($ch);
+		return $result;
+	}
+	include '../db_connect.php';
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	$selectstmt = $pdo->prepare("SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;");
 	$selectstmt->execute(array($file_id, $me));
