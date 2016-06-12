@@ -136,16 +136,22 @@ function unlink_link($symlink) {
  * @return json with error or file path
  */
 function download($file_id) {
-	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername, $token;
-	if($_SERVER["HTTP_HOST"] != $storage_domain) {
-		$GLOBALS["file_id"] = $file_id;
+	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername, $token, $pwrtelegram_storage_domain;
+	if($_SERVER["HTTP_HOST"] != $pwrtelegram_storage_domain) {
+		$storage_params = [];
+		foreach (array("url", "homedir", "methods", "botusername", "token", "pwrtelegram_storage", "pwrtelegram_storage_domain") as $key) {
+			$storage_params[$key] = $GLOBALS[$key];
+		}
+		$storage_params["file_id"] = $file_id;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_URL, $pwrtelegram_storage);
 		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $GLOBALS);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
 		$result = curl_exec($ch);
 		curl_close($ch);
+		if($result == null) $result = array("ok" => false, "error_code" => 400, "description" => "Couldn't download file: result is null.");
+		$result = json_decode($result, true);
 		return $result;
 	}
 	include '../db_connect.php';

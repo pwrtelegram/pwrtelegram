@@ -2,7 +2,6 @@
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/php-error-index.log");
 //error_log($_SERVER["REQUEST_URI"]);
-
 /**
  * FileServe
  *
@@ -79,16 +78,17 @@ class FileServe {
 	 	return $chunk;
 	 }
 }
-if(isset($_POST["dl"]) && $_POST["dl"] != "") {
+if(isset($_POST["file_id"]) && $_POST["file_id"] != "") {
 	header_remove();
 	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 	header("Cache-Control: post-check=0, pre-check=0", false);
 	header("Pragma: no-cache");
 	include 'functions.php';
+	include 'basic_functions.php';
 	foreach ($_POST as $key => $value) {
 		$GLOBALS[$key] = $value;
 	}
-	exit(json_encode(download($file_id)));
+	jsonexit(download($file_id));
 }
 
 if($_SERVER['REQUEST_URI'] == "/") {
@@ -103,7 +103,12 @@ if($_SERVER["REQUEST_METHOD"] == "HEAD") {
 	$servefile = false;
 } else $servefile = true;
 
-if(empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off"){ $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; header('HTTP/1.1 301 Moved Permanently'); header('Location: ' . $redirect); exit(); }
+if(empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") {
+	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	header('HTTP/1.1 301 Moved Permanently');
+	header('Location: ' . $redirect);
+	exit();
+}
 
 
 try {
