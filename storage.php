@@ -85,9 +85,11 @@ if(isset($_POST["file_id"]) && $_POST["file_id"] != "") {
 	header("Pragma: no-cache");
 	include 'functions.php';
 	include 'basic_functions.php';
+	include '../storage_url.php';
 	foreach ($_POST as $key => $value) {
 		$GLOBALS[$key] = $value;
 	}
+	$homedir = realpath(__DIR__ . "/../") . "/";
 	jsonexit(download($file_id));
 }
 

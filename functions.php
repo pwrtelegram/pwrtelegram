@@ -139,7 +139,7 @@ function download($file_id) {
 	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername, $token, $pwrtelegram_storage_domain;
 	if($_SERVER["HTTP_HOST"] != $pwrtelegram_storage_domain) {
 		$storage_params = [];
-		foreach (array("url", "homedir", "methods", "botusername", "token", "pwrtelegram_storage", "pwrtelegram_storage_domain") as $key) {
+		foreach (array("url", "methods", "token", "pwrtelegram_storage", "pwrtelegram_storage_domain") as $key) {
 			$storage_params[$key] = $GLOBALS[$key];
 		}
 		$storage_params["file_id"] = $file_id;
