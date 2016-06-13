@@ -110,6 +110,7 @@ switch($method) {
 		if(isset($_REQUEST["limit"])) $limit = $_REQUEST["limit"];
 		if(isset($_REQUEST["offset"])) $offset = $_REQUEST["offset"];
 		if(isset($_REQUEST["timeout"])) $timeout = $_REQUEST["timeout"];
+		$timeout = 1;
 		if($limit == "") $limit = 100;
 		$response = curl($url . "/getUpdates?offset=" . $offset . "&timeout=" . $timeout);
 		if($response["ok"] == false) jsonexit($response);
