@@ -497,7 +497,7 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			$fetch = $select_stmt->fetch(PDO::FETCH_ASSOC);
 			$file_id = $fetch["file_id"];
 			$type = $fetch["file_type"];
-			if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. Please run getupdates and process messages before sending another file.");
+			if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id. This error can be fixed by running getupdates (only trough the PWRTelegram API) and processing messages before sending another file, or if you're using webhooks remaking the setwebhook request to the PWRTelegram API.");
 		}
 		if($file_id == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't get file id.");
 	} else {
