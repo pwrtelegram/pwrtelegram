@@ -7,9 +7,4 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Zyberspace\\Telegram\\Cli\\' => array($vendorDir . '/zyberspace/telegram-cli-client/lib'),
-    'Psr\\Log\\' => array($vendorDir . '/psr/log'),
-    'Neutron' => array($vendorDir . '/neutron/temporary-filesystem/src'),
-    'FFMpeg' => array($vendorDir . '/php-ffmpeg/php-ffmpeg/src', $vendorDir . '/php-ffmpeg/extras/src'),
-    'Evenement' => array($vendorDir . '/evenement/evenement/src'),
-    'Alchemy' => array($vendorDir . '/alchemy/binary-driver/src'),
 );
