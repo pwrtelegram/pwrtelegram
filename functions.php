@@ -150,7 +150,7 @@ function download($file_id) {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
 		$result = curl_exec($ch);
 		curl_close($ch);
-		if($result == null) $result = array("ok" => false, "error_code" => 400, "description" => "Couldn't download file: result is null.");
+		if($result == null) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file: result is null.");
 		$result = json_decode($result, true);
 		return $result;
 	}

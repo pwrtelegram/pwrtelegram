@@ -14,8 +14,8 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 
 // logging
-ini_set("log_errors", 1);
-ini_set("error_log", "/tmp/php-error-index.log");
+//ini_set("log_errors", 1);
+//ini_set("error_log", "/tmp/php-error-index.log");
 // Home dir
 $homedir = realpath(__DIR__ . "/../") . "/";
 // Available methods and their equivalent in tg-cli
