@@ -80,11 +80,11 @@ function checkbotuser($me) {
 	$me = curl($url . "/getMe")["result"]["username"]; // get my username
 	// Get all of the usernames
 	$usernames = array();
-	foreach ($telegram->getDialogList() as $username){ if(isset($username->username)) $usernames[] = $username->username; };
+	foreach ($GLOBALS["telegram"]->getDialogList() as $username){ if(isset($username->username)) $usernames[] = $username->username; };
 	// If never contacted bot send start command
 	if(!in_array($me, $usernames)) {
-		$peer = $telegram->escapeUsername($me);
-		if(!$telegram->msg($peer, "/start")) return false;
+		$peer = $GLOBALS["telegram"]->escapeUsername($me);
+		if(!$GLOBALS["telegram"]->msg($peer, "/start")) return false;
 	}
 	return true;
 }
@@ -210,7 +210,7 @@ function download($file_id) {
 		if(shell_exec("ps aux | grep -v grep | grep " . escapeshellarg("telegram-cli --json -WNs /home/pwrtelegram/pwrtelegram/telegram-lua-load/download.lua --lua-param " . $me . " " . $file_id . " " . $methods[$info["file_type"]]) . " | tr -d '\n'") != "") return array("ok" => true, "error_code" => 202, "description" => "File is already being downloaded. Please try again later.");
 		$result = curl($url . "/sendMessage?reply_to_message_id=" . $info["message_id"] . "&chat_id=" . $botusername . "&text=" . $file_id);
 		if($result["ok"] == false) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send file id.");
-		$result = $telegram->getFile($me, $file_id, $methods[$info["file_type"]]);
+		$result = $GLOBALS["telegram"]->getFile($me, $file_id, $methods[$info["file_type"]]);
 		if(!isset($result->{"result"}) || $result->{"result"} == "") return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file.");
 		$path = $result->{"result"};
 		$file_path = $me . "/" . $info["file_type"] . preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
@@ -488,8 +488,8 @@ function upload($file, $name = "", $type = "", $forcename = false, $oldparams = 
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
 		} else {
-			$peer = $telegram->escapeUsername($me);
-			$result = $telegram->pwrsendFile($peer, $methods[$type], $path);
+			$peer = $GLOBALS["telegram"]->escapeUsername($me);
+			$result = $GLOBALS["telegram"]->pwrsendFile($peer, $methods[$type], $path);
 			try_unlink($path);
 			if(isset($result["error"]) && $result["error"] != "") return array("ok" => false, "error_code" => $result["error_code"], "description" => $result['error']);
 			if(!(isset($result["id"]) && $result["id"] != "")) return array("ok" => false, "error_code" => 400, "description" => "Message id is empty.");
@@ -499,7 +499,7 @@ function upload($file, $name = "", $type = "", $forcename = false, $oldparams = 
 			$insert_stmt->execute(array($file_hash, $me, $name, $size));
 			$count = $insert_stmt->rowCount();
 			if($count != "1") return array("ok" => false, "error_code" => 400, "description" => "Couldn't store data into database.");
-			if(!$telegram->replymsg($result["id"], "exec_this " . json_encode(array("file_hash" => $file_hash, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
+			if(!$GLOBALS["telegram"]->replymsg($result["id"], "exec_this " . json_encode(array("file_hash" => $file_hash, "bot" => $me, "filename" => $name)))) return array("ok" => false, "error_code" => 400, "description" => "Couldn't send reply data.");
 			$response = curl($pwrtelegram_api . "/bot" . $token . "/getupdates");
 			$select_stmt = $pdo->prepare("SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;");
 			$select_stmt->execute(array($file_hash, $me, $name));

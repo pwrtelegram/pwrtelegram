@@ -14,8 +14,8 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 
 // logging
-//ini_set("log_errors", 1);
-//ini_set("error_log", "/tmp/php-error-index.log");
+ini_set("log_errors", 1);
+ini_set("error_log", "/tmp/php-error-index.log");
 // Home dir
 $homedir = realpath(__DIR__ . "/../") . "/";
 // Available methods and their equivalent in tg-cli
@@ -39,10 +39,10 @@ $url = "https://api.telegram.org/bot" . $token;
 // The url of this api
 $pwrtelegram_api = "https://".$_SERVER["HTTP_HOST"]."/";
 // The url of the storage
-include '../storage_url.php';
+include_once '../storage_url.php';
 $pwrtelegram_storage = "https://".$pwrtelegram_storage_domain."/";
 $REQUEST = $_REQUEST;
-include 'basic_functions.php';
+include_once 'basic_functions.php';
 
 // If requesting a file
 if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
@@ -51,8 +51,8 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	} else {
 		$file_path = '';
 		if(checkurl("https://api.telegram.org/". $_SERVER['REQUEST_URI'])) {
-			include 'functions.php';
-			include '../db_connect.php';
+			include_once 'functions.php';
+			include_once '../db_connect.php';
 			$me = curl($url . "/getMe")["result"]["username"]; // get my username
 			$path = str_replace('//', '/', $homedir . "/storage/" . $me . "/" . preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']));
 			$dl_url = "https://api.telegram.org/" . $_SERVER['REQUEST_URI'];
@@ -90,8 +90,8 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 };
 
 if(isset($REQUEST["chat_id"]) && preg_match("/^@/", $REQUEST["chat_id"])) {
-	include 'telegram_connect.php';
-	$id_result = $telegram->exec('resolve_username ' . preg_replace("/^@/", "", $REQUEST["chat_id"]));
+	include_once 'telegram_connect.php';
+	$id_result = $GLOBALS["telegram"]->exec('resolve_username ' . preg_replace("/^@/", "", $REQUEST["chat_id"]));
 	if(isset($id_result->{"peer_type"}) && isset($id_result->{"peer_id"}) && $id_result->{"peer_id"} != "") {
 		if($id_result->{"peer_type"} != "user") $REQUEST["chat_id"] = "-100" . $id_result->{"peer_id"}; else $REQUEST["chat_id"] = $id_result->{"peer_id"};
 	}
@@ -102,7 +102,7 @@ switch($method) {
 	case "/getfile":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		if($REQUEST["file_id"] == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No file id was provided."));
-		include 'functions.php';
+		include_once 'functions.php';
 		jsonexit(download($REQUEST["file_id"]));
 		break;
 	case "/getupdates":
@@ -273,6 +273,21 @@ switch($method) {
 			}
 		}
 		exit;
+		break;
+	case "/getchat":
+		include_once 'telegram_connect.php';
+		$result = curl($url . "/getchat?" . http_build_query($REQUEST));
+		if($result["ok"] != true && isset($REQUEST["chat_id"]) && !preg_match("/^\-100/", $REQUEST["chat_id"]) && preg_match("/^[1-9][0-9]*$/", $REQUEST["chat_id"])) {
+			$useresult = $GLOBALS["telegram"]->exec("user_info user#" . $REQUEST["chat_id"]);
+			if(isset($useresult->{"peer_id"}) && $useresult->{"peer_id"} == $REQUEST["chat_id"]) {
+				$newresult = [ "ok" => true, "result" => [ "id" => $REQUEST["chat_id"], "type" => "private" ] ];
+				foreach (array("first_name", "last_name", "username") as $key) {
+					if(isset($useresult->{$key}) && $useresult->{$key} != null) $newresult["result"][$key] = $useresult->{$key};
+				}
+				$result = $newresult;
+			}
+		};
+		jsonexit($result);
 		break;
 }
 

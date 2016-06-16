@@ -11,8 +11,9 @@ You should have received a copy of the GNU General Public License along with the
 If not, see <http://www.gnu.org/licenses/>.
 */
 // import php telegram api
-//$telegram = new \Zyberspace\Telegram\Cli\Client();
-require("vendor/autoload.php");
-$telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
-
+//$GLOBALS["telegram"] = new \Zyberspace\Telegram\Cli\Client();
+if(!isset($GLOBALS["telegram"])) {
+	require("vendor/autoload.php");
+	$GLOBALS["telegram"] = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
+}
 ?>
