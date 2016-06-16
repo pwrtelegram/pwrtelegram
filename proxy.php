@@ -42,86 +42,49 @@ $request_headers = array( );
 $setContentType = true;
 $isMultiPart = false;
 foreach ( $_SERVER as $key => $value ) {
-    if(preg_match('/Content.Type/i', $key)){
-        $setContentType = false;
-        $content_type = explode(";", $value)[0];
-        $isMultiPart = preg_match('/multipart/i', $content_type);
-        $request_headers[] = "Content-Type: ".$content_type;
-        continue;
-    }
 	if ( substr( $key, 0, 5 ) == 'HTTP_' ) {
 		$headername = str_replace( '_', ' ', substr( $key, 5 ) );
 		$headername = str_replace( ' ', '-', ucwords( strtolower( $headername ) ) );
-		if ( !in_array( $headername, array( 'Host', 'X-Proxy-Url', 'Content-Length') ) && !in_array("$headername: $value", $request_headers)  ) {
+		if ( !in_array( $headername, array( 'Host', 'X-Proxy-Url', 'Content-Length', 'Content-Type') ) && !in_array("$headername: $value", $request_headers)  ) {
 			$request_headers[] = "$headername: $value";
 		}
 	}
 }
 
-if($setContentType)
-    $request_headers[] = "Content-Type: application/json";
-
 // identify request method, url and params
-$request_method = $_SERVER['REQUEST_METHOD'];
-if ( 'GET' == $request_method ) {
-	$request_params = $_GET;
-} elseif ( 'POST' == $request_method ) {
-	$request_params = $_POST;
-	if ( empty( $request_params ) ) {
-		$data = file_get_contents( 'php://input' );
-		if ( !empty( $data ) ) {
-			$request_params = $data;
-		}
+$request_method = 'POST';
+$request_params = $REQUEST;
+if ( empty( $request_params ) ) {
+	$data = file_get_contents( 'php://input' );
+	if ( !empty( $data ) ) {
+		$request_params = $data;
 	}
-} elseif ( 'PUT' == $request_method || 'DELETE' == $request_method ) {
-	$request_params = file_get_contents( 'php://input' );
-} else {
-	$request_params = null;
 }
-
 $request_url = "https://api.telegram.org/bot".$token.$method;
 $p_request_url = parse_url( $request_url );
 
-
-// append query string for GET requests
-if ( $request_method == 'GET' && count( $request_params ) > 0 && (!array_key_exists( 'query', $p_request_url ) || empty( $p_request_url['query'] ) ) ) {
-	$request_url .= '?' . http_build_query( $request_params );
-}
+$request_headers[] = "Content-Type: multipart/form-data";
 
 // let the request begin
 $ch = curl_init( $request_url );
-curl_setopt( $ch, CURLOPT_HTTPHEADER, $request_headers );   // (re-)send headers
 curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );	 // return response
+curl_setopt( $ch, CURLOPT_HTTPHEADER, $request_headers );   // (re-)send headers
 curl_setopt( $ch, CURLOPT_HEADER, true );	   // enabled response headers
 // add data for POST, PUT or DELETE requests
 if ( 'POST' == $request_method ) {
-	$post_data = is_array( $request_params ) ? http_build_query( $request_params ) : $request_params;
+	$request_params;
 
-    $has_files = false;
-    $file_params = array();
-
-    foreach ($_FILES as $f => $file) {
-        if($file['size']){
-            $file_params[$f] = new \CurlFile($file["tmp_name"], $file["type"], $file["name"]); 
-            $has_files = true;
-        }
-    }
-
-    if($isMultiPart || $has_files){
-        foreach(explode("&",$post_data) as $i => $param) {
-            $params = explode("=", $param);
-            $xvarname = $params[0];
-            if (!empty($xvarname))
-                $file_params[$xvarname] = urldecode($params[1]);
-        }
-    }
+	foreach ($_FILES as $f => $file) {
+		if($file['size']){
+			$request_params[$f] = new \CurlFile($file["tmp_name"], $file["type"], $file["name"]); 
+			$has_files = true;
+		}
+	}
 
 	curl_setopt( $ch, CURLOPT_POST, true );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS,  $isMultiPart || $has_files ? $file_params : $post_data );
-} elseif ( 'PUT' == $request_method || 'DELETE' == $request_method ) {
-	curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $request_method );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS, $request_params );
+	curl_setopt( $ch, CURLOPT_POSTFIELDS, $request_params);
 }
+
 // retrieve response (headers and content)
 $response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/" , "", curl_exec( $ch ));
 curl_close( $ch );

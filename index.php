@@ -41,7 +41,7 @@ $pwrtelegram_api = "https://".$_SERVER["HTTP_HOST"]."/";
 // The url of the storage
 include '../storage_url.php';
 $pwrtelegram_storage = "https://".$pwrtelegram_storage_domain."/";
-
+$REQUEST = $_REQUEST;
 include 'basic_functions.php';
 
 // If requesting a file
@@ -89,27 +89,30 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 	die();
 };
 
+if(isset($REQUEST["chat_id"]) && preg_match("/^@/", $REQUEST["chat_id"])) {
+	include 'telegram_connect.php';
+	$id_result = $telegram->exec('resolve_username ' . preg_replace("/^@/", "", $REQUEST["chat_id"]));
+	if(isset($id_result->{"peer_type"}) && isset($id_result->{"peer_id"}) && $id_result->{"peer_id"} != "") {
+		if($id_result->{"peer_type"} != "user") $REQUEST["chat_id"] = "-100" . $id_result->{"peer_id"}; else $REQUEST["chat_id"] = $id_result->{"peer_id"};
+	}
+}
 
 // Else use a nice case switch
 switch($method) {
 	case "/getfile":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		if($_REQUEST["file_id"] == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No file id was provided."));
+		if($REQUEST["file_id"] == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No file id was provided."));
 		include 'functions.php';
-/*		if($_REQUEST["store_on_pwrtelegram"] == true) jsonexit(download($_REQUEST['file_id']));
-		$response = curl($url . "/getFile?file_id=" . $_REQUEST['file_id']);
-		if($response["ok"] == false && preg_match("/\[Error : 400 : Bad Request: file is too big/", $response["description"])) {
-		} else jsonexit($response);*/
-		jsonexit(download($_REQUEST["file_id"]));
+		jsonexit(download($REQUEST["file_id"]));
 		break;
 	case "/getupdates":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
 		$limit = "";
 		$timeout = "";
 		$offset = "";
-		if(isset($_REQUEST["limit"])) $limit = $_REQUEST["limit"];
-		if(isset($_REQUEST["offset"])) $offset = $_REQUEST["offset"];
-		if(isset($_REQUEST["timeout"])) $timeout = $_REQUEST["timeout"];
+		if(isset($REQUEST["limit"])) $limit = $REQUEST["limit"];
+		if(isset($REQUEST["offset"])) $offset = $REQUEST["offset"];
+		if(isset($REQUEST["timeout"])) $timeout = $REQUEST["timeout"];
 		$timeout = 1;
 		if($limit == "") $limit = 100;
 		$response = curl($url . "/getUpdates?offset=" . $offset . "&timeout=" . $timeout);
@@ -141,26 +144,24 @@ switch($method) {
 				$onlyme = false;
 			}
 		}
-//error_log(var_export($newresponse["result"], true));
-
 		if($todo != "") curl($url . "/getUpdates?offset=" . $todo);
 		jsonexit($newresponse);
 		break;
 	case "/deletemessage":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		if(isset($_REQUEST["inline_message_id"]) && $_REQUEST["inline_message_id"] != "") {
-			$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id=" . $_REQUEST["inline_message_id"]); 
-		} else if(isset($_REQUEST["message_id"]) && isset($_REQUEST["chat_id"]) && $_REQUEST["message_id"] != '' && $_REQUEST["chat_id"] != '') {
-			$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id=" . $_REQUEST["message_id"] . "&chat_id=" . $_REQUEST["chat_id"]);
+		if(isset($REQUEST["inline_message_id"]) && $REQUEST["inline_message_id"] != "") {
+			$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id=" . $REQUEST["inline_message_id"]); 
+		} else if(isset($REQUEST["message_id"]) && isset($REQUEST["chat_id"]) && $REQUEST["message_id"] != '' && $REQUEST["chat_id"] != '') {
+			$res = curl($url . "/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id=" . $REQUEST["message_id"] . "&chat_id=" . $REQUEST["chat_id"]);
 		} else jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing required parameters."));
 		if($res["ok"] == true) $res["result"] = "The message was deleted successfully.";
 		jsonexit($res);
 		break;
 	case "/answerinlinequery":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		if(!(isset($_REQUEST["inline_query_id"]) && $_REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
-		if(!(isset($_REQUEST["results"]) && $_REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
-		$results = json_decode(escapeJsonString($_REQUEST["results"]), true);
+		if(!(isset($REQUEST["inline_query_id"]) && $REQUEST["inline_query_id"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing query id."));
+		if(!(isset($REQUEST["results"]) && $REQUEST["results"] != "")) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Missing results json array."));
+		$results = json_decode(escapeJsonString($REQUEST["results"]), true);
 		if($results == false) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't decode results json."));
 		$newresults = array();
 		foreach ($results as $number => $result) {
@@ -187,23 +188,21 @@ switch($method) {
 			}
 			$newresults[] = $result;
 		}
-		$newparams = $_REQUEST;
+		$newparams = $REQUEST;
 		$newparams["results"] = json_encode($newresults);
-//error_log(var_export($newparams, true));
 		$json = curl($url . "/answerinlinequery?" . http_build_query($newparams));
-//error_log(var_export($json, true));
 		jsonexit($json);
 		break;
 	case "/setwebhook":
 		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		if(isset($_REQUEST["url"]) && $_REQUEST["url"] != "") {
+		if(isset($REQUEST["url"]) && $REQUEST["url"] != "") {
 			include_once '../db_connect.php';
 			include_once 'functions.php';
 			$me = curl($url . "/getMe")["result"]["username"]; // get my username
 			$insert_stmt = $pdo->prepare("DELETE FROM hooks WHERE user=?;");
 			$insert_stmt->execute(array($me));
 			$insert_stmt = $pdo->prepare("INSERT INTO hooks (user, hash) VALUES (?, ?);");
-			$insert_stmt->execute(array($me, hash("sha256", $_REQUEST["url"])));
+			$insert_stmt->execute(array($me, hash("sha256", $REQUEST["url"])));
 			$count = $insert_stmt->rowCount();
 			if($count != 1) jsonexit(array("ok" => false, "error_code" => 400, "description" => "Couldn't insert hook hash into database."));
 			if(isset($_FILES["certificate"]["error"]) && $_FILES["certificate"]["error"] == UPLOAD_ERR_OK) {
@@ -212,7 +211,7 @@ switch($method) {
 			} else {
 				if(file_exists($homedir . "/hooks/" . $me . ".pem")) unlink($homedir . "/hooks/" . $me . ".pem");
 			}
-			$hook = array("url" => $pwrtelegram_api . "bot" . $token . "/hook?hook=" . urlencode($_REQUEST["url"]));
+			$hook = array("url" => $pwrtelegram_api . "bot" . $token . "/hook?hook=" . urlencode($REQUEST["url"]));
 		} else $hook = array("url" => "");
 		$hookresponse = curl($url . "/setwebhook?" . http_build_query($hook));
 		jsonexit($hookresponse);
@@ -275,6 +274,11 @@ switch($method) {
 		}
 		exit;
 		break;
+	case "/resolveusername":
+		include 'telegram_connect.php';
+		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
+		jsonexit($telegram->exec('resolve_username ' . $REQUEST["chat_id"]));
+		break;
 }
 
 // The sending method without the send keyword
@@ -290,26 +294,26 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
 		$file = $_FILES[$smethod]["tmp_name"];
 		$forcename = true;
 	} else {
-		if(isset($_REQUEST[$smethod])) $file = $_REQUEST[$smethod];
+		if(isset($REQUEST[$smethod])) $file = $REQUEST[$smethod];
 	}
 	// $file is the file's path/url/id
-	if(isset($_REQUEST["name"]) && $_REQUEST["name"] != "") {
+	if(isset($REQUEST["name"]) && $REQUEST["name"] != "") {
 		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
-		$name = $_REQUEST["name"];
+		$name = $REQUEST["name"];
 		$forcename = true;
 		// $forcename is the boolean that enables or disables renaming of files
 	};
-	if(isset($_REQUEST["file_name"]) && $_REQUEST["file_name"] != "") {
+	if(isset($REQUEST["file_name"]) && $REQUEST["file_name"] != "") {
 		// $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
-		$name = $_REQUEST["file_name"];
+		$name = $REQUEST["file_name"];
 		$forcename = true;
 		// $forcename is the boolean that enables or disables renaming of files
 	};
 
 	// Let's do this!
-	$upload = upload($file, $name, $smethod, $forcename);
+	$upload = upload($file, $name, $smethod, $forcename, $REQUEST);
 	if(isset($upload["ok"]) && $upload["ok"] == true && preg_match("|^/send|", $method)) {
-	 	$params = $_REQUEST;
+	 	$params = $REQUEST;
 		if(isset($upload["result"]["caption"]) && $upload["result"]["caption"] != "") $params["caption"] = $upload["result"]["caption"];
 		$params[$upload["result"]["file_type"]] = $upload["result"]["file_id"];
 	 	jsonexit(curl($url . "/send" . $upload["result"]["file_type"] . "?" . http_build_query($params)));

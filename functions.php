@@ -11,11 +11,11 @@ You should have received a copy of the GNU General Public License along with the
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-function find_txt($msgs) {
+function find_txt($msgs, $file_id) {
 	$ok = false;
 	foreach ($msgs as $msg) {
 		foreach ($msg as $key => $val) { 
-			if ($key == "text" && $val == $_REQUEST["file_id"]) $ok = true;
+			if ($key == "text" && $val == $file_id) $ok = true;
 		}
 		if ($ok) return $msg->reply_id;
 	}
@@ -137,6 +137,7 @@ function unlink_link($symlink) {
  */
 function download($file_id) {
 	global $url, $pwrtelegram_storage, $homedir, $methods, $botusername, $token, $pwrtelegram_storage_domain;
+	$result = null;
 	if($_SERVER["HTTP_HOST"] != $pwrtelegram_storage_domain) {
 		$storage_params = [];
 		foreach (array("url", "methods", "token", "pwrtelegram_storage", "pwrtelegram_storage_domain") as $key) {
@@ -148,10 +149,18 @@ function download($file_id) {
 		curl_setopt($ch, CURLOPT_URL, $pwrtelegram_storage);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
-		$result = curl_exec($ch);
+		$result = json_decode(curl_exec($ch), true);
 		curl_close($ch);
+		if($result == null) {
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_URL, $pwrtelegram_storage);
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
+			$result = json_decode(curl_exec($ch), true);
+			curl_close($ch);
+		}
 		if($result == null) return array("ok" => false, "error_code" => 400, "description" => "Couldn't download file: result is null.");
-		$result = json_decode($result, true);
 		return $result;
 	}
 	include '../db_connect.php';
@@ -296,7 +305,7 @@ function get_finfo($file_id){
  * @return json with error or file id
  */
 // function upload($file, $uploadata = array()) {
-function upload($file, $name = "", $type = "", $forcename = false) {
+function upload($file, $name = "", $type = "", $forcename = false, $oldparams = array()) {
 	global $pwrtelegram_api, $token, $url, $pwrtelegram_storage, $pwrtelegram_storage_domain, $methods, $homedir, $botusername;
 
 	if($file == "") return array("ok" => false, "error_code" => 400, "description" => "No file specified.");
@@ -439,8 +448,8 @@ function upload($file, $name = "", $type = "", $forcename = false) {
 			break;
 	}
 	foreach ($newparams as $param => $val) {
-		if(isset($_REQUEST[$param]) && $_REQUEST[$param] != "") {
-			$newparams[$param] = $_REQUEST[$param];
+		if(isset($oldparams[$param]) && $oldparams[$param] != "") {
+			$newparams[$param] = $oldparams[$param];
 		}
 	}
 

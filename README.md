@@ -31,11 +31,12 @@ All of the official telegram bot API features plus:
 * Uploading of any file/URL/file ID with automagical type recognition.  
 * Uploading of any file/URL/file ID without sending the file to a specific user.  
 * Automagical metadata recognition of sent files/URLs/file IDs.  
-* Deleting of text messages sent from the bot  
+* Deleting of text messages sent from the bot.  
 * Uploading of files bigger than 5 megabytes with inline queries (supports both URLs and direct uploads)
 * Automatical type recognition for files sent using answerinlinequery 
 * Both webhooks and getupdates are supported.
 * webhook requests can be recieved even on insecure http servers.
+* Resolving of usernames not only with channels and groups but also with normal users and bots.
 * [It is open source](https://github.com/pwrtelegram)!
 * [It can be installed on your own server](https://github.com/pwrtelegram/pwrtelegram-backend)!
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
@@ -74,6 +75,8 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 * This API won't be able to send big files if getUpdate or webhook requests aren't proxied through it. This is because when the API uploads these files using tg-cli it must obtain a file_id using the official bot API, and that can be done only by intercepting the incoming update with the file.
 
 * The methods used by the PWRTelegram API are the same ones used in the official telegram bot API, but they also have some additional features and in certain cases their behaviour is slightly modified (don't worry, that won't break your clients). There are also some methods that work only with the PWRTelegram API. Here's a list:
+
+* With this API you can use usernames to interact even with normal users and you can get info about bots using their username (with the getChat method).  
 
 * getUpdates and webhook requests.
 
@@ -148,7 +151,7 @@ This is the metadata that will be obtained and sent (only if not present in the 
 
 | Parameters           	| Type                                                                           	| Required 	| Description                                                                                                                                                                  	|
 |----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| chat_id              	| Integer or String                                                              	| Yes      	| Unique identifier for the target chat or username of the target channel (in the format @channelusername)                                                                     	|
+| chat_id              	| Integer or String                                                              	| Yes      	| Unique identifier for the target chat or username of the target channel, group or user (in the format @username)                                                                     	|
 | message_id           	| Integer                                                                        	| Yes      	| Unique identifier of the sent message                                                                                                                                        	|
 | file                 	| String                                                                         	| Yes      	| File to send. You can either pass a URL as String to send a file from a URL, or a file ID as a string to reupload a file already present on the Telegram servers or upload a new file using *multipart/form-data*.                                                	|
 | caption              	| String                                                                         	| Optional 	| File caption (will only be applied if the sent file/URL is a photo, a video or a document), 0-200 characters                                                                 	|
@@ -197,7 +200,7 @@ Otherwise the error is returned.
 
 | Parameters        	| Type              	| Required             	| Description                                                                                                                                              	|
 |-------------------	|-------------------	|----------------------	|----------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| chat_id           	| Integer or String 	| No (see description) 	| Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format @channelusername) 	|
+| chat_id           	| Integer or String 	| No (see description) 	| Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel, group or user (in the format @username) 	|
 | message_id        	| Integer           	| No (see description) 	| Required if inline_message_id is not specified. Unique identifier of the sent message                                                                    	|
 | inline_message_id 	| String            	| No (see description) 	| Required if chat_id and message_id are not specified. Identifier of the inline message                                                                   	|
 
