@@ -274,11 +274,6 @@ switch($method) {
 		}
 		exit;
 		break;
-	case "/resolveusername":
-		include 'telegram_connect.php';
-		if($token == "") jsonexit(array("ok" => false, "error_code" => 400, "description" => "No token was provided."));
-		jsonexit($telegram->exec('resolve_username ' . $REQUEST["chat_id"]));
-		break;
 }
 
 // The sending method without the send keyword
