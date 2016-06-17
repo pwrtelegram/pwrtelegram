@@ -78,11 +78,8 @@ class RawClient
 
 
         if (is_string($answer)) {
-        
-
             if (substr($answer, 0, 7) === 'ANSWER ') {
                 $bytes = ((int) substr($answer, 7)) + 1; //+1 because the json-return seems to miss one byte
-                
                 if ($bytes > 0) {
                     $bytesRead = 0;
                     $jsonString = '';

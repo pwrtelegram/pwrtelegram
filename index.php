@@ -92,8 +92,8 @@ if(preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 if(isset($REQUEST["chat_id"]) && preg_match("/^@/", $REQUEST["chat_id"])) {
 	include_once 'telegram_connect.php';
 	$id_result = $GLOBALS["telegram"]->exec('resolve_username ' . preg_replace("/^@/", "", $REQUEST["chat_id"]));
-	if(isset($id_result->{"peer_type"}) && isset($id_result->{"peer_id"}) && $id_result->{"peer_id"} != "") {
-		if($id_result->{"peer_type"} != "user") $REQUEST["chat_id"] = "-100" . $id_result->{"peer_id"}; else $REQUEST["chat_id"] = $id_result->{"peer_id"};
+	if(isset($id_result->{"peer_type"}) && isset($id_result->{"peer_id"}) && $id_result->{"peer_id"} == "user") {
+		$REQUEST["chat_id"] = $id_result->{"peer_id"};
 	}
 }
 
