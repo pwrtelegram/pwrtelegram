@@ -82,7 +82,7 @@ if ( 'POST' == $request_method ) {
 	}
 
 	curl_setopt( $ch, CURLOPT_POST, true );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query($request_params));
+	curl_setopt( $ch, CURLOPT_POSTFIELDS, $request_params);
 }
 
 // retrieve response (headers and content)
