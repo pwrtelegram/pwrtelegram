@@ -52,7 +52,6 @@ foreach ( $_SERVER as $key => $value ) {
 }
 
 // identify request method, url and params
-$request_method = 'POST';
 $request_params = $REQUEST;
 if ( empty( $request_params ) ) {
 	$data = file_get_contents( 'php://input' );
@@ -61,33 +60,25 @@ if ( empty( $request_params ) ) {
 	}
 }
 $request_url = "https://api.telegram.org/bot".$token.$method;
-$p_request_url = parse_url( $request_url );
 
 $request_headers[] = "Content-Type: multipart/form-data";
 
-// let the request begin
-$ch = curl_init( $request_url );
-curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );	 // return response
-curl_setopt( $ch, CURLOPT_HTTPHEADER, $request_headers );   // (re-)send headers
-curl_setopt( $ch, CURLOPT_HEADER, true );	   // enabled response headers
-// add data for POST, PUT or DELETE requests
-if ( 'POST' == $request_method ) {
-	$request_params;
-
-	foreach ($_FILES as $f => $file) {
-		if($file['size']){
-			$request_params[$f] = new \CurlFile($file["tmp_name"], $file["type"], $file["name"]); 
-			$has_files = true;
-		}
-	}
-
-	curl_setopt( $ch, CURLOPT_POST, true );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS, $request_params);
+$cmd = "curl -s -D - " . escapeshellarg($request_url) . " ";
+foreach ($request_headers as $header) {
+	$cmd .= "-H " . escapeshellarg($header) . " ";
 }
-
+// add data for POST, PUT or DELETE requests
+foreach ($request_params as $key => $val) {
+	$cmd .= "--form-string " . escapeshellarg($key."=".$val) . " ";
+}
+foreach ($_FILES as $f => $file) {
+	if($file['size']){
+		$cmd .= "--form " . escapeshellarg($f . "=@" . $file["tmp_name"] . ";filename=" . $file["name"] . ";type=" . $file["type"]) . " ";
+	}
+}
 // retrieve response (headers and content)
-$response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/" , "", curl_exec( $ch ));
-curl_close( $ch );
+$response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/" , "", shell_exec( $cmd ));
+
 // split response to header and content
 list($response_headers, $response_content) = preg_split( '/(\r\n){2}/', $response, 2 );
 
