@@ -61,21 +61,22 @@ if ( empty( $request_params ) ) {
 }
 $request_url = "https://api.telegram.org/bot".$token.$method;
 
-$request_headers[] = "Content-Type: multipart/form-data";
 
 $cmd = "curl -s -D - " . escapeshellarg($request_url) . " ";
-foreach ($request_headers as $header) {
-	$cmd .= "-H " . escapeshellarg($header) . " ";
-}
 // add data for POST, PUT or DELETE requests
 foreach ($request_params as $key => $val) {
 	$cmd .= "--form-string " . escapeshellarg($key."=".$val) . " ";
+	$request_headers[] = "Content-Type: multipart/form-data";
 }
 foreach ($_FILES as $f => $file) {
 	if($file['size']){
 		$cmd .= "--form " . escapeshellarg($f . "=@" . $file["tmp_name"] . ";filename=" . $file["name"] . ";type=" . $file["type"]) . " ";
 	}
 }
+foreach ($request_headers as $header) {
+	$cmd .= "-H " . escapeshellarg($header) . " ";
+}
+
 // retrieve response (headers and content)
 $response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/" , "", shell_exec( $cmd ));
 
