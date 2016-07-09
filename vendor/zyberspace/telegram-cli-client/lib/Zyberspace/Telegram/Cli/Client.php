@@ -469,8 +469,11 @@ class Client extends RawClient
     }
     public function getFile($user, $file_id, $type)
     {
-	$script = escapeshellarg($GLOBALS['homedir'] . "telegram-lua-load/download.lua");
-	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json -WNs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1 | sed '/{\"event\":\"download\", \"result\":\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
+	$script = escapeshellarg($GLOBALS["pwrhomedir"] . "/lua/download.lua");
+	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json -WNRs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1");
+	foreach(explode("\n", $res) as $line) {
+		if(preg_match('|.*{"event":"download", "result"|', $line)) $res = preg_replace(array('|.*{"event":"download", "result"|', "|}.*|"), array('{"event":"download", "result"', "}"), $line);
+	}
 	return json_decode($res);
     }
 

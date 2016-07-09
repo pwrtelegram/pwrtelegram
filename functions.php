@@ -243,7 +243,9 @@ function download($file_id)
         if ($info['message_id'] == '') {
             return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
         }
-        if (shell_exec('ps aux | grep -v grep | grep '.escapeshellarg('telegram-cli --json -WNs /home/pwrtelegram/pwrtelegram/telegram-lua-load/download.lua --lua-param '.$me.' '.$file_id.' '.$methods[$info['file_type']])." | tr -d '\n'") != '') {
+	$cmd = $me." ".$file_id." ".$methods[$info["file_type"]];
+	error_log($cmd . "  " . shell_exec('ps aux | grep -v grep'));
+        if (preg_match("/".$cmd."/", shell_exec('ps aux | grep -v grep')) == true) {
             return ['ok' => true, 'error_code' => 202, 'description' => 'File is already being downloaded. Please try again later.'];
         }
         $result = curl($url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$botusername.'&text='.$file_id);
@@ -436,7 +438,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
         if ($size < 1) {
             try_unlink($path);
 
-            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file size us 0)."];
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file size is 0)."];
         }
         if ($size > 1610612736) {
             try_unlink($path);
