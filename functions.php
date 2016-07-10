@@ -610,7 +610,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
             }
         } else {
             $peer = $GLOBALS['telegram']->escapeUsername($me);
-            $result = $GLOBALS['telegram']->pwrsendFile($peer, $methods[$type], $path, $file_hash);
+            $result = $GLOBALS['telegram']->pwrsendFile($peer, $methods[$type], $path, hash("sha256", json_encode([$file_hash, $type, $me, $name])));
             try_unlink($path);
             if (isset($result['error']) && $result['error'] != '') {
                 return ['ok' => false, 'error_code' => $result['error_code'], 'description' => $result['error']];
