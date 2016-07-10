@@ -437,7 +437,6 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
         $size = filesize($path);
         if ($size < 1) {
             try_unlink($path);
-
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file size is 0)."];
         }
         if ($size > 1610612736) {
@@ -577,7 +576,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
 
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
-        if ($size < 50000000) {
+        if (false && $size < 50000000) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
             curl_setopt($ch, CURLOPT_URL, $url.'/send'.$type.'?'.http_build_query($newparams));
@@ -611,7 +610,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
             }
         } else {
             $peer = $GLOBALS['telegram']->escapeUsername($me);
-            $result = $GLOBALS['telegram']->pwrsendFile($peer, $methods[$type], $path);
+            $result = $GLOBALS['telegram']->pwrsendFile($peer, $methods[$type], $path, $file_hash);
             try_unlink($path);
             if (isset($result['error']) && $result['error'] != '') {
                 return ['ok' => false, 'error_code' => $result['error_code'], 'description' => $result['error']];

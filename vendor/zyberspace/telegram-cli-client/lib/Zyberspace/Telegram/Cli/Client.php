@@ -442,13 +442,22 @@ class Client extends RawClient
      * @uses formatFileName()
      * @uses escapeshellarg()
      */
-    public function pwrsendFile($peer, $type, $path)
+    public function pwrsendFile($peer, $type, $path, $hash)
     {
-        $peer = escapeshellarg($this->escapePeer($peer));
-     	$type = escapeshellarg($type);
-        $formattedPath = escapeshellarg($this->formatFileName($path));
-
-	return json_decode(shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNe 'send_" . $type . " " . $peer . " " . $formattedPath . "' 2>&1  | sed 's/[>]//g;/{/!d;/{\"result\": \"SUCCESS\"}/d;/^\s*$/d' | tail -1 | sed 's/^[^{]*{/{/;s/}[^}]*$/}/'"), true);
+	$peer = $this->escapePeer($peer);
+	$cmd = "msg " . $peer . " " . $hash;
+	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe " . escapeshellarg($cmd) . " 2>&1");
+	foreach (explode("\n", $res) as $line) {
+		if(preg_match('|^{|', $line) && !preg_match('|{"result": "SUCCESS"}|', $line)) $newres = json_decode(preg_replace(array('|^[^{]*{|', "|}[^}]*$|"), array("{", "}"), $line), true); else continue;
+		if($newres["text"] == $hash && $newres["from"]["peer_id"] == $GLOBALS["botusername"] && $newres["out"]) $msgid = $newres["id"];
+	}
+        $formattedPath = $this->formatFileName($path);
+	$cmd = "reply_" . $type . " " . $msgid . " " . $formattedPath;
+	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe " . escapeshellarg($cmd) . " 2>&1");
+	foreach (explode("\n", $res) as $line) {
+		if(preg_match('|^{|', $line) && !preg_match('|{"result": "SUCCESS"}|', $line)) $newres = json_decode(preg_replace(array('|^[^{]*{|', "|}[^}]*$|"), array("{", "}"), $line), true); else continue;
+		if($newres["reply_id"] == $msgid && $newres["media"]["type"] == $type && $newres["from"]["peer_id"] == $GLOBALS["botusername"] && $newres["out"]) return $newres;
+	}
     }
 
     /**
