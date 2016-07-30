@@ -1,4 +1,5 @@
 <?php
+
 set_time_limit(0);
 ini_set('log_errors', 1);
 ini_set('error_log', '/tmp/php-error-index.log');
@@ -36,8 +37,8 @@ class FileServe
         }
         $this->size = filesize($filename);
         list($this->seek_start, $this->seek_end) = explode('-', $range, 2);
-        $this->seek_end   = (empty($this->seek_end)) ? ($this->size - 1) : min(abs(intval($this->seek_end)),($this->size - 1));
-        $this->seek_start = (empty($this->seek_start) || $this->seek_end < abs(intval($this->seek_start))) ? 0 : max(abs(intval($this->seek_start)),0);
+        $this->seek_end = (empty($this->seek_end)) ? ($this->size - 1) : min(abs(intval($this->seek_end)), ($this->size - 1));
+        $this->seek_start = (empty($this->seek_start) || $this->seek_end < abs(intval($this->seek_start))) ? 0 : max(abs(intval($this->seek_start)), 0);
         $this->stream = fopen($filename, 'r');
         $this->filename = basename($filename);
         $this->content_type = mime_content_type($filename);
@@ -48,6 +49,7 @@ class FileServe
             throw new Exception('Could not read file. Please check permissions.');
         } else {
             fseek($this->stream, $this->seek_start);
+
             return true;
         }
     }
@@ -71,13 +73,13 @@ class FileServe
         if (feof($this->stream)) {
             throw new Exception('The file is empty.');
         }
-        if ($this->seek_start > 0 || $this->seek_end < ($this->size - 1))
-	{
-		header('HTTP/1.1 206 Partial Content');
-		header('Content-Range: bytes '.$this->seek_start.'-'.$this->seek_end.'/'.$this->size);
-		header('Content-Length: '.($this->seek_end - $this->seek_start + 1));
-	}
-	else { header("Content-Length: ". $this->size); };
+        if ($this->seek_start > 0 || $this->seek_end < ($this->size - 1)) {
+            header('HTTP/1.1 206 Partial Content');
+            header('Content-Range: bytes '.$this->seek_start.'-'.$this->seek_end.'/'.$this->size);
+            header('Content-Length: '.($this->seek_end - $this->seek_start + 1));
+        } else {
+            header('Content-Length: '.$this->size);
+        }
         header('Content-Type: '.$this->content_type);
         header('Content-Transfer-Encoding: Binary');
         header('Content-disposition: attachment: filename="'.$this->filename.'"');
@@ -162,27 +164,21 @@ try {
     if (!($selectstmt->rowCount() > 0)) {
         throw new Exception('Could not fetch real file path from database.');
     }
-    if(isset($_SERVER['HTTP_RANGE']))
-    {
+    if (isset($_SERVER['HTTP_RANGE'])) {
         list($size_unit, $range_orig) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-        if ($size_unit == 'bytes')
-        {
-               //multiple ranges could be specified at the same time, but for simplicity only serve the first range
+        if ($size_unit == 'bytes') {
+            //multiple ranges could be specified at the same time, but for simplicity only serve the first range
                //http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
                list($range, $extra_ranges) = explode(',', $range_orig, 2);
+        } else {
+            $range = '';
+            header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            header('Cache-Control: post-check=0, pre-check=0', false);
+            header('Pragma: no-cache');
+            header('HTTP/1.1 416 Requested Range Not Satisfiable');
+            exit;
         }
-        else
-        {
-               $range = '';
-               header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-               header("Cache-Control: post-check=0, pre-check=0", false);
-               header("Pragma: no-cache");
-               header('HTTP/1.1 416 Requested Range Not Satisfiable');
-               exit;
-        }
-    }
-    else
-    {
+    } else {
         $range = '';
     }
     header('Cache-Control: max-age=31556926;');

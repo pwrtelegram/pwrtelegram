@@ -36,7 +36,6 @@ function find_txt($msgs, $file_id)
  * @return The size of the file referenced by $url, or -1 if the size
  *             could not be determined.
  */
-
 function curl_get_file_size($url)
 {
     // Assume failure.
@@ -243,9 +242,9 @@ function download($file_id)
         if ($info['message_id'] == '') {
             return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
         }
-	$cmd = $me." ".$file_id." ".$methods[$info["file_type"]];
-	error_log($cmd . "  " . shell_exec('ps aux | grep -v grep'));
-        if (preg_match("/".$cmd."/", shell_exec('ps aux | grep -v grep')) == true) {
+        $cmd = $me.' '.$file_id.' '.$methods[$info['file_type']];
+        error_log($cmd.'  '.shell_exec('ps aux | grep -v grep'));
+        if (preg_match('/'.$cmd.'/', shell_exec('ps aux | grep -v grep')) == true) {
             return ['ok' => true, 'error_code' => 202, 'description' => 'File is already being downloaded. Please try again later.'];
         }
         $result = curl($url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$botusername.'&text='.$file_id);
@@ -437,6 +436,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
         $size = filesize($path);
         if ($size < 1) {
             try_unlink($path);
+
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file size is 0)."];
         }
         if ($size > 1610612736) {
@@ -610,7 +610,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
             }
         } else {
             $peer = $GLOBALS['telegram']->escapeUsername($me);
-            $result = $GLOBALS['telegram']->pwrsendFile($peer, $methods[$type], $path, hash("sha256", json_encode([$file_hash, $type, $me, $name])));
+            $result = $GLOBALS['telegram']->pwrsendFile($peer, $methods[$type], $path, hash('sha256', json_encode([$file_hash, $type, $me, $name])));
             try_unlink($path);
             if (isset($result['error']) && $result['error'] != '') {
                 return ['ok' => false, 'error_code' => $result['error_code'], 'description' => $result['error']];
