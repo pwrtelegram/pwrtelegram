@@ -243,7 +243,6 @@ function download($file_id)
             return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
         }
         $cmd = $me.' '.$file_id.' '.$methods[$info['file_type']];
-        error_log($cmd.'  '.shell_exec('ps aux | grep -v grep'));
         if (preg_match('/'.$cmd.'/', shell_exec('ps aux | grep -v grep')) == true) {
             return ['ok' => true, 'error_code' => 202, 'description' => 'File is already being downloaded. Please try again later.'];
         }

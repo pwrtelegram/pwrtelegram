@@ -73,12 +73,14 @@ foreach ($_FILES as $f => $file) {
         $cmd .= '--form '.escapeshellarg($f.'=@'.$file['tmp_name'].';filename='.$file['name'].';type='.$file['type']).' ';
     }
 }
+
 foreach ($request_headers as $header) {
     $cmd .= '-H '.escapeshellarg($header).' ';
 }
 
 // retrieve response (headers and content)
 $response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/", '', shell_exec($cmd));
+//error_log($response);
 
 // split response to header and content
 list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);
