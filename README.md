@@ -27,7 +27,7 @@ All of the official telegram bot API features plus:
 * Anonymous file storage (the URL of downloaded files does not contain your bot's token)
 * Uploading of files up to 1.5 GB in size  
 * Uploading of files using an URL
-* Reuploading of files using a file ID and different file type or file name.
+* Re-uploading of files using a file ID and different file type or file name.
 * Uploading of any file/URL/file ID with automagical type recognition.  
 * Uploading of any file/URL/file ID without sending the file to a specific user.  
 * Automagical metadata recognition of sent files/URLs/file IDs.  
@@ -43,7 +43,7 @@ All of the official telegram bot API features plus:
 
 ## How do I enable it?  
 
-To enable it simply subsitute the url of the bot telegram API (https://api.telegram.org) with the url of the pwrtelegram API (https://api.pwrtelegram.xyz) in your telegram client.
+To enable it simply substitute the URL of the bot telegram API (https://api.telegram.org) with the URL of the pwrtelegram API (https://api.pwrtelegram.xyz) in your telegram client.
 
 You can use this command to do it:
 ```
@@ -153,7 +153,7 @@ This is the metadata that will be obtained and sent (only if not present in the 
 |----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
 | chat_id              	| Integer or String                                                              	| Yes      	| Unique identifier for the target chat or username of the target channel, group or user (in the format @username)                                                                     	|
 | message_id           	| Integer                                                                        	| Yes      	| Unique identifier of the sent message                                                                                                                                        	|
-| file                 	| String                                                                         	| Yes      	| File to send. You can either pass a URL as String to send a file from a URL, or a file ID as a string to reupload a file already present on the Telegram servers or upload a new file using *multipart/form-data*.                                                	|
+| file                 	| String                                                                         	| Yes      	| File to send. You can either pass a URL as String to send a file from a URL, or a file ID as a string to re-upload a file already present on the Telegram servers or upload a new file using *multipart/form-data*.                                                	|
 | caption              	| String                                                                         	| Optional 	| File caption (will only be applied if the sent file/URL is a photo, a video or a document), 0-200 characters                                                                 	|
 | duration             	| Integer                                                                        	| Optional 	| Duration of the sent file/URL in seconds (will only be applied if the sent file/URL is an audio file, a video or a voice recording)                                          	|
 | performer            	| String                                                                         	| Optional 	| Performer of the sent file/URL (will only be applied if the sent file/URL is an audio file)                                                                                  	|
