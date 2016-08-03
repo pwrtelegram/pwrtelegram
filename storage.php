@@ -88,6 +88,8 @@ class FileServe
             error_reporting(0);
             do {
                 echo $fileChunk;
+                ob_flush();
+                flush();
                 if ($throttle > 0) {
                     usleep($throttle);
                 }
@@ -106,8 +108,6 @@ class FileServe
       */
      private function readChunk()
      {
-         ob_flush();
-         flush();
          if (feof($this->stream)) {
              return false;
          }
