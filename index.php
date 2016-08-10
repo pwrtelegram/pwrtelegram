@@ -104,7 +104,6 @@ if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
         $REQUEST['chat_id'] = $id_result->{'peer_id'};
     }
 }
-
 // Else use a nice case switch
 switch ($method) {
     case '/getfile':

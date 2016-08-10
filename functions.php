@@ -469,7 +469,6 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
             $size = filesize($path);
             if ($size < 1) {
                 try_unlink($path);
-
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file size is 0)."];
             }
             if ($size > 1610612736) {
@@ -478,7 +477,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
         } else {
-            return $info;
+            return ["ok" => true, result => $info];
         }
     } else {
         return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't use the provided file id/URL."];
