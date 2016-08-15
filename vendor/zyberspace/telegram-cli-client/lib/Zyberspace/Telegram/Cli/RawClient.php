@@ -163,8 +163,8 @@ class RawClient
     public function escapeUsername($username)
     {
         $peer = $this->exec('resolve_username ' . $username);
+        if(!isset($pe3r->print_name) || $peer->peer_print == "") return false;
 	$peer = $peer->print_name;
-	if($peer == "") return false;
         return str_replace(' ', '_', $peer);
     }
 

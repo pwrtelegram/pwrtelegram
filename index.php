@@ -327,7 +327,7 @@ switch ($method) {
             }
             $result = curl_exec($ch);
             curl_close($ch);
-            error_log('Result of webhook query is '.$result);
+            //error_log('Result of webhook query is '.$result);
             $result = json_decode($result, true);
             if (is_array($result) && isset($result['method']) && $result['method'] != '' && is_string($result['method'])) {
                 $ch = curl_init();
@@ -337,7 +337,7 @@ switch ($method) {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $result);
                 $secondresult = curl_exec($ch);
                 curl_close($ch);
-                error_log('Reverse webhook command from '.$me.' returned '.$secondresult);
+                //error_log('Reverse webhook command from '.$me.' returned '.$secondresult);
             }
         }
         exit;

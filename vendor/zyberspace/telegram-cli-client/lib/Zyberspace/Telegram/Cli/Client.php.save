@@ -456,12 +456,11 @@ class Client extends RawClient
 	$cmd = "send_" . $type . " " . $peer . " " . $formattedPath;
 	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe " . escapeshellarg($cmd) . " 2>&1");
 	$newres = null;
-	$finalres = null;
 	foreach (explode("\n", $res) as $line) {
 		if(preg_match('|^{|', $line) && !preg_match('|{"result": "SUCCESS"}|', $line)) $newres = json_decode(preg_replace(array('|^[^{]*{|', "|}[^}]*$|"), array("{", "}"), $line), true); else continue;
-		if(isset($newres["out"]) && $newres["out"] && isset($newres["media"]["type"]) && $newres["media"]["type"] == $type && isset($newres["from"]["peer_id"]) && $newres["from"]["peer_id"] == $GLOBALS["botusername"]) $finalres = $newres;
+		if(isset($newres["out"]) && $newres["out"] && isset($newres["media"]["type"]) && $newres["media"]["type"] == $type && isset($newres["from"]["peer_id"]) && $newres["from"]["peer_id"] == $GLOBALS["botusername"]) $realres = $newres;
 	}
-	return $newres;
+	return $realres;
     }
 
     /**
