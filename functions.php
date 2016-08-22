@@ -575,7 +575,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
 
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
-        if (false && $size < 50000000) {
+        if ($size < 50000000) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
             curl_setopt($ch, CURLOPT_URL, $url.'/send'.$type.'?'.http_build_query($newparams));
