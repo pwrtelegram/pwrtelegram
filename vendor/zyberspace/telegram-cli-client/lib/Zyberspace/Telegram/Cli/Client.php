@@ -454,7 +454,7 @@ class Client extends RawClient
 */
         $formattedPath = $this->formatFileName($path);
 	$cmd = "send_" . $type . " " . $peer . " " . $formattedPath;
-	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe " . escapeshellarg($cmd) . " 2>&1");
+	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -U pwrtelegram -WNRe " . escapeshellarg($cmd) . " 2>&1");
 	$newres = null;
 	$finalres = null;
 	foreach (explode("\n", $res) as $line) {
