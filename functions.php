@@ -478,7 +478,7 @@ function upload($file, $name = '', $type = '', $forcename = false, $oldparams = 
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
         } else {
-            return ['ok' => true, result => $info];
+            return ['ok' => true, 'result' => $info];
         }
     } else {
         return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't use the provided file id/URL."];
