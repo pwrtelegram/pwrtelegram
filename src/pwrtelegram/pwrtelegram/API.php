@@ -21,7 +21,9 @@ class API extends Tools
             $this->{$key} = $val;
         }
     }
-    public function connect_db() {
+
+    public function connect_db()
+    {
         include $this->homedir.'/db_connect.php';
         global $pdo;
         $this->pdo = $pdo;
@@ -31,6 +33,7 @@ class API extends Tools
         global $telegram;
         $this->telegram = $telegram;
     }
+
     /**
      * Download given file id and return json with error or downloaded path.
      *
