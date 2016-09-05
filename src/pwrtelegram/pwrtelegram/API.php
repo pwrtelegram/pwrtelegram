@@ -1,4 +1,5 @@
 <?php
+
 namespace PWRTelegram\PWRTelegram;
 
 /*
@@ -12,19 +13,22 @@ See the GNU Affero General Public License for more details.
 You should have received a copy of the GNU General Public License along with the PWRTelegram API.
 If not, see <http://www.gnu.org/licenses/>.
 */
-class API extends Tools {
-    public function __construct($params) {
+class API extends Tools
+{
+    public function __construct($params)
+    {
         foreach ($params as $key => $val) {
             $this->{$key} = $val;
         }
     }
+
     /**
-    * Download given file id and return json with error or downloaded path.
-    *
-    * @param $file_id - The file id of the file to download
-    *
-    * @return json with error or file path
-    */
+     * Download given file id and return json with error or downloaded path.
+     *
+     * @param $file_id - The file id of the file to download
+     *
+     * @return json with error or file path
+     */
     public function download($file_id)
     {
         $result = null;
@@ -171,12 +175,12 @@ class API extends Tools {
     }
 
     /**
-    * Gets info from file id.
-    *
-    * @param $file_id - The file id to recognize
-    *
-    * @return json with error or file info
-    */
+     * Gets info from file id.
+     *
+     * @param $file_id - The file id to recognize
+     *
+     * @return json with error or file info
+     */
     public function get_finfo($file_id)
     {
         $this->methods = array_keys($GLOBALS['methods']);
@@ -213,20 +217,20 @@ class API extends Tools {
     }
 
     /**
-    * Upload given file/URL/file id.
-    *
-    * @param $file - The file/URL/file to upload
-    * @param $name - The file name to use when uploading, can be empty
-    * (in this case the file name will be obtained from the given file path/URL)
-    * @param $type - The type of file to use when uploading:
-    * can be document, photo, audio, voice, sticker, file or empty
-    * (in this case the type will default to file)
-    * @param $forcename - Boolean, enables or disables file name forcing, defaults to false
-    * If set to false the file name to be stored in the database will be set to empty and the
-    * associated file id will be reused the next time a file with the same hash and with $forcename set to false is sent.
-    *
-    * @return json with error or file id
-    */
+     * Upload given file/URL/file id.
+     *
+     * @param $file - The file/URL/file to upload
+     * @param $name - The file name to use when uploading, can be empty
+     * (in this case the file name will be obtained from the given file path/URL)
+     * @param $type - The type of file to use when uploading:
+     * can be document, photo, audio, voice, sticker, file or empty
+     * (in this case the type will default to file)
+     * @param $forcename - Boolean, enables or disables file name forcing, defaults to false
+     * If set to false the file name to be stored in the database will be set to empty and the
+     * associated file id will be reused the next time a file with the same hash and with $forcename set to false is sent.
+     *
+     * @return json with error or file id
+     */
     // public function upload($file, $uploadata = array()) {
     public function upload($file, $name = '', $type = '', $forcename = false, $oldparams = [])
     {
@@ -476,7 +480,7 @@ class API extends Tools {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $peer = "chat#".$mepeer;
+                $peer = 'chat#'.$mepeer;
                 $result = $GLOBALS['telegram']->pwrsendFile($peer, $this->methods[$type], $path, hash('sha256', json_encode([$file_hash, $type, $me, $name])));
                 $this->try_unlink($path);
                 if (isset($result['error']) && $result['error'] != '') {

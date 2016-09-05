@@ -1,4 +1,5 @@
 <?php
+
 namespace PWRTelegram\PWRTelegram;
 
 /*
@@ -13,17 +14,17 @@ You should have received a copy of the GNU General Public License along with the
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-class Tools {
-
+class Tools
+{
     /**
-    * Returns the requested url (json results are decoded if $json is set to true).
-    *
-    * @param $url - The location of the remote file to download. Cannot
-    * be null or empty.
-    * @param $json - Default is true, if set to true will json_decode the content of the url.
-    *
-    * @return Returns the requested url (json results are decoded if $json is set to true).
-    */
+     * Returns the requested url (json results are decoded if $json is set to true).
+     *
+     * @param $url - The location of the remote file to download. Cannot
+     * be null or empty.
+     * @param $json - Default is true, if set to true will json_decode the content of the url.
+     *
+     * @return Returns the requested url (json results are decoded if $json is set to true).
+     */
     public function curl($url, $json = true)
     {
         // Get cURL resource
@@ -42,17 +43,17 @@ class Tools {
     }
 
     /**
-    * Returns true if remote file exists, false if it doesn't exist.
-    *
-    * @param $url - The location of the remote file to download. Cannot
-    * be null or empty.
-    *
-    * @return true if remote file exists, false if it doesn't exist.
-    */
+     * Returns true if remote file exists, false if it doesn't exist.
+     *
+     * @param $url - The location of the remote file to download. Cannot
+     * be null or empty.
+     *
+     * @return true if remote file exists, false if it doesn't exist.
+     */
     public function checkurl($url)
     {
         $ch = curl_init(str_replace(' ', '%20', $url));
-        curl_setopt($ch, CURLOPT_HEADER, true );
+        curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 50);
@@ -79,18 +80,20 @@ class Tools {
     {
         $escapers = ['\\', '/', "\n", "\r", "\t", "\x08", "\x0c"];
         $replacements = ['\\\\', '\\/', '\\n', '\\r', '\\t', '\\f', '\\b'];
+
         return str_replace($escapers, $replacements, $value);
     }
+
     /**
-    * Returns the size of a file without downloading it, or -1 if the file
-    * size could not be determined.
-    *
-    * @param $url - The location of the remote file to download. Cannot
-    * be null or empty.
-    *
-    * @return The size of the file referenced by $url, or -1 if the size
-    *             could not be determined.
-    */
+     * Returns the size of a file without downloading it, or -1 if the file
+     * size could not be determined.
+     *
+     * @param $url - The location of the remote file to download. Cannot
+     * be null or empty.
+     *
+     * @return The size of the file referenced by $url, or -1 if the size
+     *             could not be determined.
+     */
     public function curl_get_file_size($url)
     {
         // Assume failure.
@@ -128,12 +131,12 @@ class Tools {
     }
 
     /**
-    * Check if tg-cli ever contacted contacted username, if not send a /start command.
-    *
-    * @param $me - The username to check
-    *
-    * @return true if user is in dialoglist or if it was contacted successfully, false if it couldn't be contacted.
-    */
+     * Check if tg-cli ever contacted contacted username, if not send a /start command.
+     *
+     * @param $me - The username to check
+     *
+     * @return true if user is in dialoglist or if it was contacted successfully, false if it couldn't be contacted.
+     */
     public function checkbotuser($me)
     {
         // Get all of the peer_id
@@ -145,7 +148,7 @@ class Tools {
         }
         // If never contacted bot send start command
         if (!in_array($me, $peer_id)) {
-            $peer = "chat#".$me;
+            $peer = 'chat#'.$me;
             if (!$GLOBALS['telegram']->msg($peer, '/start')) {
                 return false;
             }
@@ -154,14 +157,13 @@ class Tools {
         return true;
     }
 
-
     /**
-    * Check dir existance.
-    *
-    * @param $dir - The dir to check
-    *
-    * @return true if dir exists or if it was created successfully, false if it couldn't be created.
-    */
+     * Check dir existance.
+     *
+     * @param $dir - The dir to check
+     *
+     * @return true if dir exists or if it was created successfully, false if it couldn't be created.
+     */
     public function checkdir($dir)
     {
         if (!file_exists($dir)) {
@@ -169,15 +171,17 @@ class Tools {
                 return false;
             }
         }
+
         return true;
     }
+
     /**
-    * Try to remove file.
-    *
-    * @param $file - The file to delete
-    *
-    * @return bool
-    */
+     * Try to remove file.
+     *
+     * @param $file - The file to delete
+     *
+     * @return bool
+     */
     public function try_unlink($file)
     {
         if (file_exists($file)) {
@@ -186,13 +190,14 @@ class Tools {
             return false;
         }
     }
+
     /**
-    * Remove symlink and destination path.
-    *
-    * @param $symlink - The symlink to delete
-    *
-    * @return void
-    */
+     * Remove symlink and destination path.
+     *
+     * @param $symlink - The symlink to delete
+     *
+     * @return void
+     */
     public function unlink_link($symlink)
     {
         $rpath = readlink($symlink);

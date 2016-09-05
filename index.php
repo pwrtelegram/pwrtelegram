@@ -56,7 +56,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
         if ($tools->checkurl('https://api.telegram.org/'.$_SERVER['REQUEST_URI'])) {
             require_once '../db_connect.php';
             // get my username
-            $me = $tools->curl($url.'/getMe')['result']['username']; 
+            $me = $tools->curl($url.'/getMe')['result']['username'];
             $path = str_replace('//', '/', $homedir.'/storage/'.$me.'/'.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']));
             $dl_url = 'https://api.telegram.org/'.$_SERVER['REQUEST_URI'];
 
