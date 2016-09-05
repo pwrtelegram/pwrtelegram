@@ -497,7 +497,7 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $peer = 'chat#'.$mepeer;
+                $peer = 'user#'.$mepeer;
                 $result = $this->telegram->pwrsendFile($peer, $this->methods[$type], $path, hash('sha256', json_encode([$file_hash, $type, $me, $name])));
                 $this->try_unlink($path);
                 if (isset($result['error']) && $result['error'] != '') {

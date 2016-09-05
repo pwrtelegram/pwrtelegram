@@ -148,7 +148,7 @@ class Tools
         }
         // If never contacted bot send start command
         if (!in_array($me, $peer_id)) {
-            $peer = 'chat#'.$me;
+            $peer = 'user#'.$me;
             if (!$this->telegram->msg($peer, '/start')) {
                 return false;
             }
