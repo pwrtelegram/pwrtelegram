@@ -1,6 +1,6 @@
 {
     "require": {
-        "pwrtelegram/telegram-cli-client": "^0.4.1",
-        "mhor/php-mediainfo": "^2.2"
+        "pwrtelegram/telegram-cli-client": "^0.5",
+        "mhor/php-mediainfo": "^2.2.2"
     }
 }

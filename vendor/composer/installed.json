@@ -1,114 +1,23 @@
 [
     {
-        "name": "zyberspace/telegram-cli-client",
-        "version": "v0.4.1",
-        "version_normalized": "0.4.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/zyberspace/php-telegram-cli-client.git",
-            "reference": "59a9d3225af86614549559009d8044523fe0443b"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/zyberspace/php-telegram-cli-client/zipball/59a9d3225af86614549559009d8044523fe0443b",
-            "reference": "59a9d3225af86614549559009d8044523fe0443b",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0,<6.0.0"
-        },
-        "require-dev": {
-            "zyberspace/discovery-shell": "dev-master"
-        },
-        "time": "2015-12-23 18:44:34",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Zyberspace\\Telegram\\Cli\\": "lib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MPL-2.0"
-        ],
-        "authors": [
-            {
-                "name": "zyberspace",
-                "email": "zyberspace@zyberware.org"
-            }
-        ],
-        "description": "php-client for telegram-cli",
-        "homepage": "https://github.com/zyberspace/php-telegram-cli-client",
-        "abandoned": "irazasyed/telegram-bot-sdk"
-    },
-    {
-        "name": "mhor/php-mediainfo",
-        "version": "2.2.0",
-        "version_normalized": "2.2.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/mhor/php-mediainfo.git",
-            "reference": "d39ab01046cd3bb355468e1f87c0a0cee6ccaf80"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/d39ab01046cd3bb355468e1f87c0a0cee6ccaf80",
-            "reference": "d39ab01046cd3bb355468e1f87c0a0cee6ccaf80",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4.0",
-            "symfony/filesystem": "~2.3|~3.0",
-            "symfony/process": "~2.3|~3.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.0"
-        },
-        "time": "2016-05-22 11:16:17",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "3.0.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Mhor\\MediaInfo\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "mhor",
-                "email": "maxime.horcholle@gmail.com"
-            }
-        ],
-        "description": "PHP wrapper around the mediainfo command"
-    },
-    {
         "name": "symfony/filesystem",
-        "version": "v3.1.0",
-        "version_normalized": "3.1.0.0",
+        "version": "v3.1.4",
+        "version_normalized": "3.1.4.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/filesystem.git",
-            "reference": "5751e80d6f94b7c018f338a4a7be0b700d6f3058"
+            "reference": "bb29adceb552d202b6416ede373529338136e84f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/filesystem/zipball/5751e80d6f94b7c018f338a4a7be0b700d6f3058",
-            "reference": "5751e80d6f94b7c018f338a4a7be0b700d6f3058",
+            "url": "https://api.github.com/repos/symfony/filesystem/zipball/bb29adceb552d202b6416ede373529338136e84f",
+            "reference": "bb29adceb552d202b6416ede373529338136e84f",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.9"
         },
-        "time": "2016-04-12 18:27:47",
+        "time": "2016-07-20 05:44:26",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -143,23 +52,23 @@
     },
     {
         "name": "symfony/process",
-        "version": "v3.1.0",
-        "version_normalized": "3.1.0.0",
+        "version": "v3.1.4",
+        "version_normalized": "3.1.4.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/process.git",
-            "reference": "1574f3451b40fa9bbae518ef71d19a56f409cac0"
+            "reference": "e64e93041c80e77197ace5ab9385dedb5a143697"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/process/zipball/1574f3451b40fa9bbae518ef71d19a56f409cac0",
-            "reference": "1574f3451b40fa9bbae518ef71d19a56f409cac0",
+            "url": "https://api.github.com/repos/symfony/process/zipball/e64e93041c80e77197ace5ab9385dedb5a143697",
+            "reference": "e64e93041c80e77197ace5ab9385dedb5a143697",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.9"
         },
-        "time": "2016-04-12 19:11:33",
+        "time": "2016-08-16 14:58:24",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -191,5 +100,99 @@
         ],
         "description": "Symfony Process Component",
         "homepage": "https://symfony.com"
+    },
+    {
+        "name": "pwrtelegram/telegram-cli-client",
+        "version": "0.5",
+        "version_normalized": "0.5.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/pwrtelegram/php-telegram-cli-client.git",
+            "reference": "5862152ff8cf5448d679b5368ca76e6fb106c1e4"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/5862152ff8cf5448d679b5368ca76e6fb106c1e4",
+            "reference": "5862152ff8cf5448d679b5368ca76e6fb106c1e4",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "zyberspace/discovery-shell": "dev-master"
+        },
+        "time": "2016-09-05 07:43:29",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Zyberspace\\Telegram\\Cli\\": "lib/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MPL-2.0"
+        ],
+        "authors": [
+            {
+                "name": "zyberspace",
+                "email": "zyberspace@zyberware.org"
+            },
+            {
+                "name": "Daniil Gentili",
+                "email": "daniil@daniil.it"
+            }
+        ],
+        "description": "Modified version php-client for telegram-cli used by the PWRTelegram bot API",
+        "homepage": "https://github.com/pwrtelegram/php-telegram-cli-client"
+    },
+    {
+        "name": "mhor/php-mediainfo",
+        "version": "2.2.2",
+        "version_normalized": "2.2.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/mhor/php-mediainfo.git",
+            "reference": "4f8f9534213f558d4bdfcc7177d665d4542a7550"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/4f8f9534213f558d4bdfcc7177d665d4542a7550",
+            "reference": "4f8f9534213f558d4bdfcc7177d665d4542a7550",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0",
+            "symfony/filesystem": "~2.3|~3.0",
+            "symfony/process": "~2.3|~3.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.0"
+        },
+        "time": "2016-09-04 09:35:12",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "3.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Mhor\\MediaInfo\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "mhor",
+                "email": "maxime.horcholle@gmail.com"
+            }
+        ],
+        "description": "PHP wrapper around the mediainfo command"
     }
 ]

@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Zyberspace\\Telegram\\Cli\\' => array($vendorDir . '/zyberspace/telegram-cli-client/lib'),
+    'Zyberspace\\Telegram\\Cli\\' => array($vendorDir . '/pwrtelegram/telegram-cli-client/lib'),
 );

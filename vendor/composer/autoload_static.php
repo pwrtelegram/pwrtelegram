@@ -38,7 +38,7 @@ class ComposerStaticInitde8a232de66fffef4be4dbea58c51255
         array (
             'Zyberspace\\Telegram\\Cli\\' => 
             array (
-                0 => __DIR__ . '/..' . '/zyberspace/telegram-cli-client/lib',
+                0 => __DIR__ . '/..' . '/pwrtelegram/telegram-cli-client/lib',
             ),
         ),
     );

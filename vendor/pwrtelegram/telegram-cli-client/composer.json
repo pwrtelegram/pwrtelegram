@@ -1,17 +1,21 @@
 {
-    "name": "zyberspace/telegram-cli-client",
-    "description": "php-client for telegram-cli",
+    "name": "pwrtelegram/telegram-cli-client",
+    "description": "Modified version php-client for telegram-cli used by the PWRTelegram bot API",
     "type": "library",
-    "homepage": "https://github.com/zyberspace/php-telegram-cli-client",
+    "homepage": "https://github.com/pwrtelegram/php-telegram-cli-client",
     "license": "MPL-2.0",
     "authors": [
         {
             "name": "zyberspace",
             "email": "zyberspace@zyberware.org"
+        },
+        {
+            "name": "Daniil Gentili",
+            "email": "daniil@daniil.it"
         }
     ],
     "require": {
-        "php": ">=5.3.0,<6.0.0"
+        "php": ">=5.3.0"
     },
     "require-dev": {
         "zyberspace/discovery-shell": "dev-master"

@@ -73,7 +73,7 @@ class MediaInfoCommandRunner
         $process = $this->processBuilder->getProcess();
         $process->run();
         if (!$process->isSuccessful()) {
-            throw new \RuntimeException($process->getErrorOutput().$process->getOutput());
+            throw new \RuntimeException($process->getErrorOutput());
         }
 
         return $process->getOutput();
