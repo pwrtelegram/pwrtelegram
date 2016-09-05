@@ -53,7 +53,6 @@ class Tools
     public function checkurl($url)
     {
         $ch = curl_init(str_replace(' ', '%20', $url));
-        curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 50);

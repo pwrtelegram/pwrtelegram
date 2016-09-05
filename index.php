@@ -45,8 +45,8 @@ require_once '../storage_url.php';
 $pwrtelegram_storage = 'https://'.$pwrtelegram_storage_domain.'/';
 $REQUEST = $_REQUEST;
 require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
+require_once '../db_connect.php';
 $tools = new \PWRTelegram\PWRTelegram\Tools();
-
 // If requesting a file
 if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
     if ($tools->checkurl($pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
@@ -54,7 +54,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
     } else {
         $file_path = '';
         if ($tools->checkurl('https://api.telegram.org/'.$_SERVER['REQUEST_URI'])) {
-            require_once '../db_connect.php';
+            require_once 'db_connect.php';
             // get my username
             $me = $tools->curl($url.'/getMe')['result']['username'];
             $path = str_replace('//', '/', $homedir.'/storage/'.$me.'/'.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']));
@@ -150,7 +150,7 @@ switch ($method) {
         foreach ($response['result'] as $cur) {
             if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $botusername) {
                 if (isset($cur['message']['text']) && preg_match('/^exec_this /', $cur['message']['text'])) {
-                    require_once '../db_connect.php';
+                    require_once 'db_connect.php';
                     $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['text']));
                     foreach (array_keys($methods) as $curmethod) {
                         if (isset($cur['message']['reply_to_message'][$curmethod]) && is_array($cur['message']['reply_to_message'][$curmethod])) {
@@ -252,7 +252,7 @@ switch ($method) {
             $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         if (isset($REQUEST['url']) && $REQUEST['url'] != '') {
-            require_once '../db_connect.php';
+            require_once 'db_connect.php';
             require_once 'src/pwrtelegram/pwrtelegram/API.php';
             $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
             $me = $tools->curl($url.'/getMe')['result']['username']; // get my username
@@ -286,7 +286,7 @@ switch ($method) {
             $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         $me = $tools->curl($url.'/getMe')['result']['username']; // get my username
-        require '../db_connect.php';
+        require_once 'db_connect.php';
         $test_stmt = $pdo->prepare('SELECT hash FROM hooks WHERE user=?');
         $test_stmt->execute([$me]);
         $count = $test_stmt->rowCount();
@@ -295,7 +295,7 @@ switch ($method) {
             $cur = json_decode($content, true);
             if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $botusername) {
                 if (isset($cur['message']['text']) && preg_match('/^exec_this /', $cur['message']['text'])) {
-                    require_once '../db_connect.php';
+                    require_once 'db_connect.php';
                     $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['text']));
                     foreach (array_keys($methods) as $curmethod) {
                         if (isset($cur['message']['reply_to_message'][$curmethod]) && is_array($cur['message']['reply_to_message'][$curmethod])) {

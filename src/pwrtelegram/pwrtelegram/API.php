@@ -24,16 +24,16 @@ class API extends Tools
 
     public function connect_db()
     {
-        include $this->homedir.'/db_connect.php';
-        global $pdo;
-        $this->pdo = $pdo;
+        $this->pdo = new \PDO($this->db, $this->dbuser, $this->dbpassword);
+        $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
     }
 
     public function telegram_connect()
     {
-        include $this->pwrhomedir.'/telegram_connect.php';
-        global $telegram;
-        $this->telegram = $telegram;
+        if (!isset($this->telegram)) {
+            require_once $this->pwrhomedir.'/vendor/autoload.php';
+            $this->telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
+        }
     }
 
     /**
@@ -49,23 +49,27 @@ class API extends Tools
         if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain) {
             $storage_params = [];
             foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain'] as $key) {
-                $storage_params[$key] = $GLOBALS[$key];
+                $storage_params[$key] = $this->{$key};
             }
             $storage_params['file_id'] = $file_id;
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HEADER, false);
             curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_storage);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
-            $result = json_decode(curl_exec($ch), true);
+            $result = curl_exec($ch);
+            $result = json_decode($result, true);
             curl_close($ch);
             if ($result == null) {
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HEADER, false);
                 curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_storage);
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
-                $result = json_decode(curl_exec($ch), true);
+                $result = curl_exec($ch);
+                $result = json_decode($result, true);
                 curl_close($ch);
             }
             if ($result == null) {
@@ -196,7 +200,7 @@ class API extends Tools
      */
     public function get_finfo($file_id)
     {
-        $this->methods = array_keys($GLOBALS['methods']);
+        $this->methods_keys = array_keys($this->methods);
         $mepeer = $this->curl($this->url.'/getMe')['result']['id']; // get my peer id
 
         if (!$this->checkbotuser($mepeer)) {

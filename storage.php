@@ -40,7 +40,7 @@ class FileServe
         if (count($listseek) == 1) {
             $listseek[1] = '';
         }
-        list($this->seek_start, $this->seek_end) = $list;
+        list($this->seek_start, $this->seek_end) = $listseek;
         $this->seek_end = (empty($this->seek_end)) ? ($this->size - 1) : min(abs(intval($this->seek_end)), ($this->size - 1));
         $this->seek_start = (empty($this->seek_start) || $this->seek_end < abs(intval($this->seek_start))) ? 0 : max(abs(intval($this->seek_start)), 0);
         $this->stream = fopen($filename, 'r');
@@ -128,7 +128,8 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
     require_once 'src/pwrtelegram/pwrtelegram/API.php';
     $tools = new \PWRTelegram\PWRTelegram\Tools();
-    include '../storage_url.php';
+    require_once '../storage_url.php';
+    require_once '../db_connect.php';
     foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id'] as $key) {
         $GLOBALS[$key] = $_POST[$key];
     }
@@ -161,7 +162,7 @@ if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
 
 
 try {
-    include '../db_connect.php';
+    require_once 'db_connect.php';
     $file_path = preg_replace("/^\/*/", '', $_SERVER['REQUEST_URI']);
     $bot = preg_replace('/\/.*$/', '', $file_path);
     $selectstmt = $pdo->prepare('SELECT real_file_path FROM dl WHERE file_path=? AND bot=? LIMIT 1;');
