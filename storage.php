@@ -129,12 +129,12 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     require_once 'src/pwrtelegram/pwrtelegram/API.php';
     $tools = new \PWRTelegram\PWRTelegram\Tools();
     include '../storage_url.php';
-    foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain'] as $key) {
+    foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id'] as $key) {
         $GLOBALS[$key] = $_POST[$key];
     }
-    $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
     $homedir = realpath(__DIR__.'/../').'/';
     $pwrhomedir = realpath(__DIR__);
+    $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
     $tools->jsonexit($API->download($file_id));
 }
 
