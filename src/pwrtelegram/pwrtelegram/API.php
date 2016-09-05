@@ -21,7 +21,10 @@ class API extends Tools
             $this->{$key} = $val;
         }
     }
-
+    public function connect_db() {
+        include $this->homedir.'/db_connect.php';
+        $this->pdo = $GLOBALS['pdo'];
+    }
     /**
      * Download given file id and return json with error or downloaded path.
      *
@@ -60,11 +63,11 @@ class API extends Tools
 
             return $result;
         }
-        include $this->homedir.'/db_connect.php';
         $meres = $this->curl($this->url.'/getMe')['result']; // get my username
         $me = $meres['username'];
         $mepeer = $meres['id'];
-        $selectstmt = $GLOBALS['pdo']->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
+        $this->connect_db();
+        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -166,9 +169,9 @@ class API extends Tools
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
 
-        $delete_stmt = $GLOBALS['pdo']->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;');
+        $delete_stmt = $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;');
         $delete = $delete_stmt->execute([$file_id, $me]);
-        $insert_stmt = $GLOBALS['pdo']->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);');
+        $insert_stmt = $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);');
         $insert = $insert_stmt->execute([$file_id, $file_path, $file_size, $me, $path]);
     //	shell_exec("wget -qO/dev/null ". escapeshellarg($this->pwrtelegram_storage . $file_path));
         return $newresponse;
@@ -257,7 +260,7 @@ class API extends Tools
             $name = '';
         }
 
-        include $this->homedir.'/db_connect.php';
+        $this->connect_db();
         include $this->pwrhomedir.'/telegram_connect.php';
         $meres = $this->curl($this->url.'/getMe')['result']; // get my username
         $me = $meres['username'];
@@ -280,12 +283,12 @@ class API extends Tools
             }
         } elseif (filter_var($file, FILTER_VALIDATE_URL)) {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
-                $select_stmt = $GLOBALS['pdo']->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
+                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
                 $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                 $count = $select_stmt->rowCount();
                 if ($count > 0 && isset($fetch['file_id']) && $fetch['file_id'] != '') {
-                    $select_stmt = $GLOBALS['pdo']->prepare('SELECT * FROM ul WHERE file_id=? AND bot=?;');
+                    $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_id=? AND bot=?;');
                     $select_stmt->execute([$fetch['file_id'], $me]);
                     $info = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                     $count = $select_stmt->rowCount();
@@ -434,7 +437,7 @@ class API extends Tools
         }
 
         $file_hash = hash_file('sha256', $path);
-        $select_stmt = $GLOBALS['pdo']->prepare('SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;');
+        $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;');
         $select_stmt->execute([$file_hash, $type, $me, $name]);
         $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
         $file_id = $fetch['file_id'];
@@ -471,9 +474,9 @@ class API extends Tools
             }
             if ($file_id != '') {
                 $this->try_unlink($path);
-                $insert_stmt = $GLOBALS['pdo']->prepare('DELETE FROM ul WHERE file_id=? AND file_hash=? AND file_type=? AND bot=? AND file_name=? AND file_size=?;');
+                $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_id=? AND file_hash=? AND file_type=? AND bot=? AND file_name=? AND file_size=?;');
                 $insert_stmt->execute([$file_id, $file_hash, $type, $me, $name, $size]);
-                $insert_stmt = $GLOBALS['pdo']->prepare('INSERT INTO ul (file_id, file_hash, file_type, bot, file_name, file_size) VALUES (?, ?, ?, ?, ?, ?);');
+                $insert_stmt = $this->pdo->prepare('INSERT INTO ul (file_id, file_hash, file_type, bot, file_name, file_size) VALUES (?, ?, ?, ?, ?, ?);');
                 $insert_stmt->execute([$file_id, $file_hash, $type, $me, $name, $size]);
                 $count = $insert_stmt->rowCount();
                 if ($count != '1') {
@@ -489,9 +492,9 @@ class API extends Tools
                 if (!(isset($result['id']) && $result['id'] != '')) {
                     return ['ok' => false, 'error_code' => 400, 'description' => 'Message id is empty.'];
                 }
-                $insert_stmt = $GLOBALS['pdo']->prepare('DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;');
+                $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;');
                 $insert_stmt->execute([$file_hash, $me, $name, $size]);
-                $insert_stmt = $GLOBALS['pdo']->prepare('INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);');
+                $insert_stmt = $this->pdo->prepare('INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);');
                 $insert_stmt->execute([$file_hash, $me, $name, $size]);
                 $count = $insert_stmt->rowCount();
                 if ($count != '1') {
@@ -501,7 +504,7 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send reply data."];
                 }
                 $response = $this->curl($this->pwrtelegram_api.'/bot'.$this->token.'/getupdates');
-                $select_stmt = $GLOBALS['pdo']->prepare('SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;');
+                $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;');
                 $select_stmt->execute([$file_hash, $me, $name]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                 $file_id = $fetch['file_id'];
