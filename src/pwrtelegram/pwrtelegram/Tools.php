@@ -141,7 +141,8 @@ class Tools
     {
         // Get all of the peer_id
         $peer_id = [];
-        foreach ($GLOBALS['telegram']->getDialogList() as $username) {
+        $this->telegram_connect();
+        foreach ($this->telegram->getDialogList() as $username) {
             if (isset($username->peer_id)) {
                 $peer_id[] = $username->peer_id;
             }
@@ -149,7 +150,7 @@ class Tools
         // If never contacted bot send start command
         if (!in_array($me, $peer_id)) {
             $peer = 'chat#'.$me;
-            if (!$GLOBALS['telegram']->msg($peer, '/start')) {
+            if (!$this->telegram->msg($peer, '/start')) {
                 return false;
             }
         }

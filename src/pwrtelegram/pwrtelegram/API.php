@@ -23,7 +23,13 @@ class API extends Tools
     }
     public function connect_db() {
         include $this->homedir.'/db_connect.php';
-        $this->pdo = $GLOBALS['pdo'];
+        global $pdo;
+        $this->pdo = $pdo;
+    }
+    public function telegram_connect() {
+        include $this->pwrhomedir.'/telegram_connect.php';
+        global $telegram;
+        $this->telegram = $telegram;
     }
     /**
      * Download given file id and return json with error or downloaded path.
@@ -80,8 +86,7 @@ class API extends Tools
             return $newresponse;
         }
         set_time_limit(0);
-
-        include $this->pwrhomedir.'telegram_connect.php';
+        $this->telegram_connect();
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
         if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl('https://api.telegram.org/file/bot'.$this->token.'/'.$result['result']['file_path'])) {
@@ -126,7 +131,7 @@ class API extends Tools
             if ($result['ok'] == false) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
             }
-            $result = $GLOBALS['telegram']->getFile($me, $file_id, $this->methods[$info['file_type']]);
+            $result = $this->telegram->getFile($me, $file_id, $this->methods[$info['file_type']]);
             if (!isset($result->{'result'}) || $result->{'result'} == '') {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
             }
@@ -261,7 +266,7 @@ class API extends Tools
         }
 
         $this->connect_db();
-        include $this->pwrhomedir.'/telegram_connect.php';
+        $this->telegram_connect();
         $meres = $this->curl($this->url.'/getMe')['result']; // get my username
         $me = $meres['username'];
         $mepeer = $meres['id'];
@@ -484,7 +489,7 @@ class API extends Tools
                 }
             } else {
                 $peer = 'chat#'.$mepeer;
-                $result = $GLOBALS['telegram']->pwrsendFile($peer, $this->methods[$type], $path, hash('sha256', json_encode([$file_hash, $type, $me, $name])));
+                $result = $this->telegram->pwrsendFile($peer, $this->methods[$type], $path, hash('sha256', json_encode([$file_hash, $type, $me, $name])));
                 $this->try_unlink($path);
                 if (isset($result['error']) && $result['error'] != '') {
                     return ['ok' => false, 'error_code' => $result['error_code'], 'description' => $result['error']];
@@ -500,7 +505,7 @@ class API extends Tools
                 if ($count != '1') {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
-                if (!$GLOBALS['telegram']->replymsg($result['id'], 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]))) {
+                if (!$this->telegram->replymsg($result['id'], 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send reply data."];
                 }
                 $response = $this->curl($this->pwrtelegram_api.'/bot'.$this->token.'/getupdates');
