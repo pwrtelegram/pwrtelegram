@@ -28,7 +28,9 @@ class API extends Tools
         global $pdo;
         $this->pdo = $pdo;
     }
-    public function telegram_connect() {
+
+    public function telegram_connect()
+    {
         include $this->pwrhomedir.'/telegram_connect.php';
         global $telegram;
         $this->telegram = $telegram;
