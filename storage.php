@@ -36,7 +36,11 @@ class FileServe
             throw new Exception('The given input file does not exist.');
         }
         $this->size = filesize($filename);
-        list($this->seek_start, $this->seek_end) = explode('-', $range, 2);
+        $listseek = explode('-', $range, 2);
+        if (count($listseek) == 1) {
+            $listseek[1] = '';
+        }
+        list($this->seek_start, $this->seek_end) = $list;
         $this->seek_end = (empty($this->seek_end)) ? ($this->size - 1) : min(abs(intval($this->seek_end)), ($this->size - 1));
         $this->seek_start = (empty($this->seek_start) || $this->seek_end < abs(intval($this->seek_start))) ? 0 : max(abs(intval($this->seek_start)), 0);
         $this->stream = fopen($filename, 'r');
@@ -121,15 +125,17 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Cache-Control: post-check=0, pre-check=0', false);
     header('Pragma: no-cache');
-    include 'functions.php';
-    include 'basic_functions.php';
+    require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
+    require_once 'src/pwrtelegram/pwrtelegram/API.php';
+    $tools = new \PWRTelegram\PWRTelegram\Tools();
     include '../storage_url.php';
-    foreach ($_POST as $key => $value) {
-        $GLOBALS[$key] = $value;
+    foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain'] as $key) {
+        $GLOBALS[$key] = $_POST[$key];
     }
+    $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
     $homedir = realpath(__DIR__.'/../').'/';
     $pwrhomedir = realpath(__DIR__);
-    jsonexit(download($file_id));
+    $tools->jsonexit($API->download($file_id));
 }
 
 if ($_SERVER['REQUEST_URI'] == '/') {

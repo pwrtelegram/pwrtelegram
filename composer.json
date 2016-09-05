@@ -1,6 +1,6 @@
 {
     "require": {
-        "zyberspace/telegram-cli-client": "^0.4.1",
+        "pwrtelegram/telegram-cli-client": "^0.4.1",
         "mhor/php-mediainfo": "^2.2"
     }
 }

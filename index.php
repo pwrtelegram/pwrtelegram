@@ -41,26 +41,27 @@ $url = 'https://api.telegram.org/bot'.$token;
 // The url of this api
 $pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/';
 // The url of the storage
-include_once '../storage_url.php';
+require_once '../storage_url.php';
 $pwrtelegram_storage = 'https://'.$pwrtelegram_storage_domain.'/';
 $REQUEST = $_REQUEST;
-include_once 'basic_functions.php';
+require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
+$tools = new \PWRTelegram\PWRTelegram\Tools();
 
 // If requesting a file
 if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
-    if (checkurl($pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
+    if ($tools->checkurl($pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
         $file_url = $pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
     } else {
         $file_path = '';
-        if (checkurl('https://api.telegram.org/'.$_SERVER['REQUEST_URI'])) {
-            include_once 'functions.php';
-            include_once '../db_connect.php';
-            $me = curl($url.'/getMe')['result']['username']; // get my username
+        if ($tools->checkurl('https://api.telegram.org/'.$_SERVER['REQUEST_URI'])) {
+            require_once '../db_connect.php';
+            // get my username
+            $me = $tools->curl($url.'/getMe')['result']['username']; 
             $path = str_replace('//', '/', $homedir.'/storage/'.$me.'/'.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']));
             $dl_url = 'https://api.telegram.org/'.$_SERVER['REQUEST_URI'];
 
-            if (!(file_exists($path) && filesize($path) == curl_get_file_size($dl_url))) {
-                if (!checkdir(dirname($path))) {
+            if (!(file_exists($path) && filesize($path) == $tools->curl_get_file_size($dl_url))) {
+                if (!$tools->checkdir(dirname($path))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
                 }
                 set_time_limit(0);
@@ -87,7 +88,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
             $insert_stmt = $pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);');
             $insert = $insert_stmt->execute([$file_path, $file_size, $me, $path]);
         }
-        if (checkurl($pwrtelegram_storage.'/'.$file_path)) {
+        if ($tools->checkurl($pwrtelegram_storage.'/'.$file_path)) {
             $file_url = $pwrtelegram_storage.$file_path;
         } else {
             $file_url = 'https://api.telegram.org/'.$_SERVER['REQUEST_URI'];
@@ -98,7 +99,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 }
 
 if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
-    include_once 'telegram_connect.php';
+    require_once 'telegram_connect.php';
     $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
     if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'}) && $id_result->{'peer_id'} == 'user') {
         $REQUEST['chat_id'] = $id_result->{'peer_id'};
@@ -108,17 +109,18 @@ if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
 switch ($method) {
     case '/getfile':
         if ($token == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         if ($REQUEST['file_id'] == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No file id was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No file id was provided.']);
         }
-        include_once 'functions.php';
-        jsonexit(download($REQUEST['file_id']));
+        require_once 'src/pwrtelegram/pwrtelegram/API.php';
+        $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
+        $tools->jsonexit($API->download($REQUEST['file_id']));
         break;
     case '/getupdates':
         if ($token == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         $limit = '';
         $timeout = '';
@@ -136,9 +138,9 @@ switch ($method) {
         if ($limit == '') {
             $limit = 100;
         }
-        $response = curl($url.'/getUpdates?offset='.$offset.'&timeout='.$timeout);
+        $response = $tools->curl($url.'/getUpdates?offset='.$offset.'&timeout='.$timeout);
         if ($response['ok'] == false) {
-            jsonexit($response);
+            $tools->jsonexit($response);
         }
         $onlyme = true;
         $notmecount = 0;
@@ -148,7 +150,7 @@ switch ($method) {
         foreach ($response['result'] as $cur) {
             if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $botusername) {
                 if (isset($cur['message']['text']) && preg_match('/^exec_this /', $cur['message']['text'])) {
-                    include_once '../db_connect.php';
+                    require_once '../db_connect.php';
                     $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['text']));
                     foreach (array_keys($methods) as $curmethod) {
                         if (isset($cur['message']['reply_to_message'][$curmethod]) && is_array($cur['message']['reply_to_message'][$curmethod])) {
@@ -176,47 +178,48 @@ switch ($method) {
             }
         }
         if ($todo != '') {
-            curl($url.'/getUpdates?offset='.$todo);
+            $tools->curl($url.'/getUpdates?offset='.$todo);
         }
-        jsonexit($newresponse);
+        $tools->jsonexit($newresponse);
         break;
     case '/deletemessage':
         if ($token == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         if (isset($REQUEST['inline_message_id']) && $REQUEST['inline_message_id'] != '') {
-            $res = curl($url.'/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id='.$REQUEST['inline_message_id']);
+            $res = $tools->curl($url.'/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id='.$REQUEST['inline_message_id']);
         } elseif (isset($REQUEST['message_id']) && isset($REQUEST['chat_id']) && $REQUEST['message_id'] != '' && $REQUEST['chat_id'] != '') {
-            $res = curl($url.'/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id='.$REQUEST['message_id'].'&chat_id='.$REQUEST['chat_id']);
+            $res = $tools->curl($url.'/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id='.$REQUEST['message_id'].'&chat_id='.$REQUEST['chat_id']);
         } else {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing required parameters.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing required parameters.']);
         }
         if ($res['ok'] == true) {
             $res['result'] = 'The message was deleted successfully.';
         }
-        jsonexit($res);
+        $tools->jsonexit($res);
         break;
     case '/answerinlinequery':
         if ($token == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         if (!(isset($REQUEST['inline_query_id']) && $REQUEST['inline_query_id'] != '')) {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing query id.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing query id.']);
         }
         if (!(isset($REQUEST['results']) && $REQUEST['results'] != '')) {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing results json array.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing results json array.']);
         }
-        $results = json_decode(escapeJsonString($REQUEST['results']), true);
+        $results = json_decode($tools->escapeJsonString($REQUEST['results']), true);
         if ($results == false) {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't decode results json."]);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't decode results json."]);
         }
         $newresults = [];
         foreach ($results as $number => $result) {
             if (!(isset($result[$result['type'].'_file_id']) && $result[$result['type'].'_file_id'] != '')) {
-                include_once 'functions.php';
+                require_once 'src/pwrtelegram/pwrtelegram/API.php';
+                $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
                 if ((!isset($result[$result['type'].'_url']) || $result[$result['type'].'_url'] == '') && isset($_FILES['inline_file'.$number]['error']) && $_FILES['inline_file'.$number]['error'] == UPLOAD_ERR_OK) {
                     // Let's do this!
-                    $upload = upload($_FILES['inline_file'.$number]['tmp_name'], $_FILES['inline_file'.$number]['name']);
+                    $upload = $API->upload($_FILES['inline_file'.$number]['tmp_name'], $_FILES['inline_file'.$number]['name']);
 
                     if (isset($upload['result']['file_id']) && $upload['result']['file_id'] != '') {
                         unset($result[$result['type'].'_url']);
@@ -227,7 +230,7 @@ switch ($method) {
                     }
                 }
                 if (isset($result[$result['type'].'_url']) && $result[$result['type'].'_url'] != '') {
-                    $upload = upload($result[$result['type'].'_url']);
+                    $upload = $API->upload($result[$result['type'].'_url']);
                     if (isset($upload['result']['file_id']) && $upload['result']['file_id'] != '') {
                         unset($result[$result['type'].'_url']);
                         if ($result['type'] == 'file') {
@@ -241,27 +244,28 @@ switch ($method) {
         }
         $newparams = $REQUEST;
         $newparams['results'] = json_encode($newresults);
-        $json = curl($url.'/answerinlinequery?'.http_build_query($newparams));
-        jsonexit($json);
+        $json = $tools->curl($url.'/answerinlinequery?'.http_build_query($newparams));
+        $tools->jsonexit($json);
         break;
     case '/setwebhook':
         if ($token == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
         if (isset($REQUEST['url']) && $REQUEST['url'] != '') {
-            include_once '../db_connect.php';
-            include_once 'functions.php';
-            $me = curl($url.'/getMe')['result']['username']; // get my username
+            require_once '../db_connect.php';
+            require_once 'src/pwrtelegram/pwrtelegram/API.php';
+            $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
+            $me = $tools->curl($url.'/getMe')['result']['username']; // get my username
             $insert_stmt = $pdo->prepare('DELETE FROM hooks WHERE user=?;');
             $insert_stmt->execute([$me]);
             $insert_stmt = $pdo->prepare('INSERT INTO hooks (user, hash) VALUES (?, ?);');
             $insert_stmt->execute([$me, hash('sha256', $REQUEST['url'])]);
             $count = $insert_stmt->rowCount();
             if ($count != 1) {
-                jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't insert hook hash into database."]);
+                $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't insert hook hash into database."]);
             }
             if (isset($_FILES['certificate']['error']) && $_FILES['certificate']['error'] == UPLOAD_ERR_OK) {
-                checkdir($homedir.'/hooks');
+                $tools->checkdir($homedir.'/hooks');
                 rename($_FILES['certificate']['tmp_file'], $homedir.'/hooks/'.$me.'.pem');
             } else {
                 if (file_exists($homedir.'/hooks/'.$me.'.pem')) {
@@ -272,17 +276,17 @@ switch ($method) {
         } else {
             $hook = ['url' => ''];
         }
-        $hookresponse = curl($url.'/setwebhook?'.http_build_query($hook));
-        jsonexit($hookresponse);
+        $hookresponse = $tools->curl($url.'/setwebhook?'.http_build_query($hook));
+        $tools->jsonexit($hookresponse);
 
         break;
     case '/hook':
         $hook = $_GET['hook'];
         if ($token == '') {
-            jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+            $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
         }
-        $me = curl($url.'/getMe')['result']['username']; // get my username
-        include '../db_connect.php';
+        $me = $tools->curl($url.'/getMe')['result']['username']; // get my username
+        require '../db_connect.php';
         $test_stmt = $pdo->prepare('SELECT hash FROM hooks WHERE user=?');
         $test_stmt->execute([$me]);
         $count = $test_stmt->rowCount();
@@ -291,7 +295,7 @@ switch ($method) {
             $cur = json_decode($content, true);
             if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $botusername) {
                 if (isset($cur['message']['text']) && preg_match('/^exec_this /', $cur['message']['text'])) {
-                    include_once '../db_connect.php';
+                    require_once '../db_connect.php';
                     $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['text']));
                     foreach (array_keys($methods) as $curmethod) {
                         if (isset($cur['message']['reply_to_message'][$curmethod]) && is_array($cur['message']['reply_to_message'][$curmethod])) {
@@ -343,8 +347,8 @@ switch ($method) {
         exit;
         break;
     case '/getchat':
-        include_once 'telegram_connect.php';
-        $result = curl($url.'/getchat?'.http_build_query($REQUEST));
+        require_once 'telegram_connect.php';
+        $result = $tools->curl($url.'/getchat?'.http_build_query($REQUEST));
         if ($result['ok'] != true && isset($REQUEST['chat_id']) && !preg_match("/^\-100/", $REQUEST['chat_id']) && preg_match('/^[1-9][0-9]*$/', $REQUEST['chat_id'])) {
             $useresult = $GLOBALS['telegram']->exec('user_info user#'.$REQUEST['chat_id']);
             if (isset($useresult->{'peer_id'}) && $useresult->{'peer_id'} == $REQUEST['chat_id']) {
@@ -357,7 +361,7 @@ switch ($method) {
                 $result = $newresult;
             }
         }
-        jsonexit($result);
+        $tools->jsonexit($result);
         break;
 }
 
@@ -365,9 +369,10 @@ switch ($method) {
 $smethod = preg_replace(['|.*/send|', '|.*/upload|'], '', $method);
 if (array_key_exists($smethod, $methods)) { // If using one of the send methods
     if ($token == '') {
-        jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+        $tools->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
     }
-    include 'functions.php';
+    require_once 'src/pwrtelegram/pwrtelegram/API.php';
+    $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
     $name = '';
     $forcename = false;
     $file = '';
@@ -395,17 +400,17 @@ if (array_key_exists($smethod, $methods)) { // If using one of the send methods
     }
 
     // Let's do this!
-    $upload = upload($file, $name, $smethod, $forcename, $REQUEST);
+    $upload = $API->upload($file, $name, $smethod, $forcename, $REQUEST);
     if (isset($upload['ok']) && $upload['ok'] == true && preg_match('|^/send|', $method)) {
         $params = $REQUEST;
         if (isset($upload['result']['caption']) && $upload['result']['caption'] != '') {
             $params['caption'] = $upload['result']['caption'];
         }
         $params[$upload['result']['file_type']] = $upload['result']['file_id'];
-        jsonexit(curl($url.'/send'.$upload['result']['file_type'].'?'.http_build_query($params)));
+        $tools->jsonexit($tools->curl($url.'/send'.$upload['result']['file_type'].'?'.http_build_query($params)));
     } else {
-        jsonexit($upload);
+        $tools->jsonexit($upload);
     }
 }
 
-include 'proxy.php';
+require 'proxy.php';
