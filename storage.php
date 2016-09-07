@@ -1,4 +1,5 @@
 <?php
+
 $deep = preg_match('/^deep/', $_SERVER['HTTP_HOST']);
 
 set_time_limit(0);
@@ -179,10 +180,10 @@ try {
             //multiple ranges could be specified at the same time, but for simplicity only serve the first range
                //http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
                $list = explode(',', $range_orig, 2);
-               if (count($list) == 1) {
-                   $list[1] = '';
-               }
-               list($range, $extra_ranges) = $list;
+            if (count($list) == 1) {
+                $list[1] = '';
+            }
+            list($range, $extra_ranges) = $list;
         } else {
             $range = '';
             header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');

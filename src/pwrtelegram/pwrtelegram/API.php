@@ -211,7 +211,6 @@ class API extends Tools
         while (!$result['ok'] && $count < count($this->methods_keys)) {
             $result = $this->curl($this->url.'/send'.$this->methods_keys[$count].'?chat_id='.$this->botusername.'&'.$this->methods_keys[$count].'='.$file_id);
             $count++;
-
         }
         $count--;
         foreach ($this->methods_keys as $curmethod) {

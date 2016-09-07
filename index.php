@@ -55,10 +55,10 @@ $pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/';
 
 // The url of the storage
 require_once '../storage_url.php';
-$pwrtelegram_storage_domain = ($deep ? 'deep' : '') . ($beta ? 'beta' : '') . $pwrtelegram_storage_domain;
+$pwrtelegram_storage_domain = ($deep ? 'deep' : '').($beta ? 'beta' : '').$pwrtelegram_storage_domain;
 $botusername = ($deep ? $deepbotusername : $botusername);
 
-$pwrtelegram_storage = 'https://'. $pwrtelegram_storage_domain.'/';
+$pwrtelegram_storage = 'https://'.$pwrtelegram_storage_domain.'/';
 
 $REQUEST = $_REQUEST;
 /*
@@ -78,7 +78,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
         $file_url = $pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
     } else {
         $file_path = '';
-        $api_file_path = $file_url . $uri;
+        $api_file_path = $file_url.$uri;
         if ($tools->checkurl($api_file_path)) {
             require_once 'db_connect.php';
             // get my username
@@ -136,7 +136,7 @@ if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
 //            if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'}) && $id_result->{'peer_id'} == 'user') {
             if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
                 if ($id_result->{'peer_type'} != 'user') {
-                    $id_result->peer_id = '-100' . (string) $id_result->peer_id;
+                    $id_result->peer_id = '-100'.(string) $id_result->peer_id;
                 }
                 $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $id_result->{'peer_id'}]);
                 $REQUEST['chat_id'] = $id_result->{'peer_id'};
