@@ -16,13 +16,14 @@ The PWRTelegram API makes use of:
 
 This API is written and maintained by [danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)) and [Rondoozle](https://github.com/Rondoozle) ([@POTUS on Telegram](https://telegram.me/POTUS)).  
 
-It is hosted by [the awesome Bothosting](http://baum.xyz).
+It is hosted by OVH.
 
 The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/BayernPars).
 
 ## Features:  
 
 All of the official telegram bot API features plus:  
+* Support for [deep telegram bots](https://telegram.me/daniilgentili).
 * Downloading of files up to 1.5 GB in size  
 * Anonymous file storage (the URL of downloaded files does not contain your bot's token)
 * Uploading of files up to 1.5 GB in size  
@@ -43,16 +44,18 @@ All of the official telegram bot API features plus:
 
 ## How do I enable it?  
 
-To enable it simply substitute the URL of the bot telegram API (https://api.telegram.org) with the URL of the pwrtelegram API (https://api.pwrtelegram.xyz) in your telegram client.
+To enable it simply substitute the URL of the bot telegram API (https://api.telegram.org) with the URL of the pwrtelegram API (https://api.pwrtelegram.xyz for normal bots and https://deepapi.pwrtelegram.xyz for deep telegram bots) in your telegram client.
 
-You can use this command to do it:
+You can use one of the following commands to do it:
 ```
 sed -i 's/api\.telegram\.org/api\.pwrtelegram\.xyz/g' client.py
+# OR
+sed -i 's/api\.telegram\.org/deepapi\.pwrtelegram\.xyz/g' client.py
 ```  
 
 The client can be written in any language, not necessarily python.
 
-Or you can manually substitute ```api.telegram.org``` with ```api.pwrtelegram.xyz``` in your bot,
+Or you can manually substitute ```api.telegram.org``` with ```api.pwrtelegram.xyz``` or ```deepapi.pwrtelegram.xyz``` in your bot,
 
 If you use webhooks you must recall the setwebhook method.  
 
@@ -86,15 +89,16 @@ The response of these requests will be passed trough a piece of code that will f
 
 getFile requests are intercepted and the file is downloaded using the PWRTelegram API.  
 The PWRTelegram API will then return a [File](https://core.telegram.org/bots/API#file) object.   
-You can use the following anonymous url to download the file: ```https://storage.pwrtelegram.xyz/<file_path>```.
+You can use the following anonymous url to download the file: ```https://storage.pwrtelegram.xyz/<file_path>``` (or ```https://deepstorage.pwrtelegram.xyz/<file_path>``` for deep telegram bots).
 
-The anonymous download URL will be in the following format:  
+The anonymous download URL will be in one of the following formats:  
 ```
 https://storage.pwrtelegram.xyz/botusername/filename.ext
+https://deepstorage.pwrtelegram.xyz/botusername/filename.ext
 ```  
 This way you will be able to safely share the download URL without exposing your bot's token.  
 
-You can also trigger the caching of files already present on the telegram servers to the anonymous PWRTelegram storage server by downloading the file from the following URL: ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>```. The next time you can download files directly from the anonymous URL.  
+You can also trigger the caching of files already present on the telegram servers to the anonymous PWRTelegram storage server by downloading the file from the following URL: ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>``` (or ```https://deepapi.pwrtelegram.xyz/file/bot<token>/<file_path>``` for deep telegram bots). The next time you can download files directly from the anonymous URL.  
 
 If your request times out and you try to redownload the file you will be returned a json array with the following values:
 
