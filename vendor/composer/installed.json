@@ -102,52 +102,6 @@
         "homepage": "https://symfony.com"
     },
     {
-        "name": "pwrtelegram/telegram-cli-client",
-        "version": "0.5",
-        "version_normalized": "0.5.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/pwrtelegram/php-telegram-cli-client.git",
-            "reference": "5862152ff8cf5448d679b5368ca76e6fb106c1e4"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/5862152ff8cf5448d679b5368ca76e6fb106c1e4",
-            "reference": "5862152ff8cf5448d679b5368ca76e6fb106c1e4",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "require-dev": {
-            "zyberspace/discovery-shell": "dev-master"
-        },
-        "time": "2016-09-05 07:43:29",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Zyberspace\\Telegram\\Cli\\": "lib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MPL-2.0"
-        ],
-        "authors": [
-            {
-                "name": "zyberspace",
-                "email": "zyberspace@zyberware.org"
-            },
-            {
-                "name": "Daniil Gentili",
-                "email": "daniil@daniil.it"
-            }
-        ],
-        "description": "Modified version php-client for telegram-cli used by the PWRTelegram bot API",
-        "homepage": "https://github.com/pwrtelegram/php-telegram-cli-client"
-    },
-    {
         "name": "mhor/php-mediainfo",
         "version": "2.2.2",
         "version_normalized": "2.2.2.0",
@@ -194,5 +148,51 @@
             }
         ],
         "description": "PHP wrapper around the mediainfo command"
+    },
+    {
+        "name": "pwrtelegram/telegram-cli-client",
+        "version": "0.5.1",
+        "version_normalized": "0.5.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/pwrtelegram/php-telegram-cli-client.git",
+            "reference": "e11bee305c6c0dfa06940beb57108c0257704cd7"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/e11bee305c6c0dfa06940beb57108c0257704cd7",
+            "reference": "e11bee305c6c0dfa06940beb57108c0257704cd7",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "zyberspace/discovery-shell": "dev-master"
+        },
+        "time": "2016-09-07 16:11:54",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Zyberspace\\Telegram\\Cli\\": "lib/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MPL-2.0"
+        ],
+        "authors": [
+            {
+                "name": "zyberspace",
+                "email": "zyberspace@zyberware.org"
+            },
+            {
+                "name": "Daniil Gentili",
+                "email": "daniil@daniil.it"
+            }
+        ],
+        "description": "Modified version php-client for telegram-cli used by the PWRTelegram bot API",
+        "homepage": "https://github.com/pwrtelegram/php-telegram-cli-client"
     }
 ]
