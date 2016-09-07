@@ -30,43 +30,68 @@ $methods = [
     'audio'    => 'audio',
     'file'     => '',
 ];
+// Deep telegram
+$deep = (bool) preg_match('/^deep/', $_SERVER['HTTP_HOST']);
+$beta = (bool) preg_match('/beta/', $_SERVER['HTTP_HOST']);
+
 // The uri without the query string
 $uri = '/'.preg_replace(["/\?.*$/", "/^\//", "/[^\/]*\//"], '', $_SERVER['REQUEST_URI']);
+
 // The method
 $method = '/'.strtolower(preg_replace("/.*\//", '', $uri));
+
 // The bot's token
 $token = preg_replace(["/^\/bot/", "/^\/file\/bot/", "/\/.*/"], '', $_SERVER['REQUEST_URI']);
+$token .= $deep ? '/test' : '';
+
 // The api url with the token
 $url = 'https://api.telegram.org/bot'.$token;
+
+// The file url with the token
+$file_url = 'https://api.telegram.org/file/bot'.$token;
+
 // The url of this api
 $pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/';
+
 // The url of the storage
 require_once '../storage_url.php';
-$pwrtelegram_storage = 'https://'.$pwrtelegram_storage_domain.'/';
+$pwrtelegram_storage_domain = ($deep ? 'deep' : '') . ($beta ? 'beta' : '') . $pwrtelegram_storage_domain;
+$botusername = ($deep ? $deepbotusername : $botusername);
+
+$pwrtelegram_storage = 'https://'. $pwrtelegram_storage_domain.'/';
+
 $REQUEST = $_REQUEST;
+/*
+foreach ($REQUEST as &$value) {
+    $value = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($match) {
+        return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
+    }, $value);
+}
+*/
 require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
 require_once '../db_connect.php';
 $tools = new \PWRTelegram\PWRTelegram\Tools();
+
 // If requesting a file
 if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
     if ($tools->checkurl($pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']))) {
         $file_url = $pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
     } else {
         $file_path = '';
-        if ($tools->checkurl('https://api.telegram.org/'.$_SERVER['REQUEST_URI'])) {
+        $api_file_path = $file_url . $uri;
+        if ($tools->checkurl($api_file_path)) {
             require_once 'db_connect.php';
             // get my username
             $me = $tools->curl($url.'/getMe')['result']['username'];
             $path = str_replace('//', '/', $homedir.'/storage/'.$me.'/'.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']));
-            $dl_url = 'https://api.telegram.org/'.$_SERVER['REQUEST_URI'];
 
-            if (!(file_exists($path) && filesize($path) == $tools->curl_get_file_size($dl_url))) {
+            if (!(file_exists($path) && filesize($path) == $tools->curl_get_file_size($api_file_path))) {
                 if (!$tools->checkdir(dirname($path))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
                 }
                 set_time_limit(0);
                 $fp = fopen($path, 'w+');
-                $ch = curl_init(str_replace(' ', '%20', $dl_url));
+                $ch = curl_init(str_replace(' ', '%20', $api_file_path));
                 curl_setopt($ch, CURLOPT_TIMEOUT, 50);
                 // write curl response to file
                 curl_setopt($ch, CURLOPT_FILE, $fp);
@@ -91,7 +116,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
         if ($tools->checkurl($pwrtelegram_storage.'/'.$file_path)) {
             $file_url = $pwrtelegram_storage.$file_path;
         } else {
-            $file_url = 'https://api.telegram.org/'.$_SERVER['REQUEST_URI'];
+            $file_url = $file_url.$uri;
         }
     }
     header('Location: '.$file_url);
@@ -100,9 +125,23 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 
 if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
     require_once 'telegram_connect.php';
-    $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
-    if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'}) && $id_result->{'peer_id'} == 'user') {
-        $REQUEST['chat_id'] = $id_result->{'peer_id'};
+    if (preg_match('/^@/', $REQUEST['chat_id'])) {
+        require_once 'db_connect.php';
+        $usernameresstmt = $pdo->prepare('SELECT id from usernames where username=?;');
+        $usernameresstmt->execute([$REQUEST['chat_id']]);
+        if ($usernameresstmt->rowCount() == 1) {
+            $REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
+        } else {
+            $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
+//            if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'}) && $id_result->{'peer_id'} == 'user') {
+            if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
+                if ($id_result->{'peer_type'} != 'user') {
+                    $id_result->peer_id = '-100' . (string) $id_result->peer_id;
+                }
+                $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $id_result->{'peer_id'}]);
+                $REQUEST['chat_id'] = $id_result->{'peer_id'};
+            }
+        }
     }
 }
 // Else use a nice case switch

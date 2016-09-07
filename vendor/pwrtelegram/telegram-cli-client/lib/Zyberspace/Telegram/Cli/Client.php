@@ -454,7 +454,7 @@ class Client extends RawClient
 */
         $formattedPath = $this->formatFileName($path);
 	$cmd = "send_" . $type . " " . $peer . " " . $formattedPath;
-	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -U pwrtelegram -WNRe " . escapeshellarg($cmd) . " 2>&1");
+	$res = shell_exec("export TELEGRAM_HOME=".$this->tgpath."; ".$GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -U pwrtelegram -WNRe " . escapeshellarg($cmd) . " 2>&1");
 	$newres = null;
 	$finalres = null;
 	foreach (explode("\n", $res) as $line) {
@@ -476,14 +476,14 @@ class Client extends RawClient
      */
     public function getdFile($id, $type)
     {
-	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe 'load_file $id' 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
+	$res = shell_exec("export TELEGRAM_HOME=".$this->tgpath."; ".$GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe 'load_file $id' 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
 	error_log($res);
 	return json_decode($res);
     }
     public function getFile($user, $file_id, $type)
     {
 	$script = escapeshellarg($GLOBALS["pwrhomedir"] . "/lua/download.lua");
-	$res = shell_exec($GLOBALS["homedir"] . "/tg/bin/telegram-cli --json -WNRs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1");
+	$res = shell_exec("export TELEGRAM_HOME=".$this->tgpath."; ".$GLOBALS["homedir"] . "/tg/bin/telegram-cli --json -WNRs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1");
 	foreach(explode("\n", $res) as $line) {
 		if(preg_match('|.*{"event":"download", "result"|', $line)) $res = preg_replace(array('|.*{"event":"download", "result"|', "|}.*|"), array('{"event":"download", "result"', "}"), $line);
 	}

@@ -24,7 +24,7 @@ class API extends Tools
 
     public function connect_db()
     {
-        $this->pdo = new \PDO($this->db, $this->dbuser, $this->dbpassword);
+        $this->pdo = new \PDO($this->deep ? $this->deepdb : $this->db, $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
         $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
     }
 
@@ -32,7 +32,7 @@ class API extends Tools
     {
         if (!isset($this->telegram)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
-            $this->telegram = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
+            $this->telegram = new \Zyberspace\Telegram\Cli\Client($this->deep);
         }
     }
 
@@ -48,7 +48,7 @@ class API extends Tools
         $result = null;
         if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain) {
             $storage_params = [];
-            foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain'] as $key) {
+            foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_url'] as $key) {
                 $storage_params[$key] = $this->{$key};
             }
             $storage_params['file_id'] = $file_id;
@@ -98,10 +98,10 @@ class API extends Tools
         $this->telegram_connect();
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
-        if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl('https://api.telegram.org/file/bot'.$this->token.'/'.$result['result']['file_path'])) {
+        if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.$result['result']['file_path'])) {
             $file_path = $result['result']['file_path'];
-            $path = str_replace('//', '/', $this->homedir.'/storage/'.$me.'/'.$file_path);
-            $dl_url = 'https://api.telegram.org/file/bot'.$this->token.'/'.$file_path;
+            $path = str_replace('//', '/', $this->homedir.'/'.($this->deep ? 'deep' : '').'storage/'.$me.'/'.$file_path);
+            $dl_url = $this->file_url.$file_path;
             if (!(file_exists($path) && filesize($path) == $this->curl_get_file_size($dl_url))) {
                 if (!$this->checkdir(dirname($path))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
@@ -122,7 +122,7 @@ class API extends Tools
         }
 
         if (!file_exists($path)) {
-            if (!$this->checkbotuser($mepeer)) {
+            if (!$this->checkbotuser($me)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
             $info = $this->get_finfo($file_id);
@@ -201,19 +201,20 @@ class API extends Tools
     public function get_finfo($file_id)
     {
         $this->methods_keys = array_keys($this->methods);
-        $mepeer = $this->curl($this->url.'/getMe')['result']['id']; // get my peer id
+        $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
 
-        if (!$this->checkbotuser($mepeer)) {
+        if (!$this->checkbotuser($me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
         $result = ['ok' => false];
         $count = 0;
-        while (!$result['ok'] && $count < count($this->methods)) {
-            $result = $this->curl($this->url.'/send'.$this->methods[$count].'?chat_id='.$this->botusername.'&'.$this->methods[$count].'='.$file_id);
+        while (!$result['ok'] && $count < count($this->methods_keys)) {
+            $result = $this->curl($this->url.'/send'.$this->methods_keys[$count].'?chat_id='.$this->botusername.'&'.$this->methods_keys[$count].'='.$file_id);
             $count++;
+
         }
         $count--;
-        foreach ($this->methods as $curmethod) {
+        foreach ($this->methods_keys as $curmethod) {
             if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
                 $method = $curmethod;
             }
@@ -333,7 +334,7 @@ class API extends Tools
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
         } elseif (!preg_match('/[^A-Za-z0-9\-\_]/', $file)) {
-            $info = get_finfo($file);
+            $info = $this->get_finfo($file);
             if ($info['ok'] != true) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't get info from file id."];
             }
@@ -344,7 +345,7 @@ class API extends Tools
                 $type = $info['file_type'];
             }
             if ($type != $info['file_type'] || $name != '') {
-                $downloadres = download($file);
+                $downloadres = $this->download($file);
                 if (!(isset($downloadres['result']['file_path']) && $downloadres['result']['file_path'] != '')) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file from file id."];
                 }
@@ -432,6 +433,7 @@ class API extends Tools
                     try {
                         $newparams[$param] = $general->get($orig)->__toString();
                     } catch (Exception $e) {
+                    } catch (BadMethodCallException $e) {
                     }
                 }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
@@ -459,7 +461,7 @@ class API extends Tools
         $count = $select_stmt->rowCount();
 
         if ($file_id == '') {
-            if (!$this->checkbotuser($mepeer)) {
+            if (!$this->checkbotuser($me)) {
                 $this->try_unlink($path);
 
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];

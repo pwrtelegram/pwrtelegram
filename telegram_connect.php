@@ -14,5 +14,5 @@ If not, see <http://www.gnu.org/licenses/>.
 //$GLOBALS["telegram"] = new \Zyberspace\Telegram\Cli\Client();
 if (!isset($GLOBALS['telegram'])) {
     require 'vendor/autoload.php';
-    $GLOBALS['telegram'] = new \Zyberspace\Telegram\Cli\Client('unix:///tmp/tg.sck');
+    $GLOBALS['telegram'] = new \Zyberspace\Telegram\Cli\Client($deep);
 }

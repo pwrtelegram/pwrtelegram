@@ -1,4 +1,5 @@
 <?php
+$deep = preg_match('/^deep/', $_SERVER['HTTP_HOST']);
 
 set_time_limit(0);
 ini_set('log_errors', 1);
@@ -129,8 +130,9 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     require_once 'src/pwrtelegram/pwrtelegram/API.php';
     $tools = new \PWRTelegram\PWRTelegram\Tools();
     require_once '../storage_url.php';
+    $botusername = ($deep ? $deepbotusername : $botusername);
     require_once '../db_connect.php';
-    foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id'] as $key) {
+    foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id', 'file_url'] as $key) {
         $GLOBALS[$key] = $_POST[$key];
     }
     $homedir = realpath(__DIR__.'/../').'/';
@@ -152,14 +154,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'HEAD') {
 } else {
     $servefile = true;
 }
-
+/*
 if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
     $redirect = 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     header('HTTP/1.1 301 Moved Permanently');
     header('Location: '.$redirect);
     exit();
 }
-
+*/
 
 try {
     require_once 'db_connect.php';
@@ -176,7 +178,11 @@ try {
         if ($size_unit == 'bytes') {
             //multiple ranges could be specified at the same time, but for simplicity only serve the first range
                //http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
-               list($range, $extra_ranges) = explode(',', $range_orig, 2);
+               $list = explode(',', $range_orig, 2);
+               if (count($list) == 1) {
+                   $list[1] = '';
+               }
+               list($range, $extra_ranges) = $list;
         } else {
             $range = '';
             header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
