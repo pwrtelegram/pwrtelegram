@@ -95,9 +95,9 @@ class API extends Tools
             return $newresponse;
         }
         set_time_limit(0);
-        $this->telegram_connect();
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
+error_log($this->file_url.$result['result']['file_path']);
         if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.$result['result']['file_path'])) {
             $file_path = $result['result']['file_path'];
             $path = str_replace('//', '/', $this->homedir.'/'.($this->deep ? 'deep' : '').'storage/'.$me.'/'.$file_path);
@@ -122,6 +122,7 @@ class API extends Tools
         }
 
         if (!file_exists($path)) {
+            $this->telegram_connect();
             if (!$this->checkbotuser($me)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
@@ -155,20 +156,20 @@ class API extends Tools
                 $general = $mediaInfoContainer->getGeneral();
                 try {
                     $ext = $general->get('file_extension');
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                 }
                 try {
                     $format = preg_replace("/.*\s/", '', $general->get('format_extensions_usually_used'));
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                 }
                 try {
                     $codec = preg_replace("/.*\s/", '', $general->get('codec_extensions_usually_used'));
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                 }
                 if ($format == '') {
                     $format = $codec;
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
             }
             if ($ext != $format && $format != '') {
                 $file_path = $file_path.'.'.$format;
@@ -380,7 +381,7 @@ class API extends Tools
                 $mediaInfoContainer = $mediaInfo->getInfo($path);
                 $mime = $mediaInfoContainer->getGeneral()->get('internet_media_type');
                 $audio = $mediaInfoContainer->getGeneral()->get('count_of_audio_streams');
-            } catch (Exception $e) {
+            } catch (\RuntimeException $e) {
             }
             if ($mime == '') {
                 $mime = mime_content_type($path);
@@ -415,7 +416,7 @@ class API extends Tools
                     $newparams[$param] = '';
                     try {
                         $newparams[$param] = $general->get($orig);
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                     }
                 }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
@@ -434,7 +435,7 @@ class API extends Tools
                         if (is_object($tmpget)) {
                             $newparams[$param] = $tmpget->__toString();
                         }
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                     }
                 }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");

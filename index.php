@@ -42,7 +42,7 @@ $method = '/'.strtolower(preg_replace("/.*\//", '', $uri));
 
 // The bot's token
 $token = preg_replace(["/^\/bot/", "/^\/file\/bot/", "/\/.*/"], '', $_SERVER['REQUEST_URI']);
-$token .= $deep ? '/test' : '';
+$token .= $deep ? '/test/' : '';
 
 // The api url with the token
 $url = 'https://api.telegram.org/bot'.$token;
