@@ -48,7 +48,7 @@ $token .= $deep ? '/test/' : '';
 $url = 'https://api.telegram.org/bot'.$token;
 
 // The file url with the token
-$file_url = 'https://api.telegram.org/file/bot'.$token;
+$file_url = 'https://api.telegram.org/file/bot'.$token.'/';
 
 // The url of this api
 $pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/';

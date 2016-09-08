@@ -97,7 +97,6 @@ class API extends Tools
         set_time_limit(0);
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
-        error_log($this->file_url.$result['result']['file_path']);
         if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.$result['result']['file_path'])) {
             $file_path = $result['result']['file_path'];
             $path = str_replace('//', '/', $this->homedir.'/'.($this->deep ? 'deep' : '').'storage/'.$me.'/'.$file_path);
