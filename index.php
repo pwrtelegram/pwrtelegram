@@ -124,31 +124,31 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 }
 
 if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id']) && $REQUEST['chat_id'] != '@') {
-        require_once 'db_connect.php';
-        $usernameresstmt = $pdo->prepare('SELECT id from usernames where username=?;');
-        $usernameresstmt->execute([$REQUEST['chat_id']]);
-        if ($usernameresstmt->rowCount() == 1) {
-            $REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
+    require_once 'db_connect.php';
+    $usernameresstmt = $pdo->prepare('SELECT id from usernames where username=?;');
+    $usernameresstmt->execute([$REQUEST['chat_id']]);
+    if ($usernameresstmt->rowCount() == 1) {
+        $REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
+    } else {
+        $result = $tools->curl($url.'/getchat?chat_id='.$REQUEST['chat_id']);
+        if ($result['ok'] && isset($result['result']['id']) && isset($result['result']['type'])) {
+            if ($result['result']['type'] == 'private') {
+                $REQUEST['chat_id'] = $result['result']['id'];
+            }
+            $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $result['result']['id']]);
         } else {
-            $result = $tools->curl($url . '/getchat?chat_id=' . $REQUEST['chat_id']);
-            if ($result['ok'] && isset($result['result']['id']) && isset($result['result']['type'])) {
-                if ($result['result']['type'] == 'private') {
-                    $REQUEST['chat_id'] = $result['result']['id'];
+            require_once 'telegram_connect.php';
+            $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
+            if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
+                if ($id_result->{'peer_type'} == 'user') {
+                    $REQUEST['chat_id'] = $id_result->{'peer_id'};
+                } else {
+                    $id_result->peer_id = '-100'.(string) $id_result->peer_id;
                 }
-                $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $result['result']['id']]);
-            } else {
-                require_once 'telegram_connect.php';
-                $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
-                if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
-                    if ($id_result->{'peer_type'} == 'user') {
-                        $REQUEST['chat_id'] = $id_result->{'peer_id'};
-                    } else {
-                        $id_result->peer_id = '-100' . (string) $id_result->peer_id;
-                    }
-                    $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $id_result->{'peer_id'}]);
-                }
+                $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $id_result->{'peer_id'}]);
             }
         }
+    }
 }
 // Else use a nice case switch
 switch ($method) {
