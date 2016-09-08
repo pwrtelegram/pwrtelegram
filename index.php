@@ -131,7 +131,7 @@ if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
         if ($usernameresstmt->rowCount() == 1) {
             $REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
         } else {
-            error_log('Resolving ' . $REQUEST['chat_id']);
+            error_log('Resolving '.$REQUEST['chat_id']);
             require_once 'telegram_connect.php';
             $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
             if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {

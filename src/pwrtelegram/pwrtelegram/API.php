@@ -431,9 +431,9 @@ class API extends Tools
                     $newparams[$param] = '';
                     try {
                         $tmpget = $general->get($orig);
-			if (is_object($tmpget)) {
-				$newparams[$param] = $tmpget->__toString();
-			}
+                        if (is_object($tmpget)) {
+                            $newparams[$param] = $tmpget->__toString();
+                        }
                     } catch (Exception $e) {
                     }
                 }

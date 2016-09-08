@@ -142,10 +142,10 @@ return $value;
         // Get all of the usernames
         $usernames = [];
         $this->telegram_connect();
-	$list = $this->telegram->getDialogList();
-	if ($list == false) {
-		return;
-	}
+        $list = $this->telegram->getDialogList();
+        if ($list == false) {
+            return;
+        }
         foreach ($list as $username) {
             if (isset($username->username)) {
                 $usernames[] = $username->username;
@@ -153,10 +153,11 @@ return $value;
         }
         // If never contacted bot send start command
         if (!in_array($me, $usernames)) {
-            error_log("Resolving " . $me);
+            error_log('Resolving '.$me);
             $peer = $this->telegram->escapeUsername($me);
             if (!$this->telegram->msg($peer, '/start')) {
-		error_log("Couldn't contact " . $me);
+                error_log("Couldn't contact ".$me);
+
                 return false;
             }
         }
