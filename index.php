@@ -124,7 +124,6 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
 }
 
 if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
-    require_once 'telegram_connect.php';
     if (preg_match('/^@/', $REQUEST['chat_id'])) {
         require_once 'db_connect.php';
         $usernameresstmt = $pdo->prepare('SELECT id from usernames where username=?;');
@@ -132,8 +131,9 @@ if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id'])) {
         if ($usernameresstmt->rowCount() == 1) {
             $REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
         } else {
+            error_log('Resolving ' . $REQUEST['chat_id']);
+            require_once 'telegram_connect.php';
             $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
-//            if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'}) && $id_result->{'peer_id'} == 'user') {
             if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
                 if ($id_result->{'peer_type'} != 'user') {
                     $id_result->peer_id = '-100'.(string) $id_result->peer_id;

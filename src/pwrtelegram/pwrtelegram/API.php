@@ -430,9 +430,11 @@ class API extends Tools
                 foreach (['width' => 'width', 'height' => 'height'] as $orig => $param) {
                     $newparams[$param] = '';
                     try {
-                        $newparams[$param] = $general->get($orig)->__toString();
+                        $tmpget = $general->get($orig);
+			if (is_object($tmpget)) {
+				$newparams[$param] = $tmpget->__toString();
+			}
                     } catch (Exception $e) {
-                    } catch (BadMethodCallException $e) {
                     }
                 }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
