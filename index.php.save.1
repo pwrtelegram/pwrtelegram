@@ -130,23 +130,13 @@ if (isset($REQUEST['chat_id']) && preg_match('/^@/', $REQUEST['chat_id']) && $RE
         if ($usernameresstmt->rowCount() == 1) {
             $REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
         } else {
-            $result = $tools->curl($url . '/getchat?chat_id=' . $REQUEST['chat_id']);
-            if ($result['ok'] && isset($result['result']['id']) && isset($result['result']['type'])) {
-                if ($result['result']['type'] == 'private') {
-                    $REQUEST['chat_id'] = $result['result']['id'];
-                }
-                $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $result['result']['id']]);
-            } else {
-                require_once 'telegram_connect.php';
-                $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
-                if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
-                    if ($id_result->{'peer_type'} == 'user') {
-                        $REQUEST['chat_id'] = $id_result->{'peer_id'};
-                    } else {
-                        $id_result->peer_id = '-100' . (string) $id_result->peer_id;
-                    }
-                    $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $id_result->{'peer_id'}]);
-                }
+            error_log('Resolving ' . $REQUEST['chat_id']);
+            require_once 'telegram_connect.php';
+            $id_result = $GLOBALS['telegram']->exec('resolve_username '.preg_replace('/^@/', '', $REQUEST['chat_id']));
+            if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'}) && $id_result->{'peer_type'} == 'user') {
+                if ($id_result->peer_type != 'user') $id
+                $pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$REQUEST['chat_id'], $id_result->{'peer_id'}]);
+                $REQUEST['chat_id'] = $id_result->{'peer_id'};
             }
         }
 }
@@ -394,6 +384,7 @@ switch ($method) {
     case '/getchat':
         require_once 'telegram_connect.php';
         $result = $tools->curl($url.'/getchat?'.http_build_query($REQUEST));
+error_log(var_export($REQUEST, true));
         if ($result['ok'] != true && isset($REQUEST['chat_id']) && !preg_match("/^\-100/", $REQUEST['chat_id']) && preg_match('/^[1-9][0-9]*$/', $REQUEST['chat_id'])) {
             $useresult = $GLOBALS['telegram']->exec('user_info user#'.$REQUEST['chat_id']);
             if (isset($useresult->{'peer_id'}) && $useresult->{'peer_id'} == $REQUEST['chat_id']) {
