@@ -97,10 +97,10 @@ class API extends Tools
         set_time_limit(0);
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
-        if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.$result['result']['file_path'])) {
+        if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.'/'.$result['result']['file_path'])) {
             $file_path = $result['result']['file_path'];
             $path = str_replace('//', '/', $this->homedir.'/'.($this->deep ? 'deep' : '').'storage/'.$me.'/'.$file_path);
-            $dl_url = $this->file_url.$file_path;
+            $dl_url = $this->file_url.'/'.$file_path;
             if (!(file_exists($path) && filesize($path) == $this->curl_get_file_size($dl_url))) {
                 if (!$this->checkdir(dirname($path))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
