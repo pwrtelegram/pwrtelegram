@@ -35,8 +35,7 @@ $deep = (bool) preg_match('/^deep/', $_SERVER['HTTP_HOST']);
 $beta = (bool) preg_match('/beta/', $_SERVER['HTTP_HOST']);
 
 // The uri without the query string
-$uri = '/'.preg_replace(["/\?.*$/", "/^\//", "/[^\/]*\//"], '', $_SERVER['REQUEST_URI']);
-
+$uri = '/'.preg_replace(["/\?.*$/", "/^\//", "/[^\/]*\//"], '', $_SERVER['REQUEST_URI'], 1);
 // The method
 $method = '/'.strtolower(preg_replace("/.*\//", '', $uri));
 
