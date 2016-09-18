@@ -79,7 +79,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
     } else {
         // get my username
         $me = $tools->curl($url.'/getMe')['result']['username'];
-        $file_uri = preg_replace(["/^\/file\/bot[^\/]*\//", "/".$me."/"], '', $_SERVER['REQUEST_URI']);
+        $file_uri = preg_replace(["/^\/file\/bot[^\/]*\//", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
         $file_path = '';
         $api_file_path = $file_url.'/'.$file_uri;
         if ($tools->checkurl($api_file_path)) {
