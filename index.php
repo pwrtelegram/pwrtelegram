@@ -81,11 +81,10 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
         $me = $tools->curl($url.'/getMe')['result']['username'];
         $file_uri = preg_replace(["/^\/file\/bot[^\/]*\//", "/".$me."/"], '', $_SERVER['REQUEST_URI']);
         $file_path = '';
-        $api_file_path = $file_url.'/'.$file_uri;
+        $api_file_path = $file_url.$file_uri;
         if ($tools->checkurl($api_file_path)) {
             require_once 'db_connect.php';
             $path = str_replace('//', '/', $homedir.'/storage/'.$me.'/'.$file_uri);
-
             if (!(file_exists($path) && filesize($path) == $tools->curl_get_file_size($api_file_path))) {
                 if (!$tools->checkdir(dirname($path))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
@@ -102,8 +101,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
                 curl_close($ch);
                 fclose($fp);
             }
-            $file_path = $me.'/'.$file_uri;
-
+            $file_path = $me.$file_uri;
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file does not exist)."];
             }
