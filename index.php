@@ -78,7 +78,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
         $file_url = $pwrtelegram_storage.$file_uri;
     } else {
         $file_path = '';
-        $api_file_path = $file_url."/".$file_uri;
+        $api_file_path = $file_url.'/'.$file_uri;
         if ($tools->checkurl($api_file_path)) {
             require_once 'db_connect.php';
             // get my username
@@ -116,7 +116,7 @@ if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
         if ($tools->checkurl($pwrtelegram_storage.'/'.$file_path)) {
             $file_url = $pwrtelegram_storage.$file_path;
         } else {
-            $file_url = $file_url."/".$file_uri;
+            $file_url = $file_url.'/'.$file_uri;
         }
     }
     header('Location: '.$file_url);
