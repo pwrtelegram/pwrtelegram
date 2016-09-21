@@ -317,7 +317,7 @@ class API extends Tools
                 }
             }
             set_time_limit(0);
-var_dump($path, $file);
+            var_dump($path, $file);
             shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
