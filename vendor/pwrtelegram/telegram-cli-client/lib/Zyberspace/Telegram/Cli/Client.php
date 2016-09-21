@@ -461,7 +461,7 @@ class Client extends RawClient
 		if(preg_match('|^{|', $line) && !preg_match('|{"result": "SUCCESS"}|', $line)) $newres = json_decode(preg_replace(array('|^[^{]*{|', "|}[^}]*$|"), array("{", "}"), $line), true); else continue;
 		if(isset($newres["out"]) && $newres["out"] && isset($newres["media"]["type"]) && $newres["media"]["type"] == $type && isset($newres["from"]["peer_id"]) && $newres["from"]["peer_id"] == $GLOBALS["botusername"]) $finalres = $newres;
 	}
-	return $newres;
+	return $finalres;
     }
 
     /**
