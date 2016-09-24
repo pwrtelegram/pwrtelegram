@@ -419,7 +419,8 @@ class API extends Tools
                         } catch (\Exception $e) {
                         }
                     }
-                } catch (\RuntimeException $e) { ; };
+                } catch (\RuntimeException $e) {
+                }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'voice':
@@ -440,7 +441,8 @@ class API extends Tools
                         } catch (\Exception $e) {
                         }
                     }
-                } catch (\RuntimeException $e) { ; };
+                } catch (\RuntimeException $e) {
+                }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 $newparams['caption'] = $file_name;
                 break;
