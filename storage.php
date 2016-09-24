@@ -139,7 +139,9 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     $homedir = realpath(__DIR__.'/../').'/';
     $pwrhomedir = realpath(__DIR__);
     $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
-    $tools->jsonexit($API->download($file_id));
+    $res = $API->download($file_id);
+    error_log("res for" . $file_id . " is " . $res);
+    $tools->jsonexit($res);
 }
 
 if ($_SERVER['REQUEST_URI'] == '/') {

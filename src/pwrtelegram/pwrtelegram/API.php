@@ -283,7 +283,7 @@ class API extends Tools
         if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
         }
-        $path = $this->homedir.'/ul/'.$me.'/'.$file_name;
+        $path = $this->homedir.'ul/'.$me.'/'.$file_name;
         if (file_exists($file)) {
             $size = filesize($file);
             if ($size < 1) {
@@ -408,35 +408,39 @@ class API extends Tools
         $newparams = [];
         switch ($type) {
             case 'audio':
-                $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
-                $mediaInfoContainer = $mediaInfo->getInfo($path);
-                $general = $mediaInfoContainer->getGeneral();
-                foreach (['performer' => 'performer', 'track_name' => 'title'] as $orig => $param) {
-                    $newparams[$param] = '';
-                    try {
-                        $newparams[$param] = $general->get($orig);
-                    } catch (\Exception $e) {
+                try {
+                    $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
+                    $mediaInfoContainer = $mediaInfo->getInfo($path);
+                    $general = $mediaInfoContainer->getGeneral();
+                    foreach (['performer' => 'performer', 'track_name' => 'title'] as $orig => $param) {
+                        $newparams[$param] = '';
+                        try {
+                            $newparams[$param] = $general->get($orig);
+                        } catch (\Exception $e) {
+                        }
                     }
-                }
+                } catch (\RuntimeException $e) { ; };
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'voice':
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'video':
-                $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
-                $mediaInfoContainer = $mediaInfo->getInfo($path);
-                $general = $mediaInfoContainer->getGeneral();
-                foreach (['width' => 'width', 'height' => 'height'] as $orig => $param) {
-                    $newparams[$param] = '';
-                    try {
-                        $tmpget = $general->get($orig);
-                        if (is_object($tmpget)) {
-                            $newparams[$param] = $tmpget->__toString();
+                try {
+                    $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
+                    $mediaInfoContainer = $mediaInfo->getInfo($path);
+                    $general = $mediaInfoContainer->getGeneral();
+                    foreach (['width' => 'width', 'height' => 'height'] as $orig => $param) {
+                        $newparams[$param] = '';
+                        try {
+                            $tmpget = $general->get($orig);
+                            if (is_object($tmpget)) {
+                                $newparams[$param] = $tmpget->__toString();
+                            }
+                        } catch (\Exception $e) {
                         }
-                    } catch (\Exception $e) {
                     }
-                }
+                } catch (\RuntimeException $e) { ; };
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 $newparams['caption'] = $file_name;
                 break;
