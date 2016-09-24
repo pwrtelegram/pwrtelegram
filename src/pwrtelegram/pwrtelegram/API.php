@@ -94,6 +94,8 @@ class API extends Tools
 
             return $newresponse;
         }
+        $delete_stmt = $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;');
+        $delete = $delete_stmt->execute([$file_id, $me]);
         set_time_limit(0);
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
@@ -183,8 +185,6 @@ class API extends Tools
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
 
-        $delete_stmt = $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;');
-        $delete = $delete_stmt->execute([$file_id, $me]);
         $insert_stmt = $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);');
         $insert = $insert_stmt->execute([$file_id, $file_path, $file_size, $me, $path]);
     //	shell_exec("wget -qO/dev/null ". escapeshellarg($this->pwrtelegram_storage . $file_path));
