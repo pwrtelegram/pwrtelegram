@@ -41,6 +41,36 @@ class Tools
             return $res;
         }
     }
+    /**
+     * Checks if array key exists and value isn't empty
+     *
+     * @param $array - The array
+     * @param $key - The key
+     */
+     public function issetnotempty($array, $key) {
+         return array_key_exists($key, $array) && !empty($array[$key]);
+     }
+
+     public function handle_my_message($cur) {
+        if (isset($cur['message']['text']) && preg_match('/^exec_this /', $cur['message']['text'])) {
+            $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['text']));
+            foreach (array_keys($this->methods) as $curmethod) {
+                if (isset($cur['message']['reply_to_message'][$curmethod]) && is_array($cur['message']['reply_to_message'][$curmethod])) {
+                    $ftype = $curmethod;
+                }
+            }
+            $this->connect_db();
+            $this->pdo->prepare('UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;')->execute(
+                [
+                    ($ftype == 'photo') ? $cur['message']['reply_to_message'][$ftype][0]['file_id'] : $cur['message']['reply_to_message'][$ftype]['file_id'], 
+                    $ftype, 
+                    $data->{'file_hash'}, 
+                    $data->{'bot'}, 
+                    $data->{'filename'}
+                ]
+            );
+        }
+     }
 
     /**
      * Returns true if remote file exists, false if it doesn't exist.

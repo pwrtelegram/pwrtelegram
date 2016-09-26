@@ -24,8 +24,11 @@ class API extends Tools
 
     public function connect_db()
     {
-        $this->pdo = new \PDO($this->deep ? $this->deepdb : $this->db, $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
-        $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+        if (!isset($this->pdo)) {
+            require_once($homedir . '/db_connect.php');
+            $this->pdo = new \PDO($this->deep ? $deepdb : $db, $this->deep ? $deepdbuser : $dbuser, $this->deep ? $deepdbpassword : $dbpassword);
+            $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+        }
     }
 
     public function telegram_connect()
@@ -526,7 +529,7 @@ class API extends Tools
                 if (!$this->telegram->replymsg($result['id'], 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send reply data."];
                 }
-                $response = $this->curl($this->pwrtelegram_api.'/bot'.$this->token.'/getupdates');
+                $response = $this->curl($this->pwrtelegram_api.'/getupdates');
                 $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;');
                 $select_stmt->execute([$file_hash, $me, $name]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
