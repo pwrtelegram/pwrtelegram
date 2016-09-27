@@ -1,4 +1,5 @@
 <?php
+
 namespace PWRTelegram\PWRTelegram;
 
 /*
@@ -33,7 +34,7 @@ class API extends Tools
     {
         if (!isset($this->telegram)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
-            $this->telegram = new \Zyberspace\Telegram\Cli\Client(["homedir" => $this->homedir, "pwrhomedir" => $this->pwrhomedir, "botusername" => $this->botusername], $this->deep);
+            $this->telegram = new \Zyberspace\Telegram\Cli\Client(['homedir' => $this->homedir, 'pwrhomedir' => $this->pwrhomedir, 'botusername' => $this->botusername], $this->deep);
         }
     }
 

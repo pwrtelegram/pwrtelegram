@@ -16,7 +16,9 @@ If not, see <http://www.gnu.org/licenses/>.
 class Main extends Proxy
 {
     public $pwrhomedir;
-    public function __construct($vars) {
+
+    public function __construct($vars)
+    {
         foreach ($vars as $key => $val) {
             $this->{$key} = $val;
         }
@@ -49,7 +51,7 @@ class Main extends Proxy
         // The url of this api
         $this->pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/bot'.$this->token;
 
-        $this->token = $this->token . ($this->deep ? '/test' : '');
+        $this->token = $this->token.($this->deep ? '/test' : '');
 
         // The api url with the token
         $this->url = 'https://api.telegram.org/bot'.$this->token;
@@ -75,8 +77,10 @@ class Main extends Proxy
         }
         */
     }
-    public function run_file() {
-        
+
+    public function run_file()
+    {
+
         // If requesting a file
         if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
             $pwrapi_file_url = $this->pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
@@ -85,14 +89,14 @@ class Main extends Proxy
             } else {
                 // get my username
                 $me = $this->curl($this->url.'/getMe')['result']['username'];
-                
+
                 $file_uri = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
                 $api_file_url = $this->file_url.$file_uri;
                 if ($this->checkurl($api_file_url)) {
                     $this->connect_db();
-                    
+
                     $path = str_replace('//', '/', $this->homedir.'/storage/'.$me.'/'.$file_uri);
-                    
+
                     if (!(file_exists($path) && filesize($path) == $this->curl_get_file_size($api_file_path))) {
                         if (!$this->checkdir(dirname($path))) {
                             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."]);
@@ -109,19 +113,19 @@ class Main extends Proxy
                         curl_close($ch);
                         fclose($fp);
                     }
-                    
+
                     if (!file_exists($path)) {
                         $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file does not exist)."]);
                     }
-                    
+
                     $file_size = filesize($path);
-                    
+
                     $file_path = $me.$file_uri;
 
                     $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$file_path, $me]);
                     $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$file_path, $file_size, $me, $path]);
                 }
-                
+
                 if ($this->checkurl($this->pwrtelegram_storage.$file_path)) {
                     $file_url = $this->pwrtelegram_storage.$file_path;
                 } else {
@@ -132,8 +136,9 @@ class Main extends Proxy
             die();
         }
     }
-    
-    public function run_chat_id() {
+
+    public function run_chat_id()
+    {
         if (isset($this->REQUEST['chat_id']) && preg_match('/^@/', $this->REQUEST['chat_id']) && $this->REQUEST['chat_id'] != '@') {
             $this->connect_db();
             $usernameresstmt = $this->pdo->prepare('SELECT id from usernames where username=?;');
@@ -173,7 +178,9 @@ class Main extends Proxy
             }
         }
     }
-    public function run_methods() {
+
+    public function run_methods()
+    {
         // Else use a nice case switch
         switch ($this->method) {
             case '/getfile':
@@ -198,7 +205,7 @@ class Main extends Proxy
                 }
                 $notmecount = 0;
                 $todo = '';
-                $newresponse = [ 'ok' => true, 'result' => [] ];
+                $newresponse = ['ok' => true, 'result' => []];
                 foreach ($response['result'] as $cur) {
                     if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->botusername) {
                         $this->handle_my_message($cur);
@@ -421,7 +428,9 @@ class Main extends Proxy
             }
         }
     }
-    public function run() {
+
+    public function run()
+    {
         $this->run_file();
         $this->run_chat_id();
         $this->run_methods();
