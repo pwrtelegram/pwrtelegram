@@ -380,7 +380,8 @@ class Main extends Proxy
                 }
                 $this->jsonexit($result);
                 break;
-            case '/getbotusername':
+            case '/getbackend':
+            case '/getbackcosoh':
                 $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->botusername));
                 break;
         }

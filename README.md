@@ -16,7 +16,7 @@ The PWRTelegram API makes use of:
 
 This API is written and maintained by [danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)) and [Rondoozle](https://github.com/Rondoozle) ([@POTUS on Telegram](https://telegram.me/POTUS)).  
 
-It is hosted by OVH.
+It is hosted on OVH.
 
 The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/BayernPars).
 
@@ -225,6 +225,10 @@ Please note that it's better to upload the big files using the upload methods an
 
 
 * Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili) or [open an issue](https://github.com/pwrtelegram/pwrtelegram/issues) or [submit a pull request with a fix](https://github.com/pwrtelegram/pwrtelegram) or write to [@pwrtelegramgroup](https://telegram.me/pwrtelegramgroup).  
+
+* getBackend
+
+This method returns a Chat object with info about the backend pwrtelegram user.  
 
 
 ## Known bugs
