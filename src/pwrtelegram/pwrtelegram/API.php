@@ -1,5 +1,4 @@
 <?php
-
 namespace PWRTelegram\PWRTelegram;
 
 /*
@@ -25,8 +24,7 @@ class API extends Tools
     public function connect_db()
     {
         if (!isset($this->pdo)) {
-            require_once($homedir . '/db_connect.php');
-            $this->pdo = new \PDO($this->deep ? $deepdb : $db, $this->deep ? $deepdbuser : $dbuser, $this->deep ? $deepdbpassword : $dbpassword);
+            $this->pdo = new \PDO($this->deep ? $this->deepdb : $this->db, $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
             $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
         }
     }
@@ -35,7 +33,7 @@ class API extends Tools
     {
         if (!isset($this->telegram)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
-            $this->telegram = new \Zyberspace\Telegram\Cli\Client($this->deep);
+            $this->telegram = new \Zyberspace\Telegram\Cli\Client(["homedir" => $this->homedir, "pwrhomedir" => $this->pwrhomedir, "botusername" => $this->botusername], $this->deep);
         }
     }
 

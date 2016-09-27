@@ -15,5 +15,10 @@ require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
 require_once 'src/pwrtelegram/pwrtelegram/API.php';
 require_once 'src/pwrtelegram/pwrtelegram/Proxy.php';
 require_once 'src/pwrtelegram/pwrtelegram/Main.php';
-$API = new \PWRTelegram\PWRTelegram\Main(realpath(__DIR__));
+require_once '../storage_url.php';
+require_once '../db_connect.php';
+
+$pwrhomedir = realpath(__DIR__);
+
+$API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
 $API->run();

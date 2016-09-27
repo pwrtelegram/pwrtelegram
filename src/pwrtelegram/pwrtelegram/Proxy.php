@@ -41,7 +41,7 @@ class Proxy extends API
             }
         }
 
-        $request_url = 'https://api.telegram.org/bot' . $this->token . $this->method;
+        $request_url = $this->url . $this->method;
         $cmd = 'curl -s -D - ' . escapeshellarg($request_url) . ' ';
 
         // add data for POST, PUT or DELETE requests

@@ -84,7 +84,6 @@ class Client extends RawClient
     public function replymsg($id, $msg)
     {
         $msg = $this->escapeStringArgument($msg);
-        
         return $this->exec('reply ' . $id . ' ' . $msg);
     }
     /**
@@ -454,12 +453,12 @@ class Client extends RawClient
 */
         $formattedPath = $this->formatFileName($path);
 	$cmd = "send_" . $type . " " . $peer . " " . $formattedPath;
-	$res = shell_exec("export TELEGRAM_HOME=".$this->tgpath."; ".$GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -U pwrtelegram -WNRe " . escapeshellarg($cmd) . " 2>&1");
+	$res = shell_exec($this->tgcmd." --json --permanent-msg-ids -U pwrtelegram -WNRe " . escapeshellarg($cmd) . " 2>&1");
 	$newres = null;
 	$finalres = null;
 	foreach (explode("\n", $res) as $line) {
 		if(preg_match('|^{|', $line) && !preg_match('|{"result": "SUCCESS"}|', $line)) $newres = json_decode(preg_replace(array('|^[^{]*{|', "|}[^}]*$|"), array("{", "}"), $line), true); else continue;
-		if(isset($newres["out"]) && $newres["out"] && isset($newres["media"]["type"]) && $newres["media"]["type"] == $type && isset($newres["from"]["peer_id"]) && $newres["from"]["peer_id"] == $GLOBALS["botusername"]) $finalres = $newres;
+		if(isset($newres["out"]) && $newres["out"] && isset($newres["media"]["type"]) && $newres["media"]["type"] == $type && isset($newres["from"]["peer_id"]) && $newres["from"]["peer_id"] == $this->botusername) $finalres = $newres;
 	}
 	return $finalres;
     }
@@ -474,26 +473,14 @@ class Client extends RawClient
      * @uses exec()
      * @uses escapePeer()
      */
-    public function getdFile($id, $type)
-    {
-	$res = shell_exec("export TELEGRAM_HOME=".$this->tgpath."; ".$GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -WNRe 'load_file $id' 2>&1 | sed 's/[>]//g;/{/!d;/{\"event\": \"download\"/!d;/^\s*$/d;s/^[^{]*{/{/;s/}[^}]*$/}/'");
-	error_log($res);
-	return json_decode($res);
-    }
     public function getFile($user, $file_id, $type)
     {
-	$script = escapeshellarg($GLOBALS["pwrhomedir"] . "/lua/download.lua");
-	$res = shell_exec("export TELEGRAM_HOME=".$this->tgpath."; ".$GLOBALS["homedir"] . "/tg/bin/telegram-cli --json -WNRs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1");
+	$script = escapeshellarg($this->pwrhomedir . "/lua/download.lua");
+	$res = shell_exec($this->tgcmd." --json -WNRs " . $script . " --lua-param ".escapeshellarg($user." ".$file_id." ".$type)." 2>&1");
 	foreach(explode("\n", $res) as $line) {
 		if(preg_match('|.*{"event":"download", "result"|', $line)) $res = preg_replace(array('|.*{"event":"download", "result"|', "|}.*|"), array('{"event":"download", "result"', "}"), $line);
 	}
 	return json_decode($res);
-    }
-
-    public function oldgetFile($user, $id, $type)
-    {
-
-        return $this->exec('load_' . $type . ' ' . $id);
     }
 
     /**

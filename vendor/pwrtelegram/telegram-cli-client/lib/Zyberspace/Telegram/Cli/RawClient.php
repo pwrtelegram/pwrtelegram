@@ -42,14 +42,18 @@ class RawClient
      *
      * @throws ClientException Throws an exception if no connection can be established.
      */
-    public function __construct($deep = false)
+    public function __construct($params, $deep = false)
     {
+        foreach ($params as $key => $value) {
+            $this->{$key} = $value;
+        }
         $path = $deep ? "/tmp/deeptg.sck" : "/tmp/tg.sck";
         $remoteSocket = "unix://" . $path;
-        $this->tgpath = $GLOBALS["homedir"] . ($deep ? "/deeptgstorage" : "/tgstorage");
+        $this->tgpath = $this->homedir . ($deep ? "/deeptgstorage" : "/tgstorage");
+        $this->tgcmd = "export TELEGRAM_HOME=".$this->tgpath.";".$this->homedir."/tg/bin/telegram-cli ";
         $this->_fp = stream_socket_client($remoteSocket);
         if ($this->_fp === false) {
-            shell_exec("pkill telegram-cli; rm ".$path."; export TELEGRAM_HOME=".$this->tgpath."; ". $GLOBALS["homedir"] . "/tg/bin/telegram-cli --json --permanent-msg-ids -dWS ".$path."&");
+            shell_exec("pkill telegram-cli; rm ".$path.";".$this->tgcmd." --json --permanent-msg-ids -dWS ".$path."&");
             $this->_fp = stream_socket_client($remoteSocket);
             if ($this->_fp === false) {
                 throw new ClientException('Could not connect to socket "' . $remoteSocket . '"');

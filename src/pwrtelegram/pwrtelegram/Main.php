@@ -16,10 +16,12 @@ If not, see <http://www.gnu.org/licenses/>.
 class Main extends Proxy
 {
     public $pwrhomedir;
-    public function __construct($pwrhomedir) {
+    public function __construct($vars) {
+        foreach ($vars as $key => $val) {
+            $this->{$key} = $val;
+        }
         // Home dir
-        chdir($pwrhomedir);
-        $this->pwrhomedir = $pwrhomedir;
+        chdir($this->pwrhomedir);
         $this->homedir = realpath($this->pwrhomedir.'/../').'/';
         // Available methods and their equivalent in tg-cli
         $this->methods = [
@@ -57,10 +59,9 @@ class Main extends Proxy
 
 
         // The url of the storage
-        require_once '../storage_url.php';
-        $this->pwrtelegram_storage_domain = ($this->deep ? 'deep' : '').($this->beta ? 'beta' : '').$pwrtelegram_storage_domain;
+        $this->pwrtelegram_storage_domain = ($this->deep ? 'deep' : '').($this->beta ? 'beta' : '').$this->pwrtelegram_storage_domain;
 
-        $this->botusername = ($this->deep ? $deepbotusername : $botusername);
+        $this->botusername = ($this->deep ? $this->deepbotusername : $this->botusername);
 
         $this->pwrtelegram_storage = 'https://'.$this->pwrtelegram_storage_domain.'/';
 
@@ -134,7 +135,7 @@ class Main extends Proxy
     
     public function run_chat_id() {
         if (isset($this->REQUEST['chat_id']) && preg_match('/^@/', $this->REQUEST['chat_id']) && $this->REQUEST['chat_id'] != '@') {
-            $this->db_connect();
+            $this->connect_db();
             $usernameresstmt = $this->pdo->prepare('SELECT id from usernames where username=?;');
             $usernameresstmt->execute([$this->REQUEST['chat_id']]);
             if ($usernameresstmt->rowCount() == 1) {
@@ -251,7 +252,7 @@ class Main extends Proxy
                     if (!(isset($result[$result['type'].'_file_id']) && $result[$result['type'].'_file_id'] != '')) {
                         if ((!isset($result[$result['type'].'_url']) || $result[$result['type'].'_url'] == '') && isset($_FILES['inline_file'.$number]['error']) && $_FILES['inline_file'.$number]['error'] == UPLOAD_ERR_OK) {
                             // Let's do this!
-                            $upload = $API->upload($_FILES['inline_file'.$number]['tmp_name'], $_FILES['inline_file'.$number]['name']);
+                            $upload = $this->upload($_FILES['inline_file'.$number]['tmp_name'], $_FILES['inline_file'.$number]['name']);
 
                             if (isset($upload['result']['file_id']) && $upload['result']['file_id'] != '') {
                                 unset($result[$result['type'].'_url']);
@@ -262,7 +263,7 @@ class Main extends Proxy
                             }
                         }
                         if (isset($result[$result['type'].'_url']) && $result[$result['type'].'_url'] != '') {
-                            $upload = $API->upload($result[$result['type'].'_url']);
+                            $upload = $this->upload($result[$result['type'].'_url']);
                             if (isset($upload['result']['file_id']) && $upload['result']['file_id'] != '') {
                                 unset($result[$result['type'].'_url']);
                                 if ($result['type'] == 'file') {
@@ -407,7 +408,7 @@ class Main extends Proxy
             }
 
             // Let's do this!
-            $upload = $API->upload($file, $name, $smethod, $forcename, $this->REQUEST);
+            $upload = $this->upload($file, $name, $smethod, $forcename, $this->REQUEST);
             if (isset($upload['ok']) && $upload['ok'] && preg_match('|^/send|', $this->method)) {
                 $params = $this->REQUEST;
                 if (isset($upload['result']['caption']) && $upload['result']['caption'] != '') {
