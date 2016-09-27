@@ -328,7 +328,7 @@ class Main extends Proxy
                     $content = file_get_contents('php://input');
                     $cur = json_decode($content, true);
                     if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->botusername) {
-                        $this->handle_my_message($cur, $this->pdo, $this->methods);
+                        $this->handle_my_message($cur);
                         exit;
                     }
                     $data = json_encode($cur);
