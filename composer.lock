@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "4cfc167718a63d28bc58f63e5c427df2",
-    "content-hash": "5bac2f658a9a7cb6eee9e31f0fea6a4f",
+    "hash": "ec3e623e5f79330a215f8e7e261bdc54",
+    "content-hash": "65db4b088d6f0d23e159cd4406a5fc71",
     "packages": [
         {
             "name": "mhor/php-mediainfo",
@@ -55,16 +55,16 @@
         },
         {
             "name": "pwrtelegram/telegram-cli-client",
-            "version": "0.5.1",
+            "version": "0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pwrtelegram/php-telegram-cli-client.git",
-                "reference": "e11bee305c6c0dfa06940beb57108c0257704cd7"
+                "reference": "e7b663032bb84bbe9f535b97930ef9f2bf5b3449"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/e11bee305c6c0dfa06940beb57108c0257704cd7",
-                "reference": "e11bee305c6c0dfa06940beb57108c0257704cd7",
+                "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/e7b663032bb84bbe9f535b97930ef9f2bf5b3449",
+                "reference": "e7b663032bb84bbe9f535b97930ef9f2bf5b3449",
                 "shasum": ""
             },
             "require": {
@@ -95,7 +95,7 @@
             ],
             "description": "Modified version php-client for telegram-cli used by the PWRTelegram bot API",
             "homepage": "https://github.com/pwrtelegram/php-telegram-cli-client",
-            "time": "2016-09-07 16:11:54"
+            "time": "2016-09-27 14:51:40"
         },
         {
             "name": "symfony/filesystem",

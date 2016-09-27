@@ -151,17 +151,17 @@
     },
     {
         "name": "pwrtelegram/telegram-cli-client",
-        "version": "0.5.1",
-        "version_normalized": "0.5.1.0",
+        "version": "0.6",
+        "version_normalized": "0.6.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/pwrtelegram/php-telegram-cli-client.git",
-            "reference": "e11bee305c6c0dfa06940beb57108c0257704cd7"
+            "reference": "e7b663032bb84bbe9f535b97930ef9f2bf5b3449"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/e11bee305c6c0dfa06940beb57108c0257704cd7",
-            "reference": "e11bee305c6c0dfa06940beb57108c0257704cd7",
+            "url": "https://api.github.com/repos/pwrtelegram/php-telegram-cli-client/zipball/e7b663032bb84bbe9f535b97930ef9f2bf5b3449",
+            "reference": "e7b663032bb84bbe9f535b97930ef9f2bf5b3449",
             "shasum": ""
         },
         "require": {
@@ -170,7 +170,7 @@
         "require-dev": {
             "zyberspace/discovery-shell": "dev-master"
         },
-        "time": "2016-09-07 16:11:54",
+        "time": "2016-09-27 14:51:40",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
