@@ -93,7 +93,7 @@ class Main extends Proxy
                 $file_uri = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
                 $api_file_url = $this->file_url.$file_uri;
                 if ($this->checkurl($api_file_url)) {
-                    $this->connect_db();
+                    $this->db_connect();
 
                     $path = str_replace('//', '/', $this->homedir.'/storage/'.$me.'/'.$file_uri);
 
@@ -140,7 +140,7 @@ class Main extends Proxy
     public function run_chat_id()
     {
         if (isset($this->REQUEST['chat_id']) && preg_match('/^@/', $this->REQUEST['chat_id']) && $this->REQUEST['chat_id'] != '@') {
-            $this->connect_db();
+            $this->db_connect();
             $usernameresstmt = $this->pdo->prepare('SELECT id from usernames where username=?;');
             $usernameresstmt->execute([$this->REQUEST['chat_id']]);
             if ($usernameresstmt->rowCount() == 1) {
@@ -291,7 +291,7 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
                 if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
-                    $this->connect_db();
+                    $this->db_connect();
                     $me = $this->curl($this->url.'/getMe')['result']['username']; // get my username
                     $this->pdo->prepare('DELETE FROM hooks WHERE user=?;')->execute([$me]);
                     $insert_stmt = $this->pdo->prepare('INSERT INTO hooks (user, hash) VALUES (?, ?);');
@@ -321,7 +321,7 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
                 $me = $this->curl($this->url.'/getMe')['result']['username']; // get my username
-                $this->connect_db();
+                $this->db_connect();
                 $test_stmt = $this->pdo->prepare('SELECT hash FROM hooks WHERE user=?');
                 $test_stmt->execute([$me]);
                 if ($test_stmt->fetchColumn() == hash('sha256', $hook) && $test_stmt->rowCount() == 1) {
@@ -366,7 +366,7 @@ class Main extends Proxy
             case '/getchat':
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
                 if ($result['ok'] != true && isset($this->REQUEST['chat_id'])) {
-                    $this->connect_telegram();
+                    $this->telegram_connect();
                     $cliresult = $this->telegram->exec('user_info '.$this->peer_type.'#'.$this->peer_id);
                     if (isset($cliresult->{'peer_id'})) {
                         $newresult = ['ok' => true, 'result' => ['id' => $this->REQUEST['chat_id']]];

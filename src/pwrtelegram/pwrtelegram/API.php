@@ -22,7 +22,7 @@ class API extends Tools
         }
     }
 
-    public function connect_db()
+    public function db_connect()
     {
         if (!isset($this->pdo)) {
             $this->pdo = new \PDO($this->deep ? $this->deepdb : $this->db, $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
@@ -83,7 +83,7 @@ class API extends Tools
         $meres = $this->curl($this->url.'/getMe')['result']; // get my username
         $me = $meres['username'];
         $mepeer = $meres['id'];
-        $this->connect_db();
+        $this->db_connect();
         $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
@@ -276,7 +276,7 @@ class API extends Tools
             $name = '';
         }
 
-        $this->connect_db();
+        $this->db_connect();
         $this->telegram_connect();
         $meres = $this->curl($this->url.'/getMe')['result']; // get my username
         $me = $meres['username'];

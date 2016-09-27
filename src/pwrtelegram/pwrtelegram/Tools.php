@@ -62,7 +62,7 @@ class Tools
                     $ftype = $curmethod;
                 }
             }
-            $this->connect_db();
+            $this->db_connect();
             $this->pdo->prepare('UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;')->execute(
                 [
                     ($ftype == 'photo') ? $cur['message']['reply_to_message'][$ftype][0]['file_id'] : $cur['message']['reply_to_message'][$ftype]['file_id'],
