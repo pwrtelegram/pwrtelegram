@@ -243,7 +243,7 @@ class Main extends Proxy
                 if (!(isset($this->REQUEST['results']) && $this->REQUEST['results'] != '')) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing results json array.']);
                 }
-                $results = json_decode($this->escapeJsonString($this->REQUEST['results']), true);
+                $results = json_decode($this->REQUEST['results'], true);
                 if ($results == false) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't decode results json."]);
                 }

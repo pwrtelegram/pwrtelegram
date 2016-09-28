@@ -128,8 +128,8 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Cache-Control: post-check=0, pre-check=0', false);
     header('Pragma: no-cache');
-    require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
-    require_once 'src/pwrtelegram/pwrtelegram/API.php';
+    require_once 'src/PWRTelegram/PWRTelegram/Tools.php';
+    require_once 'src/PWRTelegram/PWRTelegram/API.php';
     $tools = new \PWRTelegram\PWRTelegram\Tools();
     require_once '../storage_url.php';
     $botusername = ($deep ? $deepbotusername : $botusername);
