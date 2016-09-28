@@ -37,9 +37,8 @@ class Tools
         curl_close($curl);
         if ($json == true) {
             return json_decode($res, true);
-        } else {
-            return $res;
         }
+        return $res;
     }
 
      /**
@@ -52,6 +51,11 @@ class Tools
      {
          return array_key_exists($key, $array) && !empty($array[$key]);
      }
+     
+    public function exit_redirect($where) {
+        header('Location '.$where);
+        exit;
+    }
 
     public function handle_my_message($cur)
     {
@@ -112,9 +116,8 @@ class Tools
     {
         //        $escapers = ['\\', "\n", "\r", "\t", "\x08", "\x0c"];
 //        $replacements = ['\\\\', '\\n', '\\r', '\\t', '\\f', '\\b'];
-return $value;
-
-        return str_replace($escapers, $replacements, $value);
+          return $value;
+//        return str_replace($escapers, $replacements, $value);
     }
 
     /**

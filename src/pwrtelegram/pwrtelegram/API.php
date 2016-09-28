@@ -80,9 +80,7 @@ class API extends Tools
 
             return $result;
         }
-        $meres = $this->curl($this->url.'/getMe')['result']; // get my username
-        $me = $meres['username'];
-        $mepeer = $meres['id'];
+        $me = $this->curl($this->url.'/getMe')['result']['username']; // get my username
         $this->db_connect();
         $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
@@ -96,9 +94,7 @@ class API extends Tools
 
             return $newresponse;
         }
-        $delete_stmt = $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;');
-        $delete = $delete_stmt->execute([$file_id, $me]);
-        set_time_limit(0);
+        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
         $path = '';
         $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
         if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.'/'.$result['result']['file_path'])) {
@@ -109,7 +105,6 @@ class API extends Tools
                 if (!$this->checkdir(dirname($path))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
                 }
-                set_time_limit(0);
                 $fp = fopen($path, 'w+');
                 $ch = curl_init(str_replace(' ', '%20', $dl_url));
                 curl_setopt($ch, CURLOPT_TIMEOUT, 50);
@@ -187,9 +182,7 @@ class API extends Tools
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
 
-        $insert_stmt = $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);');
-        $insert = $insert_stmt->execute([$file_id, $file_path, $file_size, $me, $path]);
-    //	shell_exec("wget -qO/dev/null ". escapeshellarg($this->pwrtelegram_storage . $file_path));
+        $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
         return $newresponse;
     }
 
@@ -202,7 +195,6 @@ class API extends Tools
      */
     public function get_finfo($file_id)
     {
-        $this->methods_keys = array_keys($this->methods);
         $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
 
         if (!$this->checkbotuser($me)) {
@@ -220,14 +212,13 @@ class API extends Tools
                 $method = $curmethod;
             }
         }
-        if ($result['ok'] == true) {
+        if ($result['ok']) {
             $result['message_id'] = $result['result']['message_id'];
             $result['file_type'] = $method;
             $result['file_id'] = $file_id;
+            $result['file_size'] = $result['result'][$method]['file_size'];
             if ($result['file_type'] == 'photo') {
                 $result['file_size'] = $result['result'][$method][0]['file_size'];
-            } else {
-                $result['file_size'] = $result['result'][$method]['file_size'];
             }
             unset($result['result']);
         }
@@ -318,7 +309,6 @@ class API extends Tools
                     }
                 }
             }
-            set_time_limit(0);
             shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
@@ -352,7 +342,6 @@ class API extends Tools
                 }
                 $file_name = basename($downloadres['result']['file_path']);
                 $path = $this->homedir.'/ul/'.$me.'/'.$file_name;
-                set_time_limit(0);
                 shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']));
                 if (!file_exists($path)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
@@ -455,9 +444,9 @@ class API extends Tools
                 $newparams['caption'] = $file_name;
                 break;
         }
-        foreach ($newparams as $param => $val) {
+        foreach ($newparams as $param => &$val) {
             if (isset($oldparams[$param]) && $oldparams[$param] != '') {
-                $newparams[$param] = $oldparams[$param];
+                $val = $oldparams[$param];
             }
         }
 
@@ -483,8 +472,8 @@ class API extends Tools
                 curl_setopt($ch, CURLOPT_POSTFIELDS, ['chat_id' => $this->botusername, $type => new \CURLFile($path)]);
                 $result = json_decode(curl_exec($ch), true);
                 curl_close($ch);
-                if ($result['ok'] == true) {
-                    foreach ($this->methods as $curmethod => $value) {
+                if ($result['ok']) {
+                    foreach ($this->methods_keys as $curmethod) {
                         if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
                             $type = $curmethod;
                         }
@@ -528,7 +517,7 @@ class API extends Tools
                 if (!$this->telegram->replymsg($result['id'], 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]))) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send reply data."];
                 }
-                $response = $this->curl($this->pwrtelegram_api.'/getupdates');
+                $this->curl($this->pwrtelegram_api.'/getupdates');
                 $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;');
                 $select_stmt->execute([$file_hash, $me, $name]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);

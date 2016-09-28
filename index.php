@@ -11,6 +11,10 @@ See the GNU Affero General Public License for more details.
 You should have received a copy of the GNU General Public License along with the PWRTelegram API.
 If not, see <http://www.gnu.org/licenses/>.
 */
+
+ini_set('log_errors', 1);
+ini_set('error_log', '/tmp/php-error-index.log');
+set_time_limit(0);
 require_once 'src/pwrtelegram/pwrtelegram/Tools.php';
 require_once 'src/pwrtelegram/pwrtelegram/API.php';
 require_once 'src/pwrtelegram/pwrtelegram/Proxy.php';

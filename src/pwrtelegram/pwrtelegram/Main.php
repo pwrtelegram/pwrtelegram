@@ -35,6 +35,7 @@ class Main extends Proxy
             'audio'    => 'audio',
             'file'     => '',
         ];
+        $this->methods_keys = array_keys($this->methods);
         // Deep telegram
         $this->deep = (bool) preg_match('/^deep/', $_SERVER['HTTP_HOST']);
         $this->beta = (bool) preg_match('/beta/', $_SERVER['HTTP_HOST']);
@@ -85,55 +86,48 @@ class Main extends Proxy
         if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
             $pwrapi_file_url = $this->pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
             if ($this->checkurl($pwrapi_file_url)) {
-                $file_url = $pwrapi_file_url;
-            } else {
-                // get my username
-                $me = $this->curl($this->url.'/getMe')['result']['username'];
-
-                $file_uri = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
-                $api_file_url = $this->file_url.$file_uri;
-                if ($this->checkurl($api_file_url)) {
-                    $this->db_connect();
-
-                    $path = str_replace('//', '/', $this->homedir.'/storage/'.$me.'/'.$file_uri);
-
-                    if (!(file_exists($path) && filesize($path) == $this->curl_get_file_size($api_file_path))) {
-                        if (!$this->checkdir(dirname($path))) {
-                            $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."]);
-                        }
-                        set_time_limit(0);
-                        $fp = fopen($path, 'w+');
-                        $ch = curl_init(str_replace(' ', '%20', $api_file_url));
-                        curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-                        // write curl response to file
-                        curl_setopt($ch, CURLOPT_FILE, $fp);
-                        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                        // get curl response
-                        curl_exec($ch);
-                        curl_close($ch);
-                        fclose($fp);
-                    }
-
-                    if (!file_exists($path)) {
-                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file does not exist)."]);
-                    }
-
-                    $file_size = filesize($path);
-
-                    $file_path = $me.$file_uri;
-
-                    $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$file_path, $me]);
-                    $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$file_path, $file_size, $me, $path]);
-                }
-
-                if ($this->checkurl($this->pwrtelegram_storage.$file_path)) {
-                    $file_url = $this->pwrtelegram_storage.$file_path;
-                } else {
-                    $file_url = $api_file_uri;
-                }
+                $this->exit_redirect($pwrapi_file_url);
             }
-            header('Location: '.$file_url);
-            die();
+            
+            // get my username
+            $me = $this->curl($this->url.'/getMe')['result']['username'];
+            $api_file_path = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
+            $api_file_url = $this->file_url.$api_file_path;
+            if ($this->checkurl($api_file_url)) {
+            
+                $storage_path = str_replace('//', '/', $this->homedir.'/storage/'.$me.$api_file_path);
+                if (!(file_exists($storage_path) && filesize($storage_path) == $this->curl_get_file_size($api_file_url))) {
+                    if (!$this->checkdir(dirname($storage_path))) {
+                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."]);
+                    }
+                    set_time_limit(0);
+                    $fp = fopen($storage_path, 'w+');
+                    $ch = curl_init(str_replace(' ', '%20', $api_file_url));
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+                    // write curl response to file
+                    curl_setopt($ch, CURLOPT_FILE, $fp);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                    // get curl response
+                    curl_exec($ch);
+                    curl_close($ch);
+                    fclose($fp);
+                }
+                if (!file_exists($storage_path)) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file does not exist)."]);
+                }
+
+                $file_size = filesize($storage_path);
+                $dl_file_path = $me.$api_file_path;
+
+                $this->db_connect();
+                $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$file_path, $me]);
+                $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$dl_file_path, $file_size, $me, $storage_path]);
+            }
+
+            if ($this->checkurl($this->pwrtelegram_storage.$dl_file_path)) {
+                $this->exit_redirect($this->pwrtelegram_storage.$dl_file_path);
+            }
+            $this->exit_redirect($api_file_url);
         }
     }
 
@@ -356,16 +350,16 @@ class Main extends Proxy
                         curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_api.'/'.$result['method']);
                         unset($result['method']);
                         curl_setopt($ch, CURLOPT_POSTFIELDS, $result);
-                        $secondresult = curl_exec($ch);
+                        curl_exec($ch);
+                        //error_log('Reverse webhook command from '.$me.' returned '.curl_exec($ch));
                         curl_close($ch);
-                        //error_log('Reverse webhook command from '.$me.' returned '.$secondresult);
                     }
                 }
                 exit;
                 break;
             case '/getchat':
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
-                if ($result['ok'] != true && isset($this->REQUEST['chat_id'])) {
+                if ($result['ok'] != true && isset($_REQUEST['chat_id']) && preg_match('/^@/', $_REQUEST['chat_id']) && $_REQUEST['chat_id'] != '@') {
                     $this->telegram_connect();
                     $cliresult = $this->telegram->exec('user_info '.$this->peer_type.'#'.$this->peer_id);
                     if (isset($cliresult->{'peer_id'})) {

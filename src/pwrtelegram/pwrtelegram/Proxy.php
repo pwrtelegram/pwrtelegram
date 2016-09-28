@@ -16,8 +16,6 @@ class Proxy extends API
         // identify request headers
 
         $request_headers = [];
-        $setContentType = true;
-        $isMultiPart = false;
         foreach ($_SERVER as $key => $value) {
             if (substr($key, 0, 5) == 'HTTP_') {
                 $headername = str_replace('_', ' ', substr($key, 5));
