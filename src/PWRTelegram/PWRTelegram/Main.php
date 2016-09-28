@@ -119,7 +119,7 @@ class Main extends Proxy
                 $dl_file_path = $me.$api_file_path;
 
                 $this->db_connect();
-                $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$file_path, $me]);
+                $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$dl_file_path, $me]);
                 $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$dl_file_path, $file_size, $me, $storage_path]);
             }
 
