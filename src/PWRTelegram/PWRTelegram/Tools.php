@@ -103,6 +103,7 @@ class Tools
         if ($retcode == 200) {
             return true;
         }
+
         return false;
     }
 
@@ -223,6 +224,7 @@ class Tools
         if (file_exists($file)) {
             return unlink($file);
         }
+
         return false;
     }
 
