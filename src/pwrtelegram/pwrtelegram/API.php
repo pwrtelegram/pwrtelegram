@@ -183,6 +183,7 @@ class API extends Tools
         $newresponse['result']['file_size'] = $file_size;
 
         $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
+
         return $newresponse;
     }
 

@@ -88,13 +88,12 @@ class Main extends Proxy
             if ($this->checkurl($pwrapi_file_url)) {
                 $this->exit_redirect($pwrapi_file_url);
             }
-            
+
             // get my username
             $me = $this->curl($this->url.'/getMe')['result']['username'];
             $api_file_path = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
             $api_file_url = $this->file_url.$api_file_path;
             if ($this->checkurl($api_file_url)) {
-            
                 $storage_path = str_replace('//', '/', $this->homedir.'/storage/'.$me.$api_file_path);
                 if (!(file_exists($storage_path) && filesize($storage_path) == $this->curl_get_file_size($api_file_url))) {
                     if (!$this->checkdir(dirname($storage_path))) {

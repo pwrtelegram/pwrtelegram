@@ -38,6 +38,7 @@ class Tools
         if ($json == true) {
             return json_decode($res, true);
         }
+
         return $res;
     }
 
@@ -51,8 +52,9 @@ class Tools
      {
          return array_key_exists($key, $array) && !empty($array[$key]);
      }
-     
-    public function exit_redirect($where) {
+
+    public function exit_redirect($where)
+    {
         header('Location '.$where);
         exit;
     }
