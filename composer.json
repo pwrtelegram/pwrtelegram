@@ -12,7 +12,7 @@
             "name": "Daniil Gentili",
             "email": "daniil.gentili.dg@gmail.com"
         }
-    ]
+    ],
     "autoload": {
         "psr-0": {
             "PWRTelegram\\PWRTelegram\\": "src/"
