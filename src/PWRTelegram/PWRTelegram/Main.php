@@ -168,17 +168,17 @@ class Main extends Proxy
             }
         }
         if (!isset($this->peer_type) && !isset($this->peer_id) && isset($this->REQUEST['chat_id']) && is_numeric($this->REQUEST['chat_id'])) {
-            $this->peer_type = "user";
+            $this->peer_type = 'user';
             $this->peer_id = $this->REQUEST['chat_id'];
             if ($this->REQUEST['chat_id'] < 0) {
-                $this->peer_type = "chat";
+                $this->peer_type = 'chat';
                 $this->peer_id = -$this->REQUEST['chat_id'];
-                if (preg_match('/\-100/', (string)$this->REQUEST['chat_id'])) {
-                    $this->peer_type = "channel";
-                    $this->peer_id = preg_replace('/\-100/', '', (string)$this->REQUEST['chat_id']);
+                if (preg_match('/\-100/', (string) $this->REQUEST['chat_id'])) {
+                    $this->peer_type = 'channel';
+                    $this->peer_id = preg_replace('/\-100/', '', (string) $this->REQUEST['chat_id']);
                 }
             }
-         }
+        }
     }
 
     public function run_methods()
