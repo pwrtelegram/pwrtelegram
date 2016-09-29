@@ -55,7 +55,7 @@ class Tools
 
     public function exit_redirect($where)
     {
-        header('Location '.$where);
+        header('Location: '.$where);
         exit;
     }
 

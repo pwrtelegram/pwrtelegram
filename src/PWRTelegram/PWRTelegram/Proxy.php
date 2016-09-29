@@ -30,7 +30,7 @@ class Proxy extends API
 
         if (empty($this->REQUEST)) {
             $data = file_get_contents('php://input');
-            if (!empty($data)) {
+            if (!empty($data) && is_array($data)) {
                 $this->REQUEST = $data;
             }
         }

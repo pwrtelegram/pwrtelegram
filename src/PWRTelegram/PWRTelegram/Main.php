@@ -122,7 +122,6 @@ class Main extends Proxy
                 $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$dl_file_path, $me]);
                 $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$dl_file_path, $file_size, $me, $storage_path]);
             }
-
             if ($this->checkurl($this->pwrtelegram_storage.$dl_file_path)) {
                 $this->exit_redirect($this->pwrtelegram_storage.$dl_file_path);
             }
@@ -141,10 +140,8 @@ class Main extends Proxy
             } else {
                 $id = '';
                 $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST['chat_id']);
-                if ($result['ok'] && isset($result['result']['id']) && isset($result['result']['type'])) {
-                    if ($result['result']['type'] == 'private') {
-                        $id = $result['result']['id'];
-                    }
+                if ($result['ok'] && isset($result['result']['id'])) {
+                    $id = $result['result']['id'];
                 } else {
                     $this->telegram_connect();
                     $id_result = $this->telegram->exec('resolve_username '.preg_replace('/^@/', '', $this->REQUEST['chat_id']));
@@ -170,6 +167,18 @@ class Main extends Proxy
                 }
             }
         }
+        if (!isset($this->peer_type) && !isset($this->peer_id) && isset($this->REQUEST['chat_id']) && is_numeric($this->REQUEST['chat_id'])) {
+            $this->peer_type = "user";
+            $this->peer_id = $this->REQUEST['chat_id'];
+            if ($this->REQUEST['chat_id'] < 0) {
+                $this->peer_type = "chat";
+                $this->peer_id = -$this->REQUEST['chat_id'];
+                if (preg_match('/\-100/', (string)$this->REQUEST['chat_id'])) {
+                    $this->peer_type = "channel";
+                    $this->peer_id = preg_replace('/\-100/', '', (string)$this->REQUEST['chat_id']);
+                }
+            }
+         }
     }
 
     public function run_methods()
@@ -358,17 +367,34 @@ class Main extends Proxy
                 break;
             case '/getchat':
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
-                if ($result['ok'] != true && isset($_REQUEST['chat_id']) && preg_match('/^@/', $_REQUEST['chat_id']) && $_REQUEST['chat_id'] != '@') {
+                if (!$result['ok'] && isset($_REQUEST['chat_id']) && $_REQUEST['chat_id'] != '') {
                     $this->telegram_connect();
-                    $cliresult = $this->telegram->exec('user_info '.$this->peer_type.'#'.$this->peer_id);
+                    $cliresult = $this->telegram->exec($this->peer_type.'_info '.$this->peer_type.'#'.$this->peer_id);
                     if (isset($cliresult->{'peer_id'})) {
                         $newresult = ['ok' => true, 'result' => ['id' => $this->REQUEST['chat_id']]];
-                        foreach (['first_name', 'last_name', 'username', 'type'] as $key) {
+                        foreach (['first_name', 'last_name', 'username', 'type', 'title'] as $key) {
                             if (isset($cliresult->{$key}) && $cliresult->{$key} != null) {
                                 $newresult['result'][$key] = ($key == 'type' && $cliresult->type == 'user') ? 'private' : $cliresult->{$key};
                             }
                         }
                         $result = $newresult;
+                    }
+                }
+                $this->jsonexit($result);
+                break;
+            case '/pwrgetchat':
+                $result = ["ok" => false, "error_code" => 400, "description" => "An error occurred"];
+                if (isset($this->peer_type) && isset($this->peer_id)) {
+                    $this->telegram_connect();
+                    $cliresult = $this->telegram->exec($this->peer_type.'_info '.$this->peer_type.'#'.$this->peer_id);
+                    var_dump($cliresult, $this->peer_type.'_info '.$this->peer_type.'#'.$this->peer_id);
+                    if (isset($cliresult->{'peer_id'})) {
+                        $result = ['ok' => true, 'result' => ['id' => $this->REQUEST['chat_id']]];
+                        foreach (['first_name', 'last_name', 'username', 'type', 'title', 'participants_count', 'kicked_count', 'description', 'online', 'date', 'share_text', 'commands'] as $key) {
+                            if (isset($cliresult->{$key}) && $cliresult->{$key} != null) {
+                                $result['result'][$key] = ($key == 'type' && $cliresult->type == 'user') ? 'private' : $cliresult->{$key};
+                            }
+                        }
                     }
                 }
                 $this->jsonexit($result);

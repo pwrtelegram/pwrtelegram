@@ -50,7 +50,7 @@ class API extends Tools
         $result = null;
         if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain) {
             $storage_params = [];
-            foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_url'] as $key) {
+            foreach (['url', 'methods', 'methods_keys', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_url'] as $key) {
                 $storage_params[$key] = $this->{$key};
             }
             $storage_params['file_id'] = $file_id;
