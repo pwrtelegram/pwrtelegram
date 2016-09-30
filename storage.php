@@ -134,7 +134,7 @@ if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
     require_once '../storage_url.php';
     $botusername = ($deep ? $deepbotusername : $botusername);
     require_once '../db_connect.php';
-    foreach (['url', 'methods', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id', 'file_url'] as $key) {
+    foreach (['url', 'methods', 'methods_keys', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id', 'file_url'] as $key) {
         $GLOBALS[$key] = $_POST[$key];
     }
     $homedir = realpath(__DIR__.'/../').'/';

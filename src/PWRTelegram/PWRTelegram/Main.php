@@ -93,6 +93,7 @@ class Main extends Proxy
             $me = $this->curl($this->url.'/getMe')['result']['username'];
             $api_file_path = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
             $api_file_url = $this->file_url.$api_file_path;
+            $dl_file_path = '';
             if ($this->checkurl($api_file_url)) {
                 $storage_path = str_replace('//', '/', $this->homedir.'/storage/'.$me.$api_file_path);
                 if (!(file_exists($storage_path) && filesize($storage_path) == $this->curl_get_file_size($api_file_url))) {
@@ -121,9 +122,9 @@ class Main extends Proxy
                 $this->db_connect();
                 $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$dl_file_path, $me]);
                 $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$dl_file_path, $file_size, $me, $storage_path]);
-            }
-            if ($this->checkurl($this->pwrtelegram_storage.$dl_file_path)) {
-                $this->exit_redirect($this->pwrtelegram_storage.$dl_file_path);
+                if ($this->checkurl($this->pwrtelegram_storage.$dl_file_path)) {
+                    $this->exit_redirect($this->pwrtelegram_storage.$dl_file_path);
+                }
             }
             $this->exit_redirect($api_file_url);
         }
