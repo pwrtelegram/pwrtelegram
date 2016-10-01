@@ -299,6 +299,7 @@ class Main extends Proxy
                     if (!$me['ok']) {
                         $this->jsonexit($me);
                     }
+                    $me = $me['result']['username'];
                     $this->pdo->prepare('DELETE FROM hooks WHERE user=?;')->execute([$me]);
                     $insert_stmt = $this->pdo->prepare('INSERT INTO hooks (user, hash) VALUES (?, ?);');
                     $insert_stmt->execute([$me, hash('sha256', $this->REQUEST['url'])]);
