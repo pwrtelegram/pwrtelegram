@@ -168,7 +168,7 @@ class Tools
      */
     public function checkbotuser($me)
     {
-        if ($this->curl($this->url . '/sendMessage?text=SHISH&chat_id=' . $this->botusername)['ok']) {
+        if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
             return true;
         }
         // Get all of the usernames
