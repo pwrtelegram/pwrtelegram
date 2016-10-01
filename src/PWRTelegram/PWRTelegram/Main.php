@@ -295,7 +295,14 @@ class Main extends Proxy
                 }
                 if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
                     $this->db_connect();
-                    $me = $this->curl($this->url.'/getMe')['result']['username']; // get my username
+                    $me = $this->curl($this->url.'/getMe');
+                    if (isset($me['result']['username'])) {
+                        $me = $me['result']['username']; // get my username
+                    } else {
+                        error_log(var_export($me, true));
+                        error_log($this->url);
+                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Username isn't set"]);
+                    }
                     $this->pdo->prepare('DELETE FROM hooks WHERE user=?;')->execute([$me]);
                     $insert_stmt = $this->pdo->prepare('INSERT INTO hooks (user, hash) VALUES (?, ?);');
                     $insert_stmt->execute([$me, hash('sha256', $this->REQUEST['url'])]);
@@ -369,7 +376,10 @@ class Main extends Proxy
             case '/getchat':
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
                 $this->telegram_connect();
-                $cliresult = $this->telegram->exec($this->peer_type.'_info '.$this->peer_type.'#'.$this->peer_id);
+                $cliresult = [];
+                if (isset($this->peer_type) && isset($this->peer_id)) {
+                    $cliresult = $this->telegram->exec($this->peer_type.'_info '.$this->peer_type.'#'.$this->peer_id);
+                }
                 if (isset($cliresult->{'peer_id'})) {
                     if (!$result['ok']) {
                         $result = ['ok' => true, 'result' => ['id' => $this->REQUEST['chat_id']]];
