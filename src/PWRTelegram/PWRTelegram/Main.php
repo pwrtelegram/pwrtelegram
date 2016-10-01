@@ -296,12 +296,8 @@ class Main extends Proxy
                 if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
                     $this->db_connect();
                     $me = $this->curl($this->url.'/getMe');
-                    if (isset($me['result']['username'])) {
-                        $me = $me['result']['username']; // get my username
-                    } else {
-                        error_log(var_export($me, true));
-                        error_log($this->url);
-                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Username isn't set"]);
+                    if (!$me['ok']) {
+                        $this->jsonexit($me);
                     }
                     $this->pdo->prepare('DELETE FROM hooks WHERE user=?;')->execute([$me]);
                     $insert_stmt = $this->pdo->prepare('INSERT INTO hooks (user, hash) VALUES (?, ?);');

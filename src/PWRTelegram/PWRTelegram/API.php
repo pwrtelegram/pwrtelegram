@@ -217,9 +217,12 @@ class API extends Tools
             $result['message_id'] = $result['result']['message_id'];
             $result['file_type'] = $method;
             $result['file_id'] = $file_id;
-            $result['file_size'] = $result['result'][$method]['file_size'];
             if ($result['file_type'] == 'photo') {
                 $result['file_size'] = $result['result'][$method][0]['file_size'];
+                $result['file_name'] = $result['result'][$method][0]['file_name'];
+            } else {
+                $result['file_size'] = $result['result'][$method]['file_size'];
+                $result['file_name'] = $result['result'][$method]['file_name'];
             }
             unset($result['result']);
         }
@@ -364,6 +367,11 @@ class API extends Tools
         } else {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't use the provided file id/URL."];
         }
+        if (!file_exists($path)) {
+            error_log($path . " wasn't downloaded " . $file);
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
+        }
+
         if ($type == 'file') {
             $mime = '';
             $ext = '';
@@ -450,7 +458,6 @@ class API extends Tools
                 $val = $oldparams[$param];
             }
         }
-
         $file_hash = hash_file('sha256', $path);
         $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;');
         $select_stmt->execute([$file_hash, $type, $me, $name]);
