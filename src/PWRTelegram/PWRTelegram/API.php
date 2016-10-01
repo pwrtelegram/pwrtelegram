@@ -368,7 +368,8 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't use the provided file id/URL."];
         }
         if (!file_exists($path)) {
-            error_log($path . " wasn't downloaded " . $file);
+            error_log($path." wasn't downloaded ".$file);
+
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
         }
 
