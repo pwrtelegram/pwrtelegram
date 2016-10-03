@@ -219,10 +219,14 @@ class API extends Tools
             $result['file_id'] = $file_id;
             if ($result['file_type'] == 'photo') {
                 $result['file_size'] = $result['result'][$method][0]['file_size'];
-                $result['file_name'] = $result['result'][$method][0]['file_name'];
+                if (isset($result['result'][$method][0]['file_name'])) {
+                    $result['file_name'] = $result['result'][$method][0]['file_name'];
+                }
             } else {
                 $result['file_size'] = $result['result'][$method]['file_size'];
-                $result['file_name'] = $result['result'][$method]['file_name'];
+                if (isset($result['result'][$method]['file_name'])) {
+                    $result['file_name'] = $result['result'][$method]['file_name'];
+                }
             }
             unset($result['result']);
         }
@@ -313,7 +317,7 @@ class API extends Tools
                     }
                 }
             }
-            shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
+            shell_exec('wget -qQ 1610612736 -O "'.escapeshellarg($path).'" "'.escapeshellarg($file).'"');
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
             }
@@ -346,7 +350,7 @@ class API extends Tools
                 }
                 $file_name = basename($downloadres['result']['file_path']);
                 $path = $this->homedir.'/ul/'.$me.'/'.$file_name;
-                shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']));
+                shell_exec('wget -qQ 1610612736 -O "'.escapeshellarg($path).'" "'.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']).'"');
                 if (!file_exists($path)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
                 }
@@ -422,10 +426,10 @@ class API extends Tools
                     }
                 } catch (\RuntimeException $e) {
                 }
-                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                $newparams['duration'] = shell_exec('ffprobe -show_format "'.escapeshellarg($path).'"'." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'voice':
-                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                $newparams['duration'] = shell_exec('ffprobe -show_format "'.escapeshellarg($path).'"'." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'video':
                 try {
@@ -444,7 +448,7 @@ class API extends Tools
                     }
                 } catch (\RuntimeException $e) {
                 }
-                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                $newparams['duration'] = shell_exec('ffprobe -show_format "'.escapeshellarg($path).'"'." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 $newparams['caption'] = $file_name;
                 break;
             case 'photo':
