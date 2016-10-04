@@ -317,7 +317,7 @@ class API extends Tools
                     }
                 }
             }
-            shell_exec('wget -qQ 1610612736 -O "'.escapeshellarg($path).'" "'.escapeshellarg($file).'"');
+            shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
             }
@@ -350,7 +350,7 @@ class API extends Tools
                 }
                 $file_name = basename($downloadres['result']['file_path']);
                 $path = $this->homedir.'/ul/'.$me.'/'.$file_name;
-                shell_exec('wget -qQ 1610612736 -O "'.escapeshellarg($path).'" "'.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']).'"');
+                shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']));
                 if (!file_exists($path)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
                 }
@@ -426,10 +426,10 @@ class API extends Tools
                     }
                 } catch (\RuntimeException $e) {
                 }
-                $newparams['duration'] = shell_exec('ffprobe -show_format "'.escapeshellarg($path).'"'." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'voice':
-                $newparams['duration'] = shell_exec('ffprobe -show_format "'.escapeshellarg($path).'"'." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'video':
                 try {
@@ -448,7 +448,7 @@ class API extends Tools
                     }
                 } catch (\RuntimeException $e) {
                 }
-                $newparams['duration'] = shell_exec('ffprobe -show_format "'.escapeshellarg($path).'"'." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 $newparams['caption'] = $file_name;
                 break;
             case 'photo':
