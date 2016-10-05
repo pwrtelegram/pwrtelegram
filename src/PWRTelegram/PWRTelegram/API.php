@@ -181,6 +181,7 @@ class API extends Tools
         $newresponse['result']['file_id'] = $file_id;
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
+        $newresponse['result']['file_name'] = (isset($info['file_name'])) ? $info['file_name'] : '';
 
         $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
 
