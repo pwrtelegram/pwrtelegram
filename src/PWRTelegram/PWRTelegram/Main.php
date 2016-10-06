@@ -322,6 +322,13 @@ class Main extends Proxy
                 $this->jsonexit($hookresponse);
 
                 break;
+            case '/getwebhookinfo':
+                $hookinfo = $this->curl($this->url.'/getwebhookinfo?'.http_build_query($this->REQUEST));
+                if (isset($hookinfo["result"]["url"]) && $hookinfo["result"]["url"] != "") {
+                    parse_str(parse_url($hookinfo["result"]["url"], PHP_URL_QUERY), $url);
+                    $hookinfo["result"]["url"] = $url["hook"];
+                }
+                $this->jsonexit($hookinfo);
             case '/hook':
                 $hook = $_GET['hook'];
                 if ($this->token == '') {
