@@ -338,12 +338,12 @@ class Main extends Proxy
                         $this->handle_my_message($cur);
                         exit;
                     }
-                    $data = json_encode($cur);
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_URL, $hook);
                     curl_setopt($ch, CURLOPT_POST, true);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
                     $parse = parse_url($hook);
                     if (isset($parse['scheme']) && $parse['scheme'] == 'https') {
                         if (file_exists($this->homedir.'/hooks/'.$me.'.pem')) {
@@ -354,8 +354,9 @@ class Main extends Proxy
                         }
                     }
                     $result = curl_exec($ch);
+
                     curl_close($ch);
-                    //error_log('Result of webhook query is '.$result);
+                    echo 'Result of webhook query is '.$result;
                     $result = json_decode($result, true);
                     if (is_array($result) && isset($result['method']) && $result['method'] != '' && is_string($result['method'])) {
                         $ch = curl_init();
@@ -363,10 +364,12 @@ class Main extends Proxy
                         curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_api.'/'.$result['method']);
                         unset($result['method']);
                         curl_setopt($ch, CURLOPT_POSTFIELDS, $result);
-                        curl_exec($ch);
-                        //error_log('Reverse webhook command from '.$me.' returned '.curl_exec($ch));
+//                        curl_exec($ch);
+                        echo 'Reverse webhook command from '.$me.' returned '.curl_exec($ch);
                         curl_close($ch);
                     }
+                } else {
+                    $this->jsonexit(["ok" => true, "error_code" => 400, "description" => "Couldn't find webhook in database"]);
                 }
                 exit;
                 break;
