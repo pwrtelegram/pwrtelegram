@@ -324,9 +324,9 @@ class Main extends Proxy
                 break;
             case '/getwebhookinfo':
                 $hookinfo = $this->curl($this->url.'/getwebhookinfo?'.http_build_query($this->REQUEST));
-                if (isset($hookinfo["result"]["url"]) && $hookinfo["result"]["url"] != "") {
-                    parse_str(parse_url($hookinfo["result"]["url"], PHP_URL_QUERY), $url);
-                    $hookinfo["result"]["url"] = $url["hook"];
+                if (isset($hookinfo['result']['url']) && $hookinfo['result']['url'] != '') {
+                    parse_str(parse_url($hookinfo['result']['url'], PHP_URL_QUERY), $url);
+                    $hookinfo['result']['url'] = $url['hook'];
                 }
                 $this->jsonexit($hookinfo);
             case '/hook':
@@ -376,7 +376,7 @@ class Main extends Proxy
                         curl_close($ch);
                     }
                 } else {
-                    $this->jsonexit(["ok" => true, "error_code" => 400, "description" => "Couldn't find webhook in database"]);
+                    $this->jsonexit(['ok' => true, 'error_code' => 400, 'description' => "Couldn't find webhook in database"]);
                 }
                 exit;
                 break;
