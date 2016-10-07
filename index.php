@@ -15,6 +15,7 @@ If not, see <http://www.gnu.org/licenses/>.
 ini_set('log_errors', 1);
 ini_set('error_log', '/tmp/php-error-index.log');
 set_time_limit(0);
+ignore_user_abort(1);
 require_once 'src/PWRTelegram/PWRTelegram/Tools.php';
 require_once 'src/PWRTelegram/PWRTelegram/API.php';
 require_once 'src/PWRTelegram/PWRTelegram/Proxy.php';
