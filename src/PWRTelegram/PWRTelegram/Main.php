@@ -382,7 +382,7 @@ class Main extends Proxy
                 break;
             case '/getchat':
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
-                if (!$result["ok"]) {
+                if (!$result['ok']) {
                     $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
                 }
                 $this->telegram_connect();
