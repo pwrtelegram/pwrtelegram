@@ -382,6 +382,9 @@ class Main extends Proxy
                 break;
             case '/getchat':
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
+                if (!$result["ok"]) {
+                    $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
+                }
                 $this->telegram_connect();
                 $cliresult = [];
                 if (isset($this->peer_type) && isset($this->peer_id)) {
@@ -391,7 +394,7 @@ class Main extends Proxy
                     if (!$result['ok']) {
                         $result = ['ok' => true, 'result' => ['id' => $this->REQUEST['chat_id']]];
                     }
-                    foreach (['first_name', 'last_name', 'real_first_name', 'real_last_name', 'username', 'type', 'title', 'participants_count', 'kicked_count', 'description', 'online', 'date', 'share_text', 'commands', 'when'] as $key) {
+                    foreach (['first_name', 'last_name', 'real_first_name', 'real_last_name', 'username', 'type', 'title', 'participants_count', 'admins_count', 'kicked_count', 'description', 'online', 'date', 'share_text', 'commands', 'when'] as $key) {
                         if (isset($cliresult->{$key}) && $cliresult->{$key} !== null && !isset($result['result'][$key])) {
                             $result['result'][$key] = ($key == 'type' && $cliresult->type == 'user') ? 'private' : $cliresult->{$key};
                         }
