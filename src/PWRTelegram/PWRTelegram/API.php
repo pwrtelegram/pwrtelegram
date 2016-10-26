@@ -250,7 +250,7 @@ class API extends Tools
      * @return json with error or file id
      */
     // public function upload($file, $uploadata = array()) {
-    public function upload($file, $name = '', $type = '', $forcename = false, $oldparams = [])
+    public function upload($file, $whattype = 'url', $name = '', $type = '', $forcename = false, $oldparams = [])
     {
         if ($file == '') {
             return ['ok' => false, 'error_code' => 400, 'description' => 'No file specified.'];
@@ -285,7 +285,7 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
         }
         $path = $this->homedir.'ul/'.$me.'/'.$file_name;
-        if (file_exists($file)) {
+        if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
             if ($size < 1) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download the file (file size is 0)."];
@@ -296,7 +296,7 @@ class API extends Tools
             if (!rename($file, $path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't rename file."];
             }
-        } elseif (filter_var($file, FILTER_VALIDATE_URL)) {
+        } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
                 $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
                 $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
@@ -332,7 +332,7 @@ class API extends Tools
 
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
-        } elseif (!preg_match('/[^A-Za-z0-9\-\_]/', $file)) {
+        } elseif (!preg_match('/[^A-Za-z0-9\-\_]/', $file) && $whattype == 'url') {
             $info = $this->get_finfo($file);
             if ($info['ok'] != true) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't get info from file id."];

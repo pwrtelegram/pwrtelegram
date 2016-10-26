@@ -262,7 +262,7 @@ class Main extends Proxy
                     if (!(isset($result[$result['type'].'_file_id']) && $result[$result['type'].'_file_id'] != '')) {
                         if ((!isset($result[$result['type'].'_url']) || $result[$result['type'].'_url'] == '') && isset($_FILES['inline_file'.$number]['error']) && $_FILES['inline_file'.$number]['error'] == UPLOAD_ERR_OK) {
                             // Let's do this!
-                            $upload = $this->upload($_FILES['inline_file'.$number]['tmp_name'], $_FILES['inline_file'.$number]['name']);
+                            $upload = $this->upload($_FILES['inline_file'.$number]['tmp_name'], 'file', $_FILES['inline_file'.$number]['name']);
 
                             if (isset($upload['result']['file_id']) && $upload['result']['file_id'] != '') {
                                 unset($result[$result['type'].'_url']);
@@ -273,7 +273,7 @@ class Main extends Proxy
                             }
                         }
                         if (isset($result[$result['type'].'_url']) && $result[$result['type'].'_url'] != '') {
-                            $upload = $this->upload($result[$result['type'].'_url']);
+                            $upload = $this->upload($result[$result['type'].'_url'], 'url');
                             if (isset($upload['result']['file_id']) && $upload['result']['file_id'] != '') {
                                 unset($result[$result['type'].'_url']);
                                 if ($result['type'] == 'file') {
@@ -421,9 +421,11 @@ class Main extends Proxy
                 $name = $_FILES[$smethod]['name'];
                 $file = $_FILES[$smethod]['tmp_name'];
                 $forcename = true;
+                $type = 'file';
             } else {
                 if (isset($this->REQUEST[$smethod])) {
                     $file = $this->REQUEST[$smethod];
+                    $type = 'url';
                 }
             }
             // $file is the file's path/url/id
@@ -441,7 +443,7 @@ class Main extends Proxy
             }
 
             // Let's do this!
-            $upload = $this->upload($file, $name, $smethod, $forcename, $this->REQUEST);
+            $upload = $this->upload($file, $type, $name, $smethod, $forcename, $this->REQUEST);
             if (isset($upload['ok']) && $upload['ok'] && preg_match('|^/send|', $this->method)) {
                 $params = $this->REQUEST;
                 if (isset($upload['result']['caption']) && $upload['result']['caption'] != '') {
