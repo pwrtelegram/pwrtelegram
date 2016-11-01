@@ -122,11 +122,7 @@ The PWRTelegram API will automagically obtain the metadata of the provided file/
 
 This is the metadata that will be obtained and sent: 
 
-* Documents: file name as caption
-
-* Photos: file name as caption
-
-* Video: file name, width, height and duration as caption, width, height and duration
+* Video: width, height and duration as width, height and duration
 
 * Audio: track name, author, duration as title, author, duration
 
@@ -143,11 +139,7 @@ Use this method to send any file/URL/file ID. This method will automagically rec
 
 This is the metadata that will be obtained and sent (only if not present in the request) along with the file:
 
-* Documents: file name as caption
-
-* Photos: file name as caption
-
-* Video: file name, width, height and duration as caption, width, height and duration
+* Video: width, height and duration as width, height and duration
 
 * Audio: track name, author, duration as title, author, duration
 
@@ -185,8 +177,6 @@ On success, they will return a json array containing the following elements:
  * file_type => Uploaded file type
 
  * file_size => Uploaded file size
-
- * file_id => Optional caption of uploaded file id (to send when calling a send method).
 
 Otherwise the error is returned.
 

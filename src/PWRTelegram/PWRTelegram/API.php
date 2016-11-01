@@ -449,13 +449,13 @@ class API extends Tools
                 } catch (\RuntimeException $e) {
                 }
                 $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-                $newparams['caption'] = $file_name;
+//                $newparams['caption'] = $file_name;
                 break;
             case 'photo':
-                $newparams['caption'] = $file_name;
+//                $newparams['caption'] = $file_name;
                 break;
             case 'document':
-                $newparams['caption'] = $file_name;
+//                $newparams['caption'] = $file_name;
                 break;
         }
         foreach ($newparams as $param => &$val) {
@@ -548,10 +548,11 @@ class API extends Tools
             $size = $fetch['file_size'];
         }
         $res = ['ok' => true, 'result' => ['file_size' => $size, 'file_type' => $type, 'file_id' => $file_id]];
+/*
         if (isset($newparams['caption']) && $newparams['caption'] != '') {
             $res['result']['caption'] = $newparams['caption'];
         }
-
+*/
         return $res;
     }
 }

@@ -446,9 +446,11 @@ class Main extends Proxy
             $upload = $this->upload($file, $type, $name, $smethod, $forcename, $this->REQUEST);
             if (isset($upload['ok']) && $upload['ok'] && preg_match('|^/send|', $this->method)) {
                 $params = $this->REQUEST;
+/*
                 if (isset($upload['result']['caption']) && $upload['result']['caption'] != '') {
                     $params['caption'] = $upload['result']['caption'];
                 }
+*/
                 $params[$upload['result']['file_type']] = $upload['result']['file_id'];
                 $this->jsonexit($this->curl($this->url.'/send'.$upload['result']['file_type'].'?'.http_build_query($params)));
             } else {
