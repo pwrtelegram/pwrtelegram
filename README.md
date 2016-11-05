@@ -2,7 +2,7 @@
 Version 1.1 beta 3.   
 Licensed under AGPLv3.  
 
-[![API status](https://api.pwrtelegram.xyz)](http://pwr-status.herokuapp.com)
+[![API status](https://api.pwrtelegram.xyz)](https://pwr-status.herokuapp.com)
 
 This repository contains the source code for the pwrtelegram API, a boosted version of the official telegram bot API.
 
@@ -18,7 +18,7 @@ The PWRTelegram API makes use of:
 
 This API is written and maintained by [danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)) and [Rondoozle](https://github.com/Rondoozle) ([@POTUS on Telegram](https://telegram.me/POTUS)).  
 
-It is hosted on OVH.
+It is hosted on Scaleway.
 
 The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/BayernPars).
 
