@@ -1,6 +1,8 @@
 # Pwrtelegram API
-Version 1.1 beta 1.  
+Version 1.1 beta 3.   
 Licensed under AGPLv3.  
+
+[![API status](https://api.pwrtelegram.xyz)](http://pwr-status.herokuapp.com)
 
 This repository contains the source code for the pwrtelegram API, a boosted version of the official telegram bot API.
 
