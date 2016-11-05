@@ -370,7 +370,7 @@ class Main extends Proxy
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_api.'/'.$result['method']);
                         unset($result['method']);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, $result);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($result));
 //                        curl_exec($ch);
                         echo 'Reverse webhook command from '.$me.' returned '.curl_exec($ch);
                         curl_close($ch);
@@ -417,6 +417,7 @@ class Main extends Proxy
             $name = '';
             $forcename = false;
             $file = '';
+            $type = '';
             if (isset($_FILES[$smethod]['tmp_name']) && $_FILES[$smethod]['tmp_name'] != '') {
                 $name = $_FILES[$smethod]['name'];
                 $file = $_FILES[$smethod]['tmp_name'];
