@@ -11,7 +11,6 @@ See the GNU Affero General Public License for more details.
 You should have received a copy of the GNU General Public License along with the PWRTelegram API.
 If not, see <http://www.gnu.org/licenses/>.
 */
-
 ini_set('log_errors', 1);
 ini_set('error_log', '/tmp/php-error-index.log');
 set_time_limit(0);
@@ -26,4 +25,8 @@ require_once '../db_connect.php';
 $pwrhomedir = realpath(__DIR__);
 
 $API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
-$API->run();
+try {
+    $API->run();
+} catch (Exception $e) {
+    $API->jsonexit(['ok' => false, 'error_code' => 400, $e->getTraceAsString()]);
+}

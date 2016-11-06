@@ -132,39 +132,41 @@ class Main extends Proxy
 
     public function run_chat_id()
     {
-        if (isset($this->REQUEST['chat_id']) && preg_match('/^@/', $this->REQUEST['chat_id']) && $this->REQUEST['chat_id'] != '@') {
-            $this->db_connect();
-            $usernameresstmt = $this->pdo->prepare('SELECT id from usernames where username=?;');
-            $usernameresstmt->execute([$this->REQUEST['chat_id']]);
-            if ($usernameresstmt->rowCount() == 1) {
-                $this->REQUEST['chat_id'] = $usernameresstmt->fetchColumn();
-            } else {
-                $id = '';
-                $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST['chat_id']);
-                if ($result['ok'] && isset($result['result']['id'])) {
-                    $id = $result['result']['id'];
+        foreach (['chat_id', 'from_chat_id'] as $key) {
+            if (isset($this->REQUEST[$key]) && preg_match('/^@/', $this->REQUEST[$key]) && $this->REQUEST[$key] != '@') {
+                $this->db_connect();
+                $usernameresstmt = $this->pdo->prepare('SELECT id from usernames where username=?;');
+                $usernameresstmt->execute([$this->REQUEST['chat_id']]);
+                if ($usernameresstmt->rowCount() == 1) {
+                    $this->REQUEST[$key] = $usernameresstmt->fetchColumn();
                 } else {
-                    $this->telegram_connect();
-                    $id_result = $this->telegram->exec('resolve_username '.preg_replace('/^@/', '', $this->REQUEST['chat_id']));
-                    if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
-                        switch ($id_result->peer_type) {
-                            case 'user':
-                                $id = $id_result->peer_id;
-                                break;
-                            case 'channel':
-                                $id = '-100'.(string) $id_result->peer_id;
-                                break;
-                            case 'chat':
-                                $id = -$id_result->peer_id;
-                                break;
+                    $id = '';
+                    $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST[$key]);
+                    if ($result['ok'] && isset($result['result']['id'])) {
+                        $id = $result['result']['id'];
+                    } else {
+                        $this->telegram_connect();
+                        $id_result = $this->telegram->exec('resolve_username '.preg_replace('/^@/', '', $this->REQUEST[$key]));
+                        if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
+                            switch ($id_result->peer_type) {
+                                case 'user':
+                                    $id = $id_result->peer_id;
+                                    break;
+                                case 'channel':
+                                    $id = '-100'.(string) $id_result->peer_id;
+                                    break;
+                                case 'chat':
+                                    $id = -$id_result->peer_id;
+                                    break;
+                            }
+                            $this->peer_type = $id_result->peer_type;
+                            $this->peer_id = $id_result->peer_id;
                         }
-                        $this->peer_type = $id_result->peer_type;
-                        $this->peer_id = $id_result->peer_id;
                     }
-                }
-                if ($id != '') {
-                    $this->pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$this->REQUEST['chat_id'], $id]);
-                    $this->REQUEST['chat_id'] = $id;
+                    if ($id != '') {
+                        $this->pdo->prepare('INSERT INTO usernames (username, id) VALUES (?, ?);')->execute([$this->REQUEST[$key], $id]);
+                        $this->REQUEST[$key] = $id;
+                    }
                 }
             }
         }
@@ -231,13 +233,9 @@ class Main extends Proxy
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
-                if (isset($this->REQUEST['inline_message_id']) && $this->REQUEST['inline_message_id'] != '') {
-                    $res = $this->curl($this->url.'/editMessageText?parse_mode=Markdown&text=_This message was deleted_&inline_message_id='.$this->REQUEST['inline_message_id']);
-                } elseif (isset($this->REQUEST['message_id']) && isset($this->REQUEST['chat_id']) && $this->REQUEST['message_id'] != '' && $this->REQUEST['chat_id'] != '') {
-                    $res = $this->curl($this->url.'/editMessageText?parse_mode=Markdown&text=_This message was deleted_&message_id='.$this->REQUEST['message_id'].'&chat_id='.$this->REQUEST['chat_id']);
-                } else {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing required parameters.']);
-                }
+                $this->REQUEST['parse_mode'] = 'Markdown';
+                $this->REQUEST['text'] = '_This message was deleted_';
+                $res = $this->curl($this->url.'/editMessageText?'.http_build_query($this->REQUEST));
                 if ($res['ok']) {
                     $res['result'] = 'The message was deleted successfully.';
                 }
@@ -404,7 +402,38 @@ class Main extends Proxy
                 break;
             case '/getbackend':
             case '/getbackcosoh':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+
+                $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
+
+                if (!$this->checkbotuser($me)) {
+                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
+                }
                 $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->botusername));
+                break;
+            case '/getmessage':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];
+                $this->REQUEST['chat_id'] = $this->botusername;
+                $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
+                if ($res['ok']) {
+                    $res['result']['from'] = $res['result']['forward_from'];
+                    $res['result']['date'] = $res['result']['forward_date'];
+                    $chat_info = $this->curl($this->url.'/getChat?chat_id='.$this->REQUEST['from_chat_id']);
+                    if ($chat_info['ok']) {
+                        $res['result']['chat'] = $chat_info['result'];
+                    }
+                    if (isset($res['result']['forward_from_chat'])) {
+                        unset($res['result']['forward_from_chat']);
+                    }
+                    unset($res['result']['forward_from']);
+                    unset($res['result']['forward_date']);
+                }
+                $this->jsonexit($res);
                 break;
         }
 

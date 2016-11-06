@@ -40,6 +40,7 @@ All of the official telegram bot API features plus:
 * Both webhooks and getupdates are supported.
 * webhook requests can be recieved even on insecure http servers.
 * Resolving of usernames not only with channels and groups but also with normal users and bots.
+* Added getMessage function!
 * [It is open source](https://github.com/pwrtelegram)!
 * [It can be installed on your own server](https://github.com/pwrtelegram/pwrtelegram-backend)!
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
@@ -221,6 +222,15 @@ Please note that it's better to upload the big files using the upload methods an
 * getBackend
 
 This method returns a Chat object with info about the backend pwrtelegram user.  
+
+* getMessage
+
+This message returns a Message object with info about the provided message.
+
+| Parameters        	| Type              	| Required             	| Description                                                                                                                                              	|
+|-------------------	|-------------------	|----------------------	|----------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| chat_id           	| Integer or String 	| Yes		 	| Unique identifier for the target chat or username of the target channel, group or user (in the format @username) 	|
+| message_id        	| Integer           	| Yes		 	| Unique identifier of the sent message                                                                    	|
 
 
 ## Known bugs
