@@ -10,7 +10,7 @@ class Proxy extends API
      *
      * Released under CC-GNU GPL
      */
-    public function run_proxy()
+    public function run_proxy($return_result = false)
     {
 
         // identify request headers
@@ -56,13 +56,19 @@ class Proxy extends API
         }
 
         // retrieve response (headers and content)
-
-        $response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/", '', shell_exec($cmd));
+        $response = shell_exec($cmd);
+        if ($response === null) {
+            $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Result of proxy curl request was null.']);
+        }
+        $response = preg_replace("/^HTTP\/1.1 100 Continue(\r\n){2}/", '', $response);
 
         // error_log($response);
         // split response to header and content
 
         list($response_headers, $response_content) = preg_split('/(\r\n){2}/', $response, 2);
+        if ($return_result) {
+            return $response_content;
+        }
 
         // (re-)send the headers
 

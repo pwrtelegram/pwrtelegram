@@ -504,12 +504,9 @@ class Main extends Proxy
                     if (isset($cliresult->{'result'}) && isset($cliresult->event) && $cliresult->event == "download") {
                         $upload = $this->upload($cliresult->result, 'file', '', 'photo');
                         if (isset($upload['ok']) && $upload['ok']) {
-                            $upload = $this->get_finfo($upload['result']['file_id'], true);
+                            $upload = $this->get_finfo($upload['file_id']);
                             if (isset($upload['ok']) && $upload['ok']) {
-                                if (!$this->issetandnotempty($this->REQUEST, 'offset')) {
-                                   $this->REQUEST['offset'] = 0;
-                                }
-                                $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $this->REQUEST['offset'])]];
+                                $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => [$upload['result']['photo']]]];
                             }
                         }
                     }

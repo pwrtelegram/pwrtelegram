@@ -41,6 +41,8 @@ All of the official telegram bot API features plus:
 * webhook requests can be recieved even on insecure http servers.
 * Resolving of usernames not only with channels and groups but also with normal users and bots.
 * Added getMessage function!
+* The sendChatAction function now has a duration parameter!
+* Profile pictures of channels and chats can now be fetched!
 * [It is open source](https://github.com/pwrtelegram)!
 * [It can be installed on your own server](https://github.com/pwrtelegram/pwrtelegram-backend)!
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
@@ -84,11 +86,13 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 
 * With this API you can use usernames to interact even with normal users and you can get info about bots using their username (with the getChat method).  
 
-* getUpdates and webhook requests.
+* Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue (this limitation is only present if you use getupdates).  
+
+### getUpdates and webhook requests.
 
 The response of these requests will be passed trough a piece of code that will filter out messages from @pwrtelegramapi.
 
-* getFile requests.
+### getFile requests.
 
 getFile requests are intercepted and the file is downloaded using the PWRTelegram API.  
 The PWRTelegram API will then return a [File](https://core.telegram.org/bots/API#file) object.   
@@ -109,11 +113,11 @@ If your request times out and you try to redownload the file you will be returne
 
   * error_code => 202
 
-  * description => Your file is being downloaded. Please try again later.
+  * description => Your file is currently being downloaded. Please try again later.
 
 You can repeat the request until you get the File object.  
 
- * sendDocument, sendPhoto, sendVideo, sendAudio, sendVoice, sendSticker requests.  
+### sendDocument, sendPhoto, sendVideo, sendAudio, sendVoice, sendSticker requests.  
 
 All of the above requests will be processed using the PWRTelegram API.  
 
@@ -136,7 +140,7 @@ You can also provide a ```file_name``` parameter containing the name of the file
 
 
 
-* sendFile
+### sendFile
 
 Use this method to send any file/URL/file ID. This method will automagically recognize the type of file/URL uploaded and send it using the correct telegram method. It will also automagically read file metadata and attach it to the request (only if it isn't already provided in the request). On success, the sent Message is returned.
 
@@ -165,7 +169,7 @@ This is the metadata that will be obtained and sent (only if not present in the 
 | reply_markup         	| InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardHide or ForceReply 	| Optional 	| Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to hide reply keyboard or to force a reply from the user. 	|
 
 
-* uploadFile, uploadDocument, uploadAudio, uploadVideo, uploadVoice, uploadPhoto, uploadSticker
+### uploadFile, uploadDocument, uploadAudio, uploadVideo, uploadVoice, uploadPhoto, uploadSticker
 
 These methods can be used to upload files to telegram without sending them to a particular user. Their usage is exactly the same as for their sendMethod counterparts, except that the chat_id, disable_notification, reply_to_message_id, reply_markup parameters will be ignored.  
 
@@ -184,7 +188,7 @@ On success, they will return a json array containing the following elements:
 Otherwise the error is returned.
 
 
-* deleteMessage
+### deleteMessage
 
 Use this method to delete text messages sent by the bot or via the bot (for inline bots).  
 On success, if the message is deleted by the bot, a json array is returned with the following values:
@@ -202,28 +206,24 @@ Otherwise the error is returned.
 | inline_message_id 	| String            	| No (see description) 	| Required if chat_id and message_id are not specified. Identifier of the inline message                                                                   	|
 
 
-* Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue (this limitation is only present if you use getupdates).  
-
-* You can use both getupdates and webhooks to get updates
+### You can use both getupdates and webhooks to get updates
 
 Only remember that you will have to repeat the setwebhook request to enable proxying trough the PWRTelegram API.
 
-* answerInlineQuery
+### answerInlineQuery
 
-The usage if this method is exactly the same as in the official telegram bot api, except that you can provide URLs to files bigger than 5 megabytes and you can set the file type to ```file``` to enable automatical type and metadata recognition.
+The usage of this method is exactly the same as in the official telegram bot api, except that you can provide URLs to files bigger than 5 megabytes and you can set the file type to ```file``` to enable automatical type and metadata recognition.
 
 You can also upload files using via POST: you just have to upload the files with parameter name equal to ```inline_file0``` where 0 is the number of the file. The number has to be equal to the array index of the InlineQueryResult that will feature that file. The type_url field of that InlineQueryResult must also be empty.
 
 Please note that it's better to upload the big files using the upload methods and store the file ids instead of uploading them directly using the answerInlineQuery method.  
 
 
-* Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili) or [open an issue](https://github.com/pwrtelegram/pwrtelegram/issues) or [submit a pull request with a fix](https://github.com/pwrtelegram/pwrtelegram) or write to [@pwrtelegramgroup](https://telegram.me/pwrtelegramgroup).  
-
-* getBackend
+### getBackend
 
 This method returns a Chat object with info about the backend pwrtelegram user.  
 
-* getMessage
+### getMessage
 
 This message returns a Message object with info about the provided message.
 
@@ -233,7 +233,26 @@ This message returns a Message object with info about the provided message.
 | message_id        	| Integer           	| Yes		 	| Unique identifier of the sent message                                                                    	|
 
 
+### sendChatAction
+
+The usage of this method is exactly the same as in the official telegram bot api, except that you can provide a duration parameter in order to keep the action active for a period of time longer than 5 seconds.
+
+The duration parameter accepts an integer.
+
+### getProfilePhotos
+
+Use this method to get a list of profile pictures for a user, chat or channel. Returns a [UserProfilePhotos](https://core.telegram.org/bots/api#userprofilephotos] object.
+
+| Parameters        	| Type              	| Required             	| Description                                                                                                                                              	|
+|-------------------	|-------------------	|----------------------	|----------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| chat_id           	| Integer or String 	| Yes		 	| Unique identifier for the target chat or username of the target channel, group or user (in the format @username) 	|
+| offset        	| Integer           	| Optional	 	| Sequential number of the first photo to be returned. By default, all photos are returned.                             |
+| limit         	| Integer           	| Optional	 	| Limits the number of photos to be retrieved. Values between 1—100 are accepted. Defaults to 100.                      |
+
+
 ## Known bugs
+
+* Please note that this API is still in beta and there might be small bugs. To report them contact [Daniil Gentili](https://telegram.me/danogentili) or [open an issue](https://github.com/pwrtelegram/pwrtelegram/issues) or [submit a pull request with a fix](https://github.com/pwrtelegram/pwrtelegram) or write to [@pwrtelegramgroup](https://telegram.me/pwrtelegramgroup).  
 
 See the issues of the repos of the [pwrtelegram organization](https://github.com/pwrtelegram).
 

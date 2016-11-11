@@ -48,7 +48,7 @@ class Tools
       * @param $array - The array
       * @param $key - The key
       */
-     public function issetnotempty($array, $key)
+     public function issetandnotempty($array, $key)
      {
          return array_key_exists($key, $array) && !empty($array[$key]);
      }
@@ -111,7 +111,7 @@ class Tools
     public function jsonexit($wut)
     {
         $die = json_encode($wut);
-        if ($die == null) {
+        if ($die == "null") {
             $die = json_encode(['ok' => false, 'error_code' => 400, 'description' => 'An error occurred (json encoded result is null)']);
         }
         die($die);

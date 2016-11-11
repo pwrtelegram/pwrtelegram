@@ -27,6 +27,7 @@ class API extends Tools
         if (!isset($this->pdo)) {
             $this->pdo = new \PDO($this->deep ? $this->deepdb : $this->db, $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
             $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
         }
     }
 
@@ -133,7 +134,7 @@ class API extends Tools
             }
             $cmd = $me.' '.$file_id.' '.$this->methods[$info['file_type']];
             if (preg_match('/'.$cmd.'/', shell_exec('ps aux | grep -v grep')) == true) {
-                return ['ok' => true, 'error_code' => 202, 'description' => 'File is already being downloaded. Please try again later.'];
+                return ['ok' => true, 'error_code' => 202, 'description' => 'File is currently being downloaded. Please try again later.'];
             }
             $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
             if ($result['ok'] == false) {
@@ -182,7 +183,7 @@ class API extends Tools
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
 
-        $this->pdo->prepare('INSERT INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
+        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
 
         return $newresponse;
     }
@@ -194,7 +195,7 @@ class API extends Tools
      *
      * @return json with error or file info
      */
-    public function get_finfo($file_id)
+    public function get_finfo($file_id, $full_photo = false)
     {
         $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
 
@@ -208,6 +209,7 @@ class API extends Tools
             $count++;
         }
         $count--;
+        if ($full_photo) return $result;
         foreach ($this->methods_keys as $curmethod) {
             if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
                 $method = $curmethod;
@@ -477,7 +479,7 @@ class API extends Tools
 
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
-            if ($size < 50000000) {
+            if ($size < 52428800) {
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
                 curl_setopt($ch, CURLOPT_URL, $this->url.'/send'.$type.'?'.http_build_query($newparams));
