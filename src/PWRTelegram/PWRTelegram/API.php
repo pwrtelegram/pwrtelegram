@@ -209,7 +209,9 @@ class API extends Tools
             $count++;
         }
         $count--;
-        if ($full_photo) return $result;
+        if ($full_photo) {
+            return $result;
+        }
         foreach ($this->methods_keys as $curmethod) {
             if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
                 $method = $curmethod;
