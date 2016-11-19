@@ -182,7 +182,8 @@ class API extends Tools
         $newresponse['result']['file_id'] = $file_id;
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
-
+        unset($this->pdo);
+        $this->db_connect();
         $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
 
         return $newresponse;
@@ -501,6 +502,9 @@ class API extends Tools
                     $file_id = $fetch['file_id'];
                 }
             }
+            unset($this->pdo);
+            $this->db_connect();
+
             if ($file_id != '') {
                 $this->try_unlink($path);
                 $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_id=? AND file_hash=? AND file_type=? AND bot=? AND file_name=? AND file_size=?;');
