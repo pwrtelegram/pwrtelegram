@@ -476,7 +476,7 @@ class Main extends Proxy
                 }
                 $duration = 5;
                 if ($this->issetandnotempty($this->REQUEST, 'duration') && is_numeric($this->REQUEST['duration'])) {
-                    $duration = (int)$this->REQUEST['duration'];
+                    $duration = (int) $this->REQUEST['duration'];
                     unset($this->REQUEST['duration']);
                 }
                 $res = $this->curl($this->url.'/sendchataction?'.http_build_query($this->REQUEST));
@@ -501,13 +501,13 @@ class Main extends Proxy
                     if (isset($this->peer_type) && isset($this->peer_id)) {
                         $cliresult = $this->telegram->exec('load_'.$this->peer_type.'_photo '.$this->peer_type.'#'.$this->peer_id);
                     }
-                    if (isset($cliresult->{'result'}) && isset($cliresult->event) && $cliresult->event == "download") {
+                    if (isset($cliresult->{'result'}) && isset($cliresult->event) && $cliresult->event == 'download') {
                         $upload = $this->upload($cliresult->result, 'file', '', 'photo');
                         if (isset($upload['ok']) && $upload['ok']) {
                             $upload = $this->get_finfo($upload['result']['file_id'], true);
                             if (isset($upload['ok']) && $upload['ok']) {
                                 if (!$this->issetandnotempty($this->REQUEST, 'offset')) {
-                                   $this->REQUEST['offset'] = 0;
+                                    $this->REQUEST['offset'] = 0;
                                 }
                                 $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $this->REQUEST['offset'])]];
                             }
