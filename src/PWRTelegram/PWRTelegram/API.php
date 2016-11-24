@@ -469,6 +469,8 @@ class API extends Tools
             }
         }
         $file_hash = hash_file('sha256', $path);
+        unset($this->pdo);
+        $this->db_connect();
         $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;');
         $select_stmt->execute([$file_hash, $type, $me, $name]);
         $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
