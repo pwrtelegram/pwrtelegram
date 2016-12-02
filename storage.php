@@ -38,6 +38,10 @@ class FileServe
             throw new Exception('The given input file does not exist.');
         }
         $this->size = filesize($filename);
+        if ($this->size == 0) {
+            throw new Exception('The size of the given input file is 0.');
+        }
+
         $listseek = explode('-', $range, 2);
         if (count($listseek) == 1) {
             $listseek[1] = '';

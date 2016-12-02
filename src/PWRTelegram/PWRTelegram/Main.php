@@ -418,6 +418,9 @@ class Main extends Proxy
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
+                if (!$this->issetandnotempty($this->REQUEST, 'chat_id')) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
+                }
                 $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];
                 $this->REQUEST['chat_id'] = $this->botusername;
                 $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
