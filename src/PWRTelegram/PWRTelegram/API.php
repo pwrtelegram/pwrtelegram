@@ -414,7 +414,6 @@ class API extends Tools
             }
         }
 
-
         $newparams = [];
         switch ($type) {
             case 'audio':

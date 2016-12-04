@@ -60,7 +60,6 @@ class Main extends Proxy
         // The file url with the token
         $this->file_url = 'https://api.telegram.org/file/bot'.$this->token;
 
-
         // The url of the storage
         $this->pwrtelegram_storage_domain = ($this->deep ? 'deep' : '').($this->beta ? 'beta' : '').$this->pwrtelegram_storage_domain;
 

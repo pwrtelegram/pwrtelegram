@@ -57,7 +57,6 @@ class FileServe
         }
         if ($this->stream === false) {
             throw new Exception('Could not read file. Please check permissions.');
-
             return false;
         }
         fseek($this->stream, $this->seek_start);
