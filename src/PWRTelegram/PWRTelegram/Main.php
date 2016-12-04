@@ -90,7 +90,7 @@ class Main extends Proxy
             }
 
             // get my username
-            $me = $this->curl($this->url.'/getMe')['result']['username'];
+            $me = $this->get_me()['result']['username'];
             $api_file_path = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
             $api_file_url = $this->file_url.$api_file_path;
             $dl_file_path = '';
@@ -293,11 +293,7 @@ class Main extends Proxy
                 }
                 if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
                     $this->db_connect();
-                    $me = $this->curl($this->url.'/getMe');
-                    if (!$me['ok']) {
-                        $this->jsonexit($me);
-                    }
-                    $me = $me['result']['username'];
+                    $me = $this->get_me()['result']['username'];
                     $this->pdo->prepare('DELETE FROM hooks WHERE user=?;')->execute([$me]);
                     $insert_stmt = $this->pdo->prepare('INSERT IGNORE INTO hooks (user, hash) VALUES (?, ?);');
                     $insert_stmt->execute([$me, hash('sha256', $this->REQUEST['url'])]);
@@ -333,7 +329,7 @@ class Main extends Proxy
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
-                $me = $this->curl($this->url.'/getMe')['result']['username']; // get my username
+                $me = $this->get_me()['result']['username']; // get my username
                 $this->db_connect();
                 $test_stmt = $this->pdo->prepare('SELECT hash FROM hooks WHERE user=?');
                 $test_stmt->execute([$me]);
@@ -407,7 +403,7 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
 
-                $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
+                $me = $this->get_me()['result']['username']; // get my peer id
 
                 if (!$this->checkbotuser($me)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
@@ -450,7 +446,7 @@ class Main extends Proxy
                 if (!$this->curl($this->url.'/getchat?chat_id='.$this->REQUEST['chat_id'])['ok']) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Invalid chat_id provided.']);
                 }
-                $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
+                $me = $this->get_me()['result']['username']; // get my peer id
                 if (!$this->issetandnotempty($this->REQUEST, 'namespace')) {
                     $this->REQUEST['namespace'] = $me.'.all';
                 }

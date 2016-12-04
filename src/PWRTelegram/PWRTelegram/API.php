@@ -46,10 +46,10 @@ class API extends Tools
      *
      * @return json with error or file path
      */
-    public function download($file_id)
+    public function download($file_id, $assume_timeout = true)
     {
         $result = null;
-        if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain) {
+        if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain && $assume_timeout) {
             $storage_params = [];
             foreach (['url', 'methods', 'methods_keys', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_url'] as $key) {
                 $storage_params[$key] = $this->{$key};
@@ -81,7 +81,7 @@ class API extends Tools
 
             return $result;
         }
-        $me = $this->curl($this->url.'/getMe')['result']['username']; // get my username
+        $me = $this->get_me()['result']['username']; // get my username
         $this->db_connect();
         $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
@@ -198,7 +198,7 @@ class API extends Tools
      */
     public function get_finfo($file_id, $full_photo = false)
     {
-        $me = $this->curl($this->url.'/getMe')['result']['username']; // get my peer id
+        $me = $this->get_me()['result']['username']; // get my peer id
 
         if (!$this->checkbotuser($me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
@@ -282,7 +282,7 @@ class API extends Tools
 
         $this->db_connect();
         $this->telegram_connect();
-        $meres = $this->curl($this->url.'/getMe')['result']; // get my username
+        $meres = $this->get_me()['result']; // get my username
         $me = $meres['username'];
         $mepeer = $meres['id'];
 
@@ -349,7 +349,7 @@ class API extends Tools
                 $type = $info['file_type'];
             }
             if ($type != $info['file_type'] || $name != '') {
-                $downloadres = $this->download($file);
+                $downloadres = $this->download($file, false);
                 if (!(isset($downloadres['result']['file_path']) && $downloadres['result']['file_path'] != '')) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file from file id."];
                 }

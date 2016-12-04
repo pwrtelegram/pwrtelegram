@@ -257,4 +257,13 @@ class Tools
         $this->try_unlink($symlink);
         $this->try_unlink($rpath);
     }
+    public function get_me() {
+        if (!isset($this->me)) {
+            $this->me = curl($this->url.'/getme');
+            if (!$this->me['ok']) {
+                $this->jsonexit($this->me);
+            }
+        }
+        return $this->me;
+    }
 }
