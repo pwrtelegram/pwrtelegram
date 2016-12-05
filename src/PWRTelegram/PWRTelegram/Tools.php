@@ -261,7 +261,7 @@ class Tools
     public function get_me()
     {
         if (!isset($this->me)) {
-            $this->me = curl($this->url.'/getme');
+            $this->me = $this->curl($this->url.'/getme');
             if (!$this->me['ok']) {
                 $this->jsonexit($this->me);
             }
