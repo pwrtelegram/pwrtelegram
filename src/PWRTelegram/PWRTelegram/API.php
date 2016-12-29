@@ -353,7 +353,9 @@ class API extends Tools
                 if (!(isset($downloadres['result']['file_path']) && $downloadres['result']['file_path'] != '')) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file from file id."];
                 }
-                if ($name == '') $name = basename($downloadres['result']['file_path']);
+                if ($name == '') {
+                    $name = basename($downloadres['result']['file_path']);
+                }
                 $path = $this->homedir.'/ul/'.$me.'/'.$name;
                 shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']));
                 if (!file_exists($path)) {
