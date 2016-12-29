@@ -405,7 +405,7 @@ class Main extends Proxy
                 $me = $this->get_me()['result']['username']; // get my peer id
 
                 if (!$this->checkbotuser($me)) {
-                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
                 }
                 $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->botusername));
                 break;
@@ -416,8 +416,14 @@ class Main extends Proxy
                 if (!$this->issetandnotempty($this->REQUEST, 'chat_id')) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
                 }
+                $me = $this->get_me()['result']['username']; // get my peer id
+
+                if (!$this->checkbotuser($me)) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
+                }
                 $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];
                 $this->REQUEST['chat_id'] = $this->botusername;
+
                 $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
                 if ($res['ok']) {
                     $res['result']['from'] = $res['result']['forward_from'];
