@@ -374,7 +374,18 @@ class Main extends Proxy
                 }
                 exit;
                 break;
+            case '/getchatbyfile':
+                if ($this->REQUEST['file_id'] == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No file id was provided.']);
+                }
+                $result = ['user_id' => unpack('V', substr($this->base64url_decode($this->REQUEST['file_id']), 10, 4))[1]];
+                $additional = $this->curl($this->url.'/getchat?chat_id='.$result['user_id']);
+                if ($additional['ok']) $result['additional'] = $additional['result'];
+                $this->jsonexit(['ok' => true, 'result' => $result]);
             case '/getchat':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
                 if (!$result['ok']) {
                     $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
