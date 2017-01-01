@@ -108,6 +108,10 @@ On success, the following object is returned:
 | additional       	| Object                                                              	| Optional      	| Additional info about the user id (basically the result of getchat with user_id, not always available)                                                        	|
 
 
+### getChat
+
+The usage of this method is exactly the same as in the official API except that it supports using usernames of normal users and bots (as every other pwrtelegram method) and returns some additional info like the real_first_name, real_last_name, participants_count, admins_count, kicked_count, description, online (boolean specifying if the user is online), date (last time user was online) and the bio.
+
 ### getUpdates and webhook requests.
 
 The response of these requests will be passed trough a piece of code that will filter out messages from @pwrtelegramapi.

@@ -385,9 +385,6 @@ class Main extends Proxy
                 }
                 $this->jsonexit(['ok' => true, 'result' => $result]);
             case '/getchat':
-                if ($this->token == '') {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
-                }
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
                 if (!$result['ok']) {
                     $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
@@ -406,6 +403,14 @@ class Main extends Proxy
                             $result['result'][$key] = ($key == 'type' && $cliresult->type == 'user') ? 'private' : $cliresult->{$key};
                         }
                     }
+                }
+                $bio = '';
+                if (isset($result['result']['username'])) {
+
+                    if (preg_match('/meta property="og:description" content=".+/', file_get_contents('https://telegram.me/'.$result['result']['username']), $biores)) {
+                        $bio = html_entity_decode(preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, str_replace(['meta property="og:description" content="', '">'], '', $biores[0])));
+                    }
+                    if ($bio != '') $result['result']['bio'] = $bio;
                 }
                 $this->jsonexit($result);
                 break;
