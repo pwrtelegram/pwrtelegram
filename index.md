@@ -25,6 +25,7 @@ The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/Bayern
 ## Features:  
 
 All of the official telegram bot API features plus:  
+* *NEW* It can obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too.
 * Support for [deep telegram bots](https://telegram.me/daniilgentili).
 * Downloading of files up to 1.5 GB in size  
 * Anonymous file storage (the URL of downloaded files does not contain your bot's token)
@@ -87,6 +88,25 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 * With this API you can use usernames to interact even with normal users and you can get info about bots using their username (with the getChat method).  
 
 * Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue (this limitation is only present if you use getupdates).  
+
+### getChatByFile
+
+*NEW* 
+
+Use this method to obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too.
+
+
+| Parameters           	| Type                                                                           	| Required 	| Description                                                                                                                                                                  	|
+|----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| file_id              	| String                                                              	| Yes      	| File id of a file                                                                     	|
+
+On success, the following object is returned:
+
+| Name           	| Type                                                                           	| Required 	| Description                                                                                                                                                                  	|
+|----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| user_id              	| Integer                                                              	| Yes      	| User id of the user that uploaded the file. For stickers, the creator of the sticker pack.                                                                     	|
+| additional       	| Object                                                              	| Optional      	| Additional info about the user id (basically the result of getchat with user_id, not always available)                                                        	|
+
 
 ### getUpdates and webhook requests.
 
