@@ -174,7 +174,7 @@ class Tools
     {
         if (!isset($this->userchecked)) {
             if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
-                $this->userchecked = true;
+                return $this->userchecked = true;
             }
             // Get all of the usernames
             $usernames = [];
