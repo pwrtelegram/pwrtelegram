@@ -380,7 +380,9 @@ class Main extends Proxy
                 }
                 $result = ['user_id' => unpack('V', substr($this->base64url_decode($this->REQUEST['file_id']), 10, 4))[1]];
                 $additional = $this->curl($this->url.'/getchat?chat_id='.$result['user_id']);
-                if ($additional['ok']) $result['additional'] = $additional['result'];
+                if ($additional['ok']) {
+                    $result['additional'] = $additional['result'];
+                }
                 $this->jsonexit(['ok' => true, 'result' => $result]);
             case '/getchat':
                 if ($this->token == '') {
