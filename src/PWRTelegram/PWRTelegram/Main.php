@@ -406,11 +406,14 @@ class Main extends Proxy
                 }
                 $bio = '';
                 if (isset($result['result']['username'])) {
-
                     if (preg_match('/meta property="og:description" content=".+/', file_get_contents('https://telegram.me/'.$result['result']['username']), $biores)) {
-                        $bio = html_entity_decode(preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, str_replace(['meta property="og:description" content="', '">'], '', $biores[0])));
+                        $bio = html_entity_decode(preg_replace_callback('/(&#[0-9]+;)/', function ($m) {
+                            return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
+                        }, str_replace(['meta property="og:description" content="', '">'], '', $biores[0])));
                     }
-                    if ($bio != '') $result['result']['bio'] = $bio;
+                    if ($bio != '') {
+                        $result['result']['bio'] = $bio;
+                    }
                 }
                 $this->jsonexit($result);
                 break;
