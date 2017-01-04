@@ -411,7 +411,7 @@ class Main extends Proxy
                             return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
                         }, str_replace(['meta property="og:description" content="', '">'], '', $biores[0])));
                     }
-                    if ($bio != '') {
+                    if ($bio != '' && $bio != 'You can contact @'.$result['result']['username'].' right away.') {
                         $result['result']['bio'] = $bio;
                     }
                 }
