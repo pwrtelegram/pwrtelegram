@@ -237,9 +237,11 @@ class API extends Tools
                     $result['file_name'] = $result['result'][$method][0]['file_name'];
                 }
             } else {
-                $result['file_size'] = $result['result'][$method]['file_size'];
                 if (isset($result['result'][$method]['file_name'])) {
                     $result['file_name'] = $result['result'][$method]['file_name'];
+                }
+                if (isset($result['result'][$method]['file_size'])) {
+                    $result['file_name'] = $result['result'][$method]['file_size'];
                 }
             }
             unset($result['result']);
