@@ -61,17 +61,17 @@ class Tools
 
     public function handle_my_message($cur)
     {
-        if (isset($cur['message']['text']) && preg_match('/^exec_this /', $cur['message']['text'])) {
-            $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['text']));
+        if (isset($cur['message']['reply_to_message']['text']) && preg_match('/^exec_this /', $cur['message']['reply_to_message']['text'])) {
+            $data = json_decode(preg_replace('/^exec_this /', '', $cur['message']['reply_to_message']['text']));
             foreach (array_keys($this->methods) as $curmethod) {
-                if (isset($cur['message']['reply_to_message'][$curmethod]) && is_array($cur['message']['reply_to_message'][$curmethod])) {
+                if (isset($cur['message'][$curmethod]) && is_array($cur['message'][$curmethod])) {
                     $ftype = $curmethod;
                 }
             }
             $this->db_connect();
             $this->pdo->prepare('UPDATE ul SET file_id=?, file_type=? WHERE file_hash=? AND bot=? AND file_name=?;')->execute(
                 [
-                    ($ftype == 'photo') ? $cur['message']['reply_to_message'][$ftype][0]['file_id'] : $cur['message']['reply_to_message'][$ftype]['file_id'],
+                    ($ftype == 'photo') ? $cur['message'][$ftype][0]['file_id'] : $cur['message'][$ftype]['file_id'],
                     $ftype,
                     $data->{'file_hash'},
                     $data->{'bot'},

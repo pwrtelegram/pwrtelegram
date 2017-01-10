@@ -285,6 +285,8 @@ class Filesystem
      *
      * @param string $filename Path to the file
      *
+     * @return bool
+     *
      * @throws IOException When windows path is longer than 258 characters
      */
     private function isReadable($filename)
@@ -330,14 +332,98 @@ class Filesystem
         }
 
         if (!$ok && true !== @symlink($originDir, $targetDir)) {
-            $report = error_get_last();
-            if (is_array($report)) {
-                if ('\\' === DIRECTORY_SEPARATOR && false !== strpos($report['message'], 'error code(1314)')) {
-                    throw new IOException('Unable to create symlink due to error code 1314: \'A required privilege is not held by the client\'. Do you have the required Administrator-rights?', 0, null, $targetDir);
-                }
-            }
-            throw new IOException(sprintf('Failed to create symbolic link from "%s" to "%s".', $originDir, $targetDir), 0, null, $targetDir);
+            $this->linkException($originDir, $targetDir, 'symbolic');
         }
+    }
+
+    /**
+     * Creates a hard link, or several hard links to a file.
+     *
+     * @param string          $originFile  The original file
+     * @param string|string[] $targetFiles The target file(s)
+     *
+     * @throws FileNotFoundException When original file is missing or not a file
+     * @throws IOException           When link fails, including if link already exists
+     */
+    public function hardlink($originFile, $targetFiles)
+    {
+        if (!$this->exists($originFile)) {
+            throw new FileNotFoundException(null, 0, null, $originFile);
+        }
+
+        if (!is_file($originFile)) {
+            throw new FileNotFoundException(sprintf('Origin file "%s" is not a file', $originFile));
+        }
+
+        foreach ($this->toIterator($targetFiles) as $targetFile) {
+            if (is_file($targetFile)) {
+                if (fileinode($originFile) === fileinode($targetFile)) {
+                    continue;
+                }
+                $this->remove($targetFile);
+            }
+
+            if (true !== @link($originFile, $targetFile)) {
+                $this->linkException($originFile, $targetFile, 'hard');
+            }
+        }
+    }
+
+    /**
+     * @param string $origin
+     * @param string $target
+     * @param string $linkType Name of the link type, typically 'symbolic' or 'hard'
+     */
+    private function linkException($origin, $target, $linkType)
+    {
+        $report = error_get_last();
+        if (is_array($report)) {
+            if ('\\' === DIRECTORY_SEPARATOR && false !== strpos($report['message'], 'error code(1314)')) {
+                throw new IOException(sprintf('Unable to create %s link due to error code 1314: \'A required privilege is not held by the client\'. Do you have the required Administrator-rights?', $linkType), 0, null, $target);
+            }
+        }
+        throw new IOException(sprintf('Failed to create %s link from "%s" to "%s".', $linkType, $origin, $target), 0, null, $target);
+    }
+
+    /**
+     * Resolves links in paths.
+     *
+     * With $canonicalize = false (default)
+     *      - if $path does not exist or is not a link, returns null
+     *      - if $path is a link, returns the next direct target of the link without considering the existence of the target
+     *
+     * With $canonicalize = true
+     *      - if $path does not exist, returns null
+     *      - if $path exists, returns its absolute fully resolved final version
+     *
+     * @param string $path         A filesystem path
+     * @param bool   $canonicalize Whether or not to return a canonicalized path
+     *
+     * @return string|null
+     */
+    public function readlink($path, $canonicalize = false)
+    {
+        if (!$canonicalize && !is_link($path)) {
+            return;
+        }
+
+        if ($canonicalize) {
+            if (!$this->exists($path)) {
+                return;
+            }
+
+            if ('\\' === DIRECTORY_SEPARATOR) {
+                $path = readlink($path);
+            }
+
+            return realpath($path);
+        }
+
+        if ('\\' === DIRECTORY_SEPARATOR) {
+            return realpath($path);
+        }
+
+        return readlink($path);
     }
 
     /**
@@ -367,10 +453,14 @@ class Filesystem
         }
 
         // Determine how deep the start path is relative to the common path (ie, "web/bundles" = 2 levels)
-        $depth = count($startPathArr) - $index;
+        if (count($startPathArr) === 1 && $startPathArr[0] === '') {
+            $depth = 0;
+        } else {
+            $depth = count($startPathArr) - $index;
+        }
 
         // When we need to traverse from the start, and we are starting from a root path, don't add '../'
-        if ('/' === $startPath[0] && 0 === $index && 1 === $depth) {
+        if ('/' === $startPath[0] && 0 === $index && 0 === $depth) {
             $traverser = '';
         } else {
             // Repeated "../" for each level need to reach the common path
@@ -554,8 +644,7 @@ class Filesystem
             throw new IOException(sprintf('Failed to write file "%s".', $filename), 0, null, $filename);
         }
 
-        // Ignore for filesystems that do not support umask
-        @chmod($tmpFile, 0666);
+        @chmod($tmpFile, 0666 & ~umask());
         $this->rename($tmpFile, $filename, true);
     }
 

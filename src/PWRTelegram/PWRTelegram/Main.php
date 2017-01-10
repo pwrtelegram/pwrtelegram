@@ -17,6 +17,10 @@ class Main extends Proxy
 {
     public $pwrhomedir;
 
+    public function __destruct() {
+        if (isset($this->madeline)) \danog\MadelineProto\Serialization::serialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline', $this->madeline);
+    }
+
     public function __construct($vars)
     {
         foreach ($vars as $key => $val) {
@@ -191,7 +195,7 @@ class Main extends Proxy
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
-                if ($this->REQUEST['file_id'] == '') {
+                if (!isset($this->REQUEST['file_id']) || $this->REQUEST['file_id'] == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No file id was provided.']);
                 }
                 $this->jsonexit($this->download($this->REQUEST['file_id']));

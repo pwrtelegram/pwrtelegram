@@ -39,6 +39,15 @@ class API extends Tools
         }
     }
 
+
+    public function madeline_connect()
+    {
+        if (!isset($this->madeline)) {
+            require_once $this->pwrhomedir.'/vendor/autoload.php';
+            $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
+        }
+    }
+
     /**
      * Download given file id and return json with error or downloaded path.
      *
@@ -403,7 +412,7 @@ class API extends Tools
             }
             if (preg_match('/^image\/.*/', $mime) && preg_match('/png|jpeg|jpg|bmp|tif/', $ext)) {
                 $type = 'photo';
-            } elseif (preg_match('/^video\/.*/', $mime) && 'mp4' == $ext && $audio >= 0) {
+            } elseif (preg_match('/^video\/.*/', $mime) && 'mp4' == $ext && $audio > 0) {
                 $type = 'video';
             } elseif ($ext == 'webp') {
                 $type = 'sticker';
@@ -415,55 +424,75 @@ class API extends Tools
                 $type = 'document';
             }
         }
-
+        $animated = false;
         $newparams = [];
         switch ($type) {
+            case 'voice':
             case 'audio':
                 try {
                     $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
                     $mediaInfoContainer = $mediaInfo->getInfo($path);
-                    $general = $mediaInfoContainer->getGeneral();
-                    foreach (['performer' => 'performer', 'track_name' => 'title'] as $orig => $param) {
-                        $newparams[$param] = '';
-                        try {
-                            $newparams[$param] = $general->get($orig);
-                        } catch (\Exception $e) {
-                        }
-                    }
-                } catch (\RuntimeException $e) {
-                }
-                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-                break;
-            case 'voice':
-                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-                break;
-            case 'video':
-                try {
-                    $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
-                    $mediaInfoContainer = $mediaInfo->getInfo($path);
-                    $general = $mediaInfoContainer->getGeneral();
-                    foreach (['width' => 'width', 'height' => 'height'] as $orig => $param) {
-                        $newparams[$param] = '';
+                    $general = $mediaInfoContainer->getGeneral()->get();
+                    foreach (['performer' => 'performer', 'track_name' => 'title', 'duration' => 'duration'] as $orig => $param) {
                         try {
                             $tmpget = $general->get($orig);
                             if (is_object($tmpget)) {
+                                if ($orig == 'duration') {
+                                    $newparams[$param] = ceil($tmpget->getMilliseconds() / 1000);
+                                    continue;
+                                }
                                 $newparams[$param] = $tmpget->__toString();
+
                             }
                         } catch (\Exception $e) {
                         }
                     }
                 } catch (\RuntimeException $e) {
                 }
-                $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
-//                $newparams['caption'] = $file_name;
+                if (!isset($newparams['duration'])) $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
-            case 'photo':
-//                $newparams['caption'] = $file_name;
+            case 'video':
+                try {
+                    $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
+                    $mediaInfoContainer = $mediaInfo->getInfo($path);
+                    $general = $mediaInfoContainer->getGeneral();
+                    foreach (['width' => 'width', 'height' => 'height', 'duration' => 'duration'] as $orig => $param) {
+                        try {
+                            $tmpget = $general->get($orig);
+                            if (is_object($tmpget)) {
+                                if ($orig == 'duration') {
+                                    $newparams[$param] = ceil($tmpget->getMilliseconds() / 1000);
+                                    continue;
+                                }
+                                $newparams[$param] = $tmpget->__toString();
+
+                            }
+                        } catch (\Exception $e) {
+                        }
+                    }
+
+                    $video = $mediaInfoContainer->getVideos();
+                    foreach (['width' => 'width', 'height' => 'height'] as $orig => $param) {
+                        try {
+                            $tmpget = $video[0]->get($orig);
+                            if (is_object($tmpget)) {
+                                $newparams[$param] = $tmpget->getAbsoluteValue();
+                            }
+                        } catch (\Exception $e) {
+                        }
+                    }
+                } catch (\RuntimeException $e) {
+                }
+                if (!isset($newparams['duration'])) $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 break;
             case 'document':
-//                $newparams['caption'] = $file_name;
+                try {
+                    $animated = (new \Mhor\MediaInfo\MediaInfo())->getInfo($path)->getGeneral()->get('count_of_audio_streams') == 0;
+                } catch (\RuntimeException $e) {
+                }
                 break;
         }
+        $newparams['caption'] = '';
         foreach ($newparams as $param => &$val) {
             if (isset($oldparams[$param]) && $oldparams[$param] != '') {
                 $val = $oldparams[$param];
@@ -508,10 +537,10 @@ class API extends Tools
                 }
             }
             unset($this->pdo);
-            $this->db_connect();
 
             if ($file_id != '') {
                 $this->try_unlink($path);
+                $this->db_connect();
                 $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_id=? AND file_hash=? AND file_type=? AND bot=? AND file_name=? AND file_size=?;');
                 $insert_stmt->execute([$file_id, $file_hash, $type, $me, $name, $size]);
                 $insert_stmt = $this->pdo->prepare('INSERT INTO ul (file_id, file_hash, file_type, bot, file_name, file_size) VALUES (?, ?, ?, ?, ?, ?);');
@@ -521,15 +550,43 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $peer = 'user#'.$mepeer;
-                $result = $this->telegram->pwrsendFile($peer, $this->methods[$type], $path, hash('sha256', json_encode([$file_hash, $type, $me, $name])));
+                $this->madeline_connect();
+                $inputFile = $this->madeline->upload($path);
+                $mime = mime_content_type($path);
                 $this->try_unlink($path);
-                if (isset($result['error']) && $result['error'] != '') {
-                    return ['ok' => false, 'error_code' => $result['error_code'], 'description' => $result['error']];
+                switch ($type) {
+                    case 'photo':
+                    $mtype = 'photo';
+                    $media = ['_' => 'inputMediaUploadedPhoto', 'file' => $inputFile, 'mime_type' => $mime, 'caption' => $newparams['caption']];
+                    break;
+
+                    case 'document':
+                    $attributes = $animated ? [['_' => 'documentAttributeAnimated']] : [[]];
+                    break;
+
+                    case 'video':
+                    $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height']]];
+                    break;
+
+                    case 'voice':
+                    case 'audio':
+                    $attributes = [array_merge(['_' => 'documentAttributeAudio', 'duration' => $newparams['duration'], 'voice' => $type == 'voice'], $newparams)];
+                    break;
                 }
-                if (!(isset($result['id']) && $result['id'] != '')) {
-                    return ['ok' => false, 'error_code' => 400, 'description' => 'Message id is empty.'];
+                if (!isset($media)) {
+                    $mtype = 'document';
+                    $attributes []= ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
+                    $media = ['_' => 'inputMediaUploadedDocument', 'file' => $inputFile, 'mime_type' => $mime, 'attributes' => $attributes, 'caption' => $newparams['caption']];
                 }
+                $peer = 'user#'.$mepeer;
+                $payload = 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]);
+                $result = $this->madeline->messages->sendMessage(['peer' => $peer, 'message' => $payload]);
+                if (!isset($result['id'])) {
+                    return ['ok' => false, 'error_code' => 400, 'description' => 'Message id of text message is empty.'];
+                }
+
+                $result = $this->madeline->messages->sendMedia(['peer' => $peer, 'media' => $media, 'reply_to_msg_id' => $result['id']]);
+                $this->db_connect();
                 $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;');
                 $insert_stmt->execute([$file_hash, $me, $name, $size]);
                 $insert_stmt = $this->pdo->prepare('INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);');
@@ -537,9 +594,6 @@ class API extends Tools
                 $count = $insert_stmt->rowCount();
                 if ($count != '1') {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
-                }
-                if (!$this->telegram->replymsg($result['id'], 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]))) {
-                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send reply data."];
                 }
                 $this->curl($this->pwrtelegram_api.'/getupdates');
                 $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;');

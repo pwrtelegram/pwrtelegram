@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "pwrtelegram/telegram-cli-client": "^0.6.0",
-        "mhor/php-mediainfo": "^2.2"
+        "mhor/php-mediainfo": "^2.2",
+        "danog/madelineproto": "dev-master"
     },
     "license": "AGPLv3",
     "authors": [
