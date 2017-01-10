@@ -564,7 +564,7 @@ class API extends Tools
                     break;
 
                     case 'document':
-                    $attributes = $animated ? [['_' => 'documentAttributeAnimated']] : [[]];
+                    $attributes = $animated ? [['_' => 'documentAttributeAnimated']] : [];
                     break;
 
                     case 'video':
