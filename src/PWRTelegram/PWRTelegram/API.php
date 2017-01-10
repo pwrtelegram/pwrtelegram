@@ -433,7 +433,7 @@ class API extends Tools
                 try {
                     $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
                     $mediaInfoContainer = $mediaInfo->getInfo($path);
-                    $general = $mediaInfoContainer->getGeneral()->get();
+                    $general = $mediaInfoContainer->getGeneral();
                     foreach (['performer' => 'performer', 'track_name' => 'title', 'duration' => 'duration'] as $orig => $param) {
                         try {
                             $tmpget = $general->get($orig);
