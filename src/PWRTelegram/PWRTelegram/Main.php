@@ -17,8 +17,11 @@ class Main extends Proxy
 {
     public $pwrhomedir;
 
-    public function __destruct() {
-        if (isset($this->madeline)) \danog\MadelineProto\Serialization::serialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline', $this->madeline);
+    public function __destruct()
+    {
+        if (isset($this->madeline)) {
+            \danog\MadelineProto\Serialization::serialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline', $this->madeline);
+        }
     }
 
     public function __construct($vars)

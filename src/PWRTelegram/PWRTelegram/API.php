@@ -39,7 +39,6 @@ class API extends Tools
         }
     }
 
-
     public function madeline_connect()
     {
         if (!isset($this->madeline)) {
@@ -444,14 +443,15 @@ class API extends Tools
                                     continue;
                                 }
                                 $newparams[$param] = $tmpget->__toString();
-
                             }
                         } catch (\Exception $e) {
                         }
                     }
                 } catch (\RuntimeException $e) {
                 }
-                if (!isset($newparams['duration'])) $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                if (!isset($newparams['duration'])) {
+                    $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                }
                 break;
             case 'video':
                 try {
@@ -467,7 +467,6 @@ class API extends Tools
                                     continue;
                                 }
                                 $newparams[$param] = $tmpget->__toString();
-
                             }
                         } catch (\Exception $e) {
                         }
@@ -485,7 +484,9 @@ class API extends Tools
                     }
                 } catch (\RuntimeException $e) {
                 }
-                if (!isset($newparams['duration'])) $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                if (!isset($newparams['duration'])) {
+                    $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
+                }
                 break;
             case 'document':
                 try {
@@ -577,7 +578,7 @@ class API extends Tools
                 }
                 if (!isset($media)) {
                     $mtype = 'document';
-                    $attributes []= ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
+                    $attributes[] = ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
                     $media = ['_' => 'inputMediaUploadedDocument', 'file' => $inputFile, 'mime_type' => $mime, 'attributes' => $attributes, 'caption' => $newparams['caption']];
                 }
                 $peer = 'user#'.$mepeer;
