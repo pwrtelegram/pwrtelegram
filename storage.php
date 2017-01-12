@@ -32,7 +32,8 @@ if ($_SERVER['REQUEST_URI'] == '/') {
     exit('<html><h1>418 I&apos;m a teapot.</h1><br><p>My little teapot, my little teapot, oooh oooh oooh oooh...</p></html>');
 }
 
-function no_cache($status, $wut) {
+function no_cache($status, $wut)
+{
     header_remove();
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Cache-Control: post-check=0, pre-check=0', false);
@@ -97,7 +98,7 @@ try {
     if ($seek_start > 0 || $seek_end < ($select['file_size'] - 1)) {
         header('HTTP/1.1 206 Partial Content');
         header('Content-Range: bytes '.$seek_start.'-'.$seek_end.'/'.$select['file_size']);
-        header('Content-Length: '.($seek_end - $seek_start)+1);
+        header('Content-Length: '.($seek_end - $seek_start) + 1);
     } else {
         header('Content-Length: '.$select['file_size']);
     }
@@ -109,7 +110,11 @@ try {
     if ($servefile) {
         require_once 'vendor/autoload.php';
         $MadelineProto = \danog\MadelineProto\Serialization::deserialize($deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
-        $MadelineProto->download_to_stream($select, fopen('php://output', 'w'), function ($percent) { flush(); ob_flush(); \danog\MadelineProto\Logger::log('Download status: '.$percent.'%'); }, $seek_start, $seek_end + 1);
+        $MadelineProto->download_to_stream($select, fopen('php://output', 'w'), function ($percent) {
+            flush();
+            ob_flush();
+            \danog\MadelineProto\Logger::log('Download status: '.$percent.'%');
+        }, $seek_start, $seek_end + 1);
     }
 } catch (\danog\MadelineProto\ResponseException $e) {
     no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>'.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()).'</p></body></html>');

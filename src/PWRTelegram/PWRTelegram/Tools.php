@@ -181,6 +181,7 @@ class Tools
             if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
                 return $this->userchecked = true;
             }
+
             return $this->userchecked = false;
         }
 

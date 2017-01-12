@@ -107,19 +107,19 @@ class API extends Tools
         unset($this->pdo);
         $path = '';
 
-            $this->madeline_connect();
-            if (!$this->checkbotuser($me)) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
-            }
-            $info = $this->get_finfo($file_id);
+        $this->madeline_connect();
+        if (!$this->checkbotuser($me)) {
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
+        }
+        $info = $this->get_finfo($file_id);
 
-            if ($info['ok'] == false) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't forward file to download user."];
-            }
-            if ($info['message_id'] == '') {
-                return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
-            }
-            $file_type = $info['file_type'];
+        if ($info['ok'] == false) {
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't forward file to download user."];
+        }
+        if ($info['message_id'] == '') {
+            return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
+        }
+        $file_type = $info['file_type'];
 /*
             $cmd = $me.' '.$file_id.' '.$this->methods[$info['file_type']];
             if (file_exists('/tmp/'.$cmd)) {
@@ -127,20 +127,20 @@ class API extends Tools
             }
 */
             $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
-            if ($result['ok'] == false) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
-            }
-            $result = $this->madeline->messages->searchGlobal(['offset_peer' => '@'.$me, 'q' => $file_id, 'offset_date' => 0, 'offset_id' => 0, 'limit' => 1]);
+        if ($result['ok'] == false) {
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
+        }
+        $result = $this->madeline->messages->searchGlobal(['offset_peer' => '@'.$me, 'q' => $file_id, 'offset_date' => 0, 'offset_id' => 0, 'limit' => 1]);
 
-            if (!isset($result['messages'][0]['reply_to_msg_id'])) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, search failed."];
-            }
-            $result = $this->madeline->messages->getMessages(['id' => [$result['messages'][0]['reply_to_msg_id']]]);
-            if (!isset($result['messages'][0]['media'])) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, error getting message."];
-            }
-            $media = $result['messages'][0]['media'];
-            $info = $this->madeline->get_download_info($media);
+        if (!isset($result['messages'][0]['reply_to_msg_id'])) {
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, search failed."];
+        }
+        $result = $this->madeline->messages->getMessages(['id' => [$result['messages'][0]['reply_to_msg_id']]]);
+        if (!isset($result['messages'][0]['media'])) {
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, error getting message."];
+        }
+        $media = $result['messages'][0]['media'];
+        $info = $this->madeline->get_download_info($media);
 
         $file_size = $info['size'];
         $file_name = $info['name'].$info['ext'];
