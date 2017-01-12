@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/danog/MadelineProto.git",
-                "reference": "251adef8cecc04a5b885e150c0b225d99ccf21c9"
+                "reference": "8bb08d6b4ad9cc2340807eb79432f07dc48f8227"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/danog/MadelineProto/zipball/251adef8cecc04a5b885e150c0b225d99ccf21c9",
-                "reference": "251adef8cecc04a5b885e150c0b225d99ccf21c9",
+                "url": "https://api.github.com/repos/danog/MadelineProto/zipball/8bb08d6b4ad9cc2340807eb79432f07dc48f8227",
+                "reference": "8bb08d6b4ad9cc2340807eb79432f07dc48f8227",
                 "shasum": ""
             },
             "require": {
@@ -59,7 +59,7 @@
                 "telegram",
                 "video"
             ],
-            "time": "2017-01-08 14:22:21"
+            "time": "2017-01-12 10:22:42"
         },
         {
             "name": "danog/phpstruct",

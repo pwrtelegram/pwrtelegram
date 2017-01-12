@@ -252,7 +252,6 @@ class API extends Tools
         $this->telegram_connect();
         $meres = $this->get_me()['result']; // get my username
         $me = $meres['username'];
-        $mepeer = $meres['id'];
 
         if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
@@ -539,7 +538,7 @@ class API extends Tools
                     $attributes[] = ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
                     $media = ['_' => 'inputMediaUploadedDocument', 'file' => $inputFile, 'mime_type' => $mime, 'attributes' => $attributes, 'caption' => $newparams['caption']];
                 }
-                $peer = 'user#'.$mepeer;
+                $peer = '@'.$me;
                 $payload = 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]);
                 $result = $this->madeline->messages->sendMessage(['peer' => $peer, 'message' => $payload]);
                 if (!isset($result['id'])) {

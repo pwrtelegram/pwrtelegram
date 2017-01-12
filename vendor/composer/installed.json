@@ -464,12 +464,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/danog/MadelineProto.git",
-            "reference": "251adef8cecc04a5b885e150c0b225d99ccf21c9"
+            "reference": "8bb08d6b4ad9cc2340807eb79432f07dc48f8227"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/danog/MadelineProto/zipball/251adef8cecc04a5b885e150c0b225d99ccf21c9",
-            "reference": "251adef8cecc04a5b885e150c0b225d99ccf21c9",
+            "url": "https://api.github.com/repos/danog/MadelineProto/zipball/8bb08d6b4ad9cc2340807eb79432f07dc48f8227",
+            "reference": "8bb08d6b4ad9cc2340807eb79432f07dc48f8227",
             "shasum": ""
         },
         "require": {
@@ -479,7 +479,7 @@
             "php": ">=5.6.0",
             "phpseclib/phpseclib": "^2.0"
         },
-        "time": "2017-01-08T14:22:21+00:00",
+        "time": "2017-01-12T10:22:42+00:00",
         "type": "project",
         "installation-source": "source",
         "autoload": {
