@@ -91,7 +91,7 @@ class API extends Tools
         }
         $me = $this->get_me()['result']['username']; // get my username
         $this->db_connect();
-        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
+        $selectstmt = $this->pdo->prepare('SELECT * FROM dl_new WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -103,96 +103,54 @@ class API extends Tools
 
             return $newresponse;
         }
-        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
+        $this->pdo->prepare('DELETE FROM dl_new WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
+        unset($this->pdo);
         $path = '';
-        $result = $this->curl($this->url.'/getFile?file_id='.$file_id);
-        if (isset($result['result']['file_path']) && $result['result']['file_path'] != '' && $this->checkurl($this->file_url.'/'.$result['result']['file_path'])) {
-            $file_path = $result['result']['file_path'];
-            $path = str_replace('//', '/', $this->homedir.'/'.($this->deep ? 'deep' : '').'storage/'.$me.'/'.$file_path);
-            $dl_url = $this->file_url.'/'.$file_path;
-            if (!(file_exists($path) && filesize($path) == $this->curl_get_file_size($dl_url))) {
-                if (!$this->checkdir(dirname($path))) {
-                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
-                }
-                $fp = fopen($path, 'w+');
-                $ch = curl_init(str_replace(' ', '%20', $dl_url));
-                curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-                // write curl response to file
-                curl_setopt($ch, CURLOPT_FILE, $fp);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                // get curl response
-                curl_exec($ch);
-                curl_close($ch);
-                fclose($fp);
-            }
-            $file_path = $me.'/'.$file_path;
-        }
 
-        if (!file_exists($path)) {
-            $this->telegram_connect();
+            $this->madeline_connect();
             if (!$this->checkbotuser($me)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
             $info = $this->get_finfo($file_id);
+
             if ($info['ok'] == false) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't forward file to download user."];
             }
             if ($info['message_id'] == '') {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
             }
+            $file_type = $info['file_type'];
+/*
             $cmd = $me.' '.$file_id.' '.$this->methods[$info['file_type']];
-            if (preg_match('/'.$cmd.'/', shell_exec('ps aux | grep -v grep')) == true) {
+            if (file_exists('/tmp/'.$cmd)) {
                 return ['ok' => true, 'error_code' => 202, 'description' => 'File is currently being downloaded. Please try again later.'];
             }
+*/
             $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
             if ($result['ok'] == false) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
             }
-            $result = $this->telegram->getFile($me, $file_id, $this->methods[$info['file_type']]);
-            if (!isset($result->{'result'}) || $result->{'result'} == '') {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
+            $result = $this->madeline->messages->searchGlobal(['offset_peer' => '@'.$me, 'q' => $file_id, 'offset_date' => 0, 'offset_id' => 0, 'limit' => 1]);
+
+            if (!isset($result['messages'][0]['reply_to_msg_id'])) {
+                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, search failed."];
             }
-            $path = $result->{'result'};
-            $file_path = $me.'/'.$info['file_type'].preg_replace('/.*\.telegram-cli\/downloads/', '', $path);
-            $ext = '';
-            $format = '';
-            $codec = '';
-            try {
-                $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
-                $mediaInfoContainer = $mediaInfo->getInfo($path);
-                $general = $mediaInfoContainer->getGeneral();
-                try {
-                    $ext = $general->get('file_extension');
-                } catch (\Exception $e) {
-                }
-                try {
-                    $format = preg_replace("/.*\s/", '', $general->get('format_extensions_usually_used'));
-                } catch (\Exception $e) {
-                }
-                try {
-                    $codec = preg_replace("/.*\s/", '', $general->get('codec_extensions_usually_used'));
-                } catch (\Exception $e) {
-                }
-                if ($format == '') {
-                    $format = $codec;
-                }
-            } catch (\Exception $e) {
+            $result = $this->madeline->messages->getMessages(['id' => [$result['messages'][0]['reply_to_msg_id']]]);
+            if (!isset($result['messages'][0]['media'])) {
+                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, error getting message."];
             }
-            if ($ext != $format && $format != '') {
-                $file_path = $file_path.'.'.$format;
-            }
-        }
-        if (!file_exists($path)) {
-            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file does not exist)."];
-        }
-        $file_size = filesize($path);
+            $media = $result['messages'][0]['media'];
+            $info = $this->madeline->get_download_info($media);
+
+        $file_size = $info['size'];
+        $file_name = $info['name'].$info['ext'];
+        $file_path = $me.'/'.$file_type.'/'.$file_name;
         $newresponse['ok'] = true;
         $newresponse['result']['file_id'] = $file_id;
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
-        unset($this->pdo);
         $this->db_connect();
-        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $path]);
+        $this->pdo->prepare('INSERT IGNORE INTO dl_new (file_id, file_path, file_size, bot, location, mime) VALUES (?, ?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, json_encode($info['InputFileLocation']), $info['mime']]);
 
         return $newresponse;
     }
@@ -313,7 +271,7 @@ class API extends Tools
             }
         } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
-                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
+                $select_stmt = $this->pdo->prepare('SELECT * FROM dl_new WHERE file_path=? AND bot=?;');
                 $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                 $count = $select_stmt->rowCount();

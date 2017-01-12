@@ -176,35 +176,12 @@ class Tools
             if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
                 return $this->userchecked = true;
             }
-            // Get all of the usernames
-            $usernames = [];
-            $this->telegram_connect();
-            $list = $this->telegram->getDialogList();
-            if ($list == false) {
-                $this->userchecked = false;
-
-                return false;
+            $this->madeline_connect();
+            $this->madeline->messages->sendMessage(['peer' => '@'.$me, 'message' => '/start']);
+            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
+                return $this->userchecked = true;
             }
-            foreach ($list as $username) {
-                if (isset($username->username)) {
-                    $usernames[] = $username->username;
-                }
-            }
-            // If never contacted bot send start command
-            if (!in_array($me, $usernames)) {
-                error_log('Resolving '.$me);
-                $peer = $this->telegram->escapeUsername($me);
-                if (!$this->telegram->msg($peer, '/start')) {
-                    error_log("Couldn't contact ".$me);
-                    $this->userchecked = false;
-
-                    return false;
-                }
-            }
-
-            $this->userchecked = true;
-
-            return true;
+            return $this->userchecked = false;
         }
 
         return $this->userchecked;
