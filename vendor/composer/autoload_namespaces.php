@@ -8,6 +8,5 @@ $baseDir = dirname($vendorDir);
 return array(
     'danog\\PHP\\' => array($vendorDir . '/danog/phpstruct/lib'),
     'danog\\MadelineProto\\' => array($vendorDir . '/danog/madelineproto/src'),
-    'Zyberspace\\Telegram\\Cli\\' => array($vendorDir . '/pwrtelegram/telegram-cli-client/lib'),
     'PWRTelegram\\PWRTelegram\\' => array($baseDir . '/src'),
 );

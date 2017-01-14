@@ -19,11 +19,14 @@ class MediaInfoCommandBuilder
             $fileSystem = new Filesystem();
 
             if (!$fileSystem->exists($filepath)) {
-                throw new \Exception('File doesn\'t exist');
+                throw new \Exception(sprintf('File "%s" does not exist', $filepath));
             }
 
             if (is_dir($filepath)) {
-                throw new \Exception('You must specify a filename, not a directory name');
+                throw new \Exception(sprintf(
+                    'Expected a filename, got "%s", which is a directory',
+                    $filepath
+                ));
             }
         }
 

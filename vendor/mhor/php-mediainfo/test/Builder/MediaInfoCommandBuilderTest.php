@@ -31,11 +31,22 @@ class MediaInfoCommandBuilderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Exception
+     * @expectedExceptionMessage File "non existing path" does not exist
      */
     public function testExceptionWithNonExistingFile()
     {
         $mediaInfoCommandBuilder = new MediaInfoCommandBuilder();
         $mediaInfoCommandBuilder->buildMediaInfoCommandRunner('non existing path');
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage Expected a filename, got ".", which is a directory
+     */
+    public function testExceptionWithDirectory()
+    {
+        $mediaInfoCommandBuilder = new MediaInfoCommandBuilder();
+        $mediaInfoCommandBuilder->buildMediaInfoCommandRunner('.');
     }
 
     public function testBuilderCommand()

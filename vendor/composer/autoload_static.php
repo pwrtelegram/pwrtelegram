@@ -66,13 +66,6 @@ class ComposerStaticInitde8a232de66fffef4be4dbea58c51255
                 0 => __DIR__ . '/..' . '/danog/madelineproto/src',
             ),
         ),
-        'Z' => 
-        array (
-            'Zyberspace\\Telegram\\Cli\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/pwrtelegram/telegram-cli-client/lib',
-            ),
-        ),
         'P' => 
         array (
             'PWRTelegram\\PWRTelegram\\' => 
