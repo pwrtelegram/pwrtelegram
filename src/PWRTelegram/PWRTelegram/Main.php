@@ -132,7 +132,6 @@ class Main extends Proxy
         curl_setopt($ch, CURLOPT_POSTFIELDS, ['getchat' => json_encode($result), 'photos' => json_encode($photores)]);
         $result = curl_exec($ch);
         curl_close($ch);
-        return json_decode($result)->ok;
     }
     public function run_file()
     {
