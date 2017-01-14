@@ -114,14 +114,30 @@ class Main extends Proxy
             $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
             if (isset($info['photo'])) {
                 $meres = $this->get_me()['result']; // get my username
-        $me = $meres['username'];
+                $me = $meres['username'];
 
                 if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
                 }
-                $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
-                $upload = $this->upload($path, 'file', '', 'photo');
+                $upload = [];
+                try {
+                    $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
+                    $upload = $this->upload($path, 'file', '', 'photo');
                 unlink($path);
+                    } catch (\danog\MadelineProto\ResponseException $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\Exception $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\RPCErrorException $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\TL\Exception $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    }
+
                 if (isset($upload['ok']) && $upload['ok']) {
                     $upload = $this->get_finfo($upload['result']['file_id'], true);
                     if (isset($upload['ok']) && $upload['ok']) {
