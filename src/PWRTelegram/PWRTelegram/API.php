@@ -352,7 +352,7 @@ class API extends Tools
 
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
         }
-
+        require_once 'vendor/autoload.php';
         if ($type == 'file') {
             $mime = '';
             $ext = '';

@@ -81,7 +81,18 @@ class Main extends Proxy
         $this->pwrtelegram_storage = 'https://'.$this->pwrtelegram_storage_domain.'/';
 
         $this->REQUEST = $_REQUEST;
-
+        if ($this->token !== '') {
+            $madeline_path = '/tmp/pwr_'.$this->get_me()['result']['username'].'_'.hash('sha256', $this->token).'.madeline';
+            if (!file_exists($madeline_path)) {
+                require 'vendor/autoload.php';
+                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+                $madeline->bot_login($this->token);
+                $madeline->API->get_updates_difference();
+                $madeline->API->store_db([], true);
+                $madeline->API->reset_session();
+                \danog\MadelineProto\Serialization::serialize($madeline_path, $madeline);
+            }
+        }
         /*
         foreach ($this->REQUEST as &$value) {
             $value = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($match) {
