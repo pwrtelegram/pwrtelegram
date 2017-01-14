@@ -31,22 +31,24 @@ class API extends Tools
         }
     }
 
-    public function telegram_connect()
+    public function madeline_connect($token = '')
     {
-        if (!isset($this->telegram)) {
-            require_once $this->pwrhomedir.'/vendor/autoload.php';
-            $this->telegram = new \Zyberspace\Telegram\Cli\Client(['homedir' => $this->homedir, 'pwrhomedir' => $this->pwrhomedir, 'botusername' => $this->botusername], $this->deep);
+        if ($token === '') {
+            if (!isset($this->madeline)) {
+                require_once $this->pwrhomedir.'/vendor/autoload.php';
+                return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
+            }
         }
-    }
-
-    public function madeline_connect()
-    {
         if (!isset($this->madeline)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
-            $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
+            $this->madeline_path = '/tmp/pwr_'.$this->get_me()['result']['username'].'_'.hash('sha256', $token).'.madeline';
+            if (file_exists($this->madeline_path)) {
+                return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
+            }
+            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+            $this->madeline->bot_login($token);
         }
     }
-
     /**
      * Download given file id and return json with error or downloaded path.
      *
@@ -54,7 +56,7 @@ class API extends Tools
      *
      * @return json with error or file path
      */
-    public function download($file_id, $assume_timeout = true)
+    public function download($file_id, $assume_timeout = false)
     {
         $result = null;
         if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain && $assume_timeout) {
@@ -79,12 +81,12 @@ class API extends Tools
                 curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_storage);
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
-                $result = curl_exec($ch);
-                $result = json_decode($result, true);
+                $resultj = curl_exec($ch);
+                $result = json_decode($resultj, true);
                 curl_close($ch);
             }
             if ($result == null) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file: result is null."];
+                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file: decoded result is null, original result is ".$resultj."."];
             }
 
             return $result;
@@ -248,8 +250,6 @@ class API extends Tools
             $name = '';
         }
 
-        $this->db_connect();
-        $this->telegram_connect();
         $meres = $this->get_me()['result']; // get my username
         $me = $meres['username'];
 
@@ -260,7 +260,7 @@ class API extends Tools
         if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
             if ($size < 1) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download the file (file size is 0)."];
+                return ['ok' => false, 'error_code' => 400, 'description' => "Size of uploaded file is 0."];
             }
             if ($size > 1610612736) {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
@@ -270,6 +270,7 @@ class API extends Tools
             }
         } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
+                $this->db_connect();
                 $select_stmt = $this->pdo->prepare('SELECT * FROM dl_new WHERE file_path=? AND bot=?;');
                 $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
@@ -289,6 +290,7 @@ class API extends Tools
                     }
                 }
             }
+            unset($this->pdo);
             shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
@@ -459,7 +461,6 @@ class API extends Tools
             }
         }
         $file_hash = hash_file('sha256', $path);
-        unset($this->pdo);
         $this->db_connect();
         $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;');
         $select_stmt->execute([$file_hash, $type, $me, $name]);
@@ -467,6 +468,7 @@ class API extends Tools
         $file_id = $fetch['file_id'];
 
         $count = $select_stmt->rowCount();
+        unset($this->pdo);
 
         if ($file_id == '') {
             if (!$this->checkbotuser($me)) {
@@ -496,7 +498,6 @@ class API extends Tools
                     $file_id = $fetch['file_id'];
                 }
             }
-            unset($this->pdo);
 
             if ($file_id != '') {
                 $this->try_unlink($path);

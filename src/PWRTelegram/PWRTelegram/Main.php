@@ -16,10 +16,16 @@ If not, see <http://www.gnu.org/licenses/>.
 class Main extends Proxy
 {
     public $pwrhomedir;
+    public $full_chat = [];
 
     public function __destruct()
     {
-        if (isset($this->madeline)) {
+        if (isset($this->madeline_path)) {
+            $this->madeline->API->store_db([], true);
+            $this->madeline->API->reset_session();
+            \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+        } else if (isset($this->madeline)) {
+            $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline', $this->madeline);
         }
     }
@@ -84,7 +90,50 @@ class Main extends Proxy
         }
         */
     }
+    public function getprofilephotos($params) {
+                if (!$this->issetandnotempty($params, 'chat_id')) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
+                }
+                $params['user_id'] = $params['chat_id'];
+                $res = $this->curl($this->url.'/getUserProfilePhotos?'.http_build_query($params));
+                if (!$res['ok']) {
+                    $this->madeline_connect();
+                    $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
+                    if (isset($info['photo'])) {
+        $meres = $this->get_me()['result']; // get my username
+        $me = $meres['username'];
 
+        if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
+            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
+        }
+                        $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
+                       $upload = $this->upload($path, 'file', '', 'photo');
+                        unlink($path);
+                        if (isset($upload['ok']) && $upload['ok']) {
+                            $upload = $this->get_finfo($upload['result']['file_id'], true);
+                            if (isset($upload['ok']) && $upload['ok']) {
+                                if (!$this->issetandnotempty($params, 'offset')) {
+                                    $params['offset'] = 0;
+                                }
+                                $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $params['offset'])]];
+                            }
+                       }
+                   }
+                }
+        return $res;
+    }
+
+    public function add_to_db($result, $photores = []) {
+        if (!isset($this->db_token)) return false;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL, 'https://id.pwrtelegram.xyz/db'.$this->db_token.'/addnewgetchat');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, ['getchat' => json_encode($result), 'photos' => json_encode($photores)]);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($result)->ok;
+    }
     public function run_file()
     {
 
@@ -94,45 +143,6 @@ class Main extends Proxy
             if ($this->checkurl($pwrapi_file_url)) {
                 $this->exit_redirect($pwrapi_file_url);
             }
-
-            // get my username
-            $me = $this->get_me()['result']['username'];
-            $api_file_path = preg_replace(["/^\/file\/bot[^\/]*/", '/'.$me.'/'], '', $_SERVER['REQUEST_URI']);
-            $api_file_url = $this->file_url.$api_file_path;
-            $dl_file_path = '';
-            if ($this->checkurl($api_file_url)) {
-                $storage_path = str_replace('//', '/', $this->homedir.'/storage/'.$me.$api_file_path);
-                if (!(file_exists($storage_path) && filesize($storage_path) == $this->curl_get_file_size($api_file_url))) {
-                    if (!$this->checkdir(dirname($storage_path))) {
-                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."]);
-                    }
-                    set_time_limit(0);
-                    $fp = fopen($storage_path, 'w+');
-                    $ch = curl_init(str_replace(' ', '%20', $api_file_url));
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-                    // write curl response to file
-                    curl_setopt($ch, CURLOPT_FILE, $fp);
-                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                    // get curl response
-                    curl_exec($ch);
-                    curl_close($ch);
-                    fclose($fp);
-                }
-                if (!file_exists($storage_path)) {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file (file does not exist)."]);
-                }
-
-                $file_size = filesize($storage_path);
-                $dl_file_path = $me.$api_file_path;
-
-                $this->db_connect();
-                $this->pdo->prepare('DELETE FROM dl WHERE file_path=? AND bot=?;')->execute([$dl_file_path, $me]);
-                $this->pdo->prepare('INSERT INTO dl (file_path, file_size, bot, real_file_path) VALUES (?, ?, ?, ?);')->execute([$dl_file_path, $file_size, $me, $storage_path]);
-                if ($this->checkurl($this->pwrtelegram_storage.$dl_file_path)) {
-                    $this->exit_redirect($this->pwrtelegram_storage.$dl_file_path);
-                }
-            }
-            $this->exit_redirect($api_file_url);
         }
     }
 
@@ -140,54 +150,30 @@ class Main extends Proxy
     {
         foreach (['user_id', 'chat_id', 'from_chat_id'] as $key) {
             if (isset($this->REQUEST[$key]) && preg_match('/^@/', $this->REQUEST[$key]) && $this->REQUEST[$key] != '@') {
-                $this->db_connect();
-                $usernameresstmt = $this->pdo->prepare('SELECT id from usernames where username=?;');
-                $usernameresstmt->execute([$this->REQUEST[$key]]);
-                if ($usernameresstmt->rowCount() == 1) {
-                    $this->REQUEST[$key] = $usernameresstmt->fetchColumn();
+                $user_id = json_decode(file_get_contents('https://id.pwrtelegram.xyz/DB/getid?username='.$this->REQUEST[$key]), true);
+                if ($user_id['ok']) {
+                    $this->REQUEST[$key] = $user_id['result'];
                 } else {
                     $id = '';
                     $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST[$key]);
                     if ($result['ok'] && isset($result['result']['id'])) {
                         $id = $result['result']['id'];
                     } else {
-                        $this->telegram_connect();
-                        $id_result = $this->telegram->exec('resolve_username '.preg_replace('/^@/', '', $this->REQUEST[$key]));
-                        if (isset($id_result->{'peer_type'}) && isset($id_result->{'peer_id'})) {
-                            switch ($id_result->peer_type) {
-                                case 'user':
-                                    $id = $id_result->peer_id;
-                                    break;
-                                case 'channel':
-                                    $id = '-100'.(string) $id_result->peer_id;
-                                    break;
-                                case 'chat':
-                                    $id = -$id_result->peer_id;
-                                    break;
-                            }
-                            $this->peer_type = $id_result->peer_type;
-                            $this->peer_id = $id_result->peer_id;
-                        }
-                    }
-                    if ($id != '') {
-                        $this->pdo->prepare('INSERT IGNORE INTO usernames (username, id) VALUES (?, ?);')->execute([$this->REQUEST[$key], $id]);
-                        $this->REQUEST[$key] = $id;
+                        $this->REQUEST[$key] = $this->get_pwr_chat($this->REQUEST[$key]);
                     }
                 }
             }
         }
-        if (!isset($this->peer_type) && !isset($this->peer_id) && isset($this->REQUEST['chat_id']) && is_numeric($this->REQUEST['chat_id'])) {
-            $this->peer_type = 'user';
-            $this->peer_id = $this->REQUEST['chat_id'];
-            if ($this->REQUEST['chat_id'] < 0) {
-                $this->peer_type = 'chat';
-                $this->peer_id = -$this->REQUEST['chat_id'];
-                if (preg_match('/\-100/', (string) $this->REQUEST['chat_id'])) {
-                    $this->peer_type = 'channel';
-                    $this->peer_id = preg_replace('/\-100/', '', (string) $this->REQUEST['chat_id']);
-                }
-            }
+    }
+
+    public function get_pwr_chat($id) {
+        if (!isset($this->full_chat[$id])) {
+            $this->madeline_connect($this->token);
+            $full_chat = $this->madeline->get_pwr_chat($id);
+            $this->full_chat[$full_chat['id']] = $full_chat;
+            return $full_chat['id'];
         }
+        return $this->full_chat[$id]['id'];
     }
 
     public function run_methods()
@@ -392,36 +378,39 @@ class Main extends Proxy
                 }
                 $this->jsonexit(['ok' => true, 'result' => $result]);
             case '/getchat':
+                $final_res = [];
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
                 if (!$result['ok']) {
-                    $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
+                     $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
                 }
-                $this->telegram_connect();
-                $cliresult = [];
-                if (isset($this->peer_type) && isset($this->peer_id)) {
-                    $cliresult = $this->telegram->exec($this->peer_type.'_info '.$this->peer_type.'#'.$this->peer_id);
+                if ($result['ok']) {
+                     $final_res = $result['result'];
                 }
-                if (isset($cliresult->{'peer_id'})) {
-                    if (!$result['ok']) {
-                        $result = ['ok' => true, 'result' => ['id' => $this->REQUEST['chat_id']]];
-                    }
-                    foreach (['first_name', 'last_name', 'real_first_name', 'real_last_name', 'username', 'type', 'title', 'participants_count', 'admins_count', 'kicked_count', 'description', 'online', 'date', 'share_text', 'commands', 'when'] as $key) {
-                        if (isset($cliresult->{$key}) && $cliresult->{$key} !== null && !isset($result['result'][$key])) {
-                            $result['result'][$key] = ($key == 'type' && $cliresult->type == 'user') ? 'private' : $cliresult->{$key};
-                        }
-                    }
+                $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$this->REQUEST['chat_id']), true);
+                if ($result['ok']) {
+                     $final_res = array_merge($result['result'], $final_res);
                 }
-                $bio = '';
-                if (isset($result['result']['username'])) {
-                    if (preg_match('/meta property="og:description" content=".+/', file_get_contents('https://telegram.me/'.$result['result']['username']), $biores)) {
-                        $bio = html_entity_decode(preg_replace_callback('/(&#[0-9]+;)/', function ($m) {
-                            return mb_convert_encoding($m[1], 'UTF-8', 'HTML-ENTITIES');
-                        }, str_replace(['meta property="og:description" content="', '">'], '', $biores[0])));
+
+                $this->madeline_connect($this->token);
+                    try {
+                        $this->madeline->peer_isset($this->REQUEST['chat_id']) ? $this->get_pwr_chat($this->REQUEST['chat_id']) : $this->get_pwr_chat('@'.$final_res['username']);
+                    } catch (\danog\MadelineProto\Exception $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\RPCErrorException $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\TL\Exception $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
                     }
-                    if ($bio != '' && $bio != 'You can contact @'.$result['result']['username'].' right away.') {
-                        $result['result']['bio'] = $bio;
-                    }
+                if (isset($this->full_chat[$this->REQUEST['chat_id']])) {
+                     $final_res = array_merge($final_res, $this->full_chat[$this->REQUEST['chat_id']]);
                 }
+                if (isset($final_res['photo'])) unset($final_res['photo']);
+                if (empty($final_res)) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Chat not found']);
+                $result = ['ok' => true, 'result' => $final_res];
+                $this->add_to_db($result, $this->getprofilephotos($this->REQUEST));
                 $this->jsonexit($result);
                 break;
             case '/getbackend':
@@ -519,34 +508,7 @@ class Main extends Proxy
                 $this->jsonexit($res);
                 break;
             case '/getprofilephotos':
-                if ($this->token == '') {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
-                }
-                if (!$this->issetandnotempty($this->REQUEST, 'chat_id')) {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
-                }
-                $this->REQUEST['user_id'] = $this->REQUEST['chat_id'];
-                $res = $this->curl($this->url.'/getUserProfilePhotos?'.http_build_query($this->REQUEST));
-                if (!$res['ok']) {
-                    $this->telegram_connect();
-                    $cliresult = [];
-                    if (isset($this->peer_type) && isset($this->peer_id)) {
-                        $cliresult = $this->telegram->exec('load_'.$this->peer_type.'_photo '.$this->peer_type.'#'.$this->peer_id);
-                    }
-                    if (isset($cliresult->{'result'}) && isset($cliresult->event) && $cliresult->event == 'download') {
-                        $upload = $this->upload($cliresult->result, 'file', '', 'photo');
-                        if (isset($upload['ok']) && $upload['ok']) {
-                            $upload = $this->get_finfo($upload['result']['file_id'], true);
-                            if (isset($upload['ok']) && $upload['ok']) {
-                                if (!$this->issetandnotempty($this->REQUEST, 'offset')) {
-                                    $this->REQUEST['offset'] = 0;
-                                }
-                                $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $this->REQUEST['offset'])]];
-                            }
-                        }
-                    }
-                }
-                $this->jsonexit($res);
+                $this->jsonexit($this->getprofilephotos($this->REQUEST));
                 break;
         }
 

@@ -110,7 +110,7 @@ On success, the following object is returned:
 
 ### getChat
 
-The usage of this method is exactly the same as in the official API except that it supports using usernames of normal users and bots (as every other pwrtelegram method) and returns some additional info like the real_first_name, real_last_name, participants_count, admins_count, kicked_count, description, online (boolean specifying if the user is online), date (last time user was online) and the bio.
+The usage of this method is exactly the same as in the official API except that it supports using usernames of normal users and bots (as every other pwrtelegram method) and returns some additional info like the real_first_name, real_last_name, participants_count, admins_count, kicked_count, description, online (boolean specifying if the user is online), date (last time user was online), the bio and a lot of other info!
 
 ### getUpdates and webhook requests.
 
@@ -118,9 +118,8 @@ The response of these requests will be passed trough a piece of code that will f
 
 ### getFile requests.
 
-getFile requests are intercepted and the file is downloaded using the PWRTelegram API.  
 The PWRTelegram API will then return a [File](https://core.telegram.org/bots/API#file) object.   
-You can use the following anonymous url to download the file: ```https://storage.pwrtelegram.xyz/<file_path>``` (or ```https://deepstorage.pwrtelegram.xyz/<file_path>``` for deep telegram bots).
+You must use the following anonymous url to download the file: ```https://storage.pwrtelegram.xyz/<file_path>``` (or ```https://deepstorage.pwrtelegram.xyz/<file_path>``` for deep telegram bots).
 
 The anonymous download URL will be in one of the following formats:  
 ```
@@ -129,17 +128,6 @@ https://deepstorage.pwrtelegram.xyz/botusername/filename.ext
 ```  
 This way you will be able to safely share the download URL without exposing your bot's token.  
 
-You can also trigger the caching of files already present on the telegram servers to the anonymous PWRTelegram storage server by downloading the file from the following URL: ```https://api.pwrtelegram.xyz/file/bot<token>/<file_path>``` (or ```https://deepapi.pwrtelegram.xyz/file/bot<token>/<file_path>``` for deep telegram bots). The next time you can download files directly from the anonymous URL.  
-
-If your request times out and you try to redownload the file you will be returned a json array with the following values:
-
-  * ok => true
-
-  * error_code => 202
-
-  * description => Your file is currently being downloaded. Please try again later.
-
-You can repeat the request until you get the File object.  
 
 ### sendDocument, sendPhoto, sendVideo, sendAudio, sendVoice, sendSticker requests.  
 

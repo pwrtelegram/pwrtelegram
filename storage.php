@@ -34,7 +34,6 @@ if ($_SERVER['REQUEST_URI'] == '/') {
 
 function no_cache($status, $wut)
 {
-    header_remove();
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Cache-Control: post-check=0, pre-check=0', false);
     header('Pragma: no-cache');
@@ -57,7 +56,7 @@ if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
 */
 try {
     require_once 'db_connect.php';
-    $file_path = preg_replace("/^\/*/", '', $_SERVER['REQUEST_URI']);
+    $file_path = urldecode(preg_replace("/^\/*/", '', $_SERVER['REQUEST_URI']));
     $bot = preg_replace('/\/.*$/', '', $file_path);
     $selectstmt = $pdo->prepare('SELECT * FROM dl_new WHERE file_path=? AND bot=? LIMIT 1;');
     $selectstmt->execute([$file_path, $bot]);
@@ -110,6 +109,7 @@ try {
     if ($servefile) {
         require_once 'vendor/autoload.php';
         $MadelineProto = \danog\MadelineProto\Serialization::deserialize($deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
+        \danog\MadelineProto\Logger::log($file_path);
         $MadelineProto->download_to_stream($select, fopen('php://output', 'w'), function ($percent) {
             flush();
             ob_flush();
