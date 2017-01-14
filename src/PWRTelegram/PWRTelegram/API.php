@@ -36,6 +36,7 @@ class API extends Tools
         if ($token === '') {
             if (!isset($this->madeline)) {
                 require_once $this->pwrhomedir.'/vendor/autoload.php';
+
                 return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
             }
         }
@@ -49,6 +50,7 @@ class API extends Tools
             $this->madeline->bot_login($token);
         }
     }
+
     /**
      * Download given file id and return json with error or downloaded path.
      *
@@ -86,7 +88,7 @@ class API extends Tools
                 curl_close($ch);
             }
             if ($result == null) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file: decoded result is null, original result is ".$resultj."."];
+                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file: decoded result is null, original result is ".$resultj.'.'];
             }
 
             return $result;
@@ -260,7 +262,7 @@ class API extends Tools
         if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
             if ($size < 1) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Size of uploaded file is 0."];
+                return ['ok' => false, 'error_code' => 400, 'description' => 'Size of uploaded file is 0.'];
             }
             if ($size > 1610612736) {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];

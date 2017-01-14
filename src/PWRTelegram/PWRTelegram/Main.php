@@ -24,7 +24,7 @@ class Main extends Proxy
             $this->madeline->API->store_db([], true);
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
-        } else if (isset($this->madeline)) {
+        } elseif (isset($this->madeline)) {
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline', $this->madeline);
         }
@@ -101,41 +101,47 @@ class Main extends Proxy
         }
         */
     }
-    public function getprofilephotos($params) {
-                if (!$this->issetandnotempty($params, 'chat_id')) {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
-                }
-                $params['user_id'] = $params['chat_id'];
-                $res = $this->curl($this->url.'/getUserProfilePhotos?'.http_build_query($params));
-                if (!$res['ok']) {
-                    $this->madeline_connect();
-                    $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
-                    if (isset($info['photo'])) {
-        $meres = $this->get_me()['result']; // get my username
+
+    public function getprofilephotos($params)
+    {
+        if (!$this->issetandnotempty($params, 'chat_id')) {
+            $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
+        }
+        $params['user_id'] = $params['chat_id'];
+        $res = $this->curl($this->url.'/getUserProfilePhotos?'.http_build_query($params));
+        if (!$res['ok']) {
+            $this->madeline_connect();
+            $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
+            if (isset($info['photo'])) {
+                $meres = $this->get_me()['result']; // get my username
         $me = $meres['username'];
 
-        if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
-            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
-        }
-                        $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
-                       $upload = $this->upload($path, 'file', '', 'photo');
-                        unlink($path);
-                        if (isset($upload['ok']) && $upload['ok']) {
-                            $upload = $this->get_finfo($upload['result']['file_id'], true);
-                            if (isset($upload['ok']) && $upload['ok']) {
-                                if (!$this->issetandnotempty($params, 'offset')) {
-                                    $params['offset'] = 0;
-                                }
-                                $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $params['offset'])]];
-                            }
-                       }
-                   }
+                if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
+                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
                 }
+                $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
+                $upload = $this->upload($path, 'file', '', 'photo');
+                unlink($path);
+                if (isset($upload['ok']) && $upload['ok']) {
+                    $upload = $this->get_finfo($upload['result']['file_id'], true);
+                    if (isset($upload['ok']) && $upload['ok']) {
+                        if (!$this->issetandnotempty($params, 'offset')) {
+                            $params['offset'] = 0;
+                        }
+                        $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $params['offset'])]];
+                    }
+                }
+            }
+        }
+
         return $res;
     }
 
-    public function add_to_db($result, $photores = []) {
-        if (!isset($this->db_token)) return false;
+    public function add_to_db($result, $photores = [])
+    {
+        if (!isset($this->db_token)) {
+            return false;
+        }
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_URL, 'https://id.pwrtelegram.xyz/db'.$this->db_token.'/addnewgetchat');
@@ -144,6 +150,7 @@ class Main extends Proxy
         $result = curl_exec($ch);
         curl_close($ch);
     }
+
     public function run_file()
     {
 
@@ -176,13 +183,16 @@ class Main extends Proxy
         }
     }
 
-    public function get_pwr_chat($id) {
+    public function get_pwr_chat($id)
+    {
         if (!isset($this->full_chat[$id])) {
             $this->madeline_connect($this->token);
             $full_chat = $this->madeline->get_pwr_chat($id);
             $this->full_chat[$full_chat['id']] = $full_chat;
+
             return $full_chat['id'];
         }
+
         return $this->full_chat[$id]['id'];
     }
 
@@ -391,14 +401,14 @@ class Main extends Proxy
                 $final_res = [];
                 $result = $this->curl($this->url.'/getchat?'.http_build_query($this->REQUEST));
                 if (!$result['ok']) {
-                     $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
+                    $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
                 }
                 if ($result['ok']) {
-                     $final_res = $result['result'];
+                    $final_res = $result['result'];
                 }
                 $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$this->REQUEST['chat_id']), true);
                 if ($result['ok']) {
-                     $final_res = array_merge($result['result'], $final_res);
+                    $final_res = array_merge($result['result'], $final_res);
                 }
 
                 $this->madeline_connect($this->token);
@@ -415,10 +425,14 @@ class Main extends Proxy
                         error_log($e->getTraceAsString());
                     }
                 if (isset($this->full_chat[$this->REQUEST['chat_id']])) {
-                     $final_res = array_merge($final_res, $this->full_chat[$this->REQUEST['chat_id']]);
+                    $final_res = array_merge($final_res, $this->full_chat[$this->REQUEST['chat_id']]);
                 }
-                if (isset($final_res['photo'])) unset($final_res['photo']);
-                if (empty($final_res)) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Chat not found']);
+                if (isset($final_res['photo'])) {
+                    unset($final_res['photo']);
+                }
+                if (empty($final_res)) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Chat not found']);
+                }
                 $result = ['ok' => true, 'result' => $final_res];
                 $this->add_to_db($result, $this->getprofilephotos($this->REQUEST));
                 $this->jsonexit($result);
