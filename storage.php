@@ -58,7 +58,7 @@ try {
     require_once 'db_connect.php';
     $file_path = urldecode(preg_replace("/^\/*/", '', $_SERVER['REQUEST_URI']));
     $bot = preg_replace('/\/.*$/', '', $file_path);
-    $selectstmt = $pdo->prepare('SELECT * FROM dl_new WHERE file_path=? AND bot=? LIMIT 1;');
+    $selectstmt = $pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=? LIMIT 1;');
     $selectstmt->execute([$file_path, $bot]);
     $select = $selectstmt->fetch(PDO::FETCH_ASSOC);
     if (!($selectstmt->rowCount() > 0)) {

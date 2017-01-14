@@ -95,7 +95,7 @@ class API extends Tools
         }
         $me = $this->get_me()['result']['username']; // get my username
         $this->db_connect();
-        $selectstmt = $this->pdo->prepare('SELECT * FROM dl_new WHERE file_id=? AND bot=? LIMIT 1;');
+        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -107,7 +107,7 @@ class API extends Tools
 
             return $newresponse;
         }
-        $this->pdo->prepare('DELETE FROM dl_new WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
+        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
         unset($this->pdo);
         $path = '';
 
@@ -154,7 +154,7 @@ class API extends Tools
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
         $this->db_connect();
-        $this->pdo->prepare('INSERT IGNORE INTO dl_new (file_id, file_path, file_size, bot, location, mime) VALUES (?, ?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, json_encode($info['InputFileLocation']), $info['mime']]);
+        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, location, mime) VALUES (?, ?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, json_encode($info['InputFileLocation']), $info['mime']]);
 
         return $newresponse;
     }
@@ -273,7 +273,7 @@ class API extends Tools
         } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
                 $this->db_connect();
-                $select_stmt = $this->pdo->prepare('SELECT * FROM dl_new WHERE file_path=? AND bot=?;');
+                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
                 $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                 $count = $select_stmt->rowCount();
