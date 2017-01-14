@@ -123,20 +123,20 @@ class Main extends Proxy
                 try {
                     $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
                     $upload = $this->upload($path, 'file', '', 'photo');
-                unlink($path);
-                    } catch (\danog\MadelineProto\ResponseException $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\Exception $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\RPCErrorException $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\TL\Exception $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    }
+                    unlink($path);
+                } catch (\danog\MadelineProto\ResponseException $e) {
+                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                    error_log($e->getTraceAsString());
+                } catch (\danog\MadelineProto\Exception $e) {
+                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                    error_log($e->getTraceAsString());
+                } catch (\danog\MadelineProto\RPCErrorException $e) {
+                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                    error_log($e->getTraceAsString());
+                } catch (\danog\MadelineProto\TL\Exception $e) {
+                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                    error_log($e->getTraceAsString());
+                }
 
                 if (isset($upload['ok']) && $upload['ok']) {
                     $upload = $this->get_finfo($upload['result']['file_id'], true);
