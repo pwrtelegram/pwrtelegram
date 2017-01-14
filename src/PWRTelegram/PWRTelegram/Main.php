@@ -414,6 +414,9 @@ class Main extends Proxy
                 $this->madeline_connect($this->token);
                     try {
                         $this->madeline->peer_isset($this->REQUEST['chat_id']) ? $this->get_pwr_chat($this->REQUEST['chat_id']) : $this->get_pwr_chat('@'.$final_res['username']);
+                    } catch (\danog\MadelineProto\ResponseException $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
                     } catch (\danog\MadelineProto\Exception $e) {
                         error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
                         error_log($e->getTraceAsString());
