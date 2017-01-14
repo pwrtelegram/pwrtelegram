@@ -452,6 +452,7 @@ class API extends Tools
             case 'document':
                 try {
                     $animated = (new \Mhor\MediaInfo\MediaInfo())->getInfo($path)->getGeneral()->get('count_of_audio_streams') == 0;
+                } catch (\Exception $e) {
                 } catch (\RuntimeException $e) {
                 }
                 break;
