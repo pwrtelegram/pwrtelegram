@@ -584,7 +584,43 @@ class Main extends Proxy
                     $this->REQUEST['fwd_limit'] = 0;
                 }
                 $this->madeline_connect($this->token);
-                file_get_contents('https://api.pwrtelegram.xyz/bot'.$this->token.'/getchat?chat_id='.$this->REQUEST['user_id']);
+                $final_res = [];
+                $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST['user_id']);
+                if (!$result['ok']) {
+                    $result = $this->curl($this->url.'/getchat?chat_id='.$_REQUEST['user_id']);
+                }
+                if ($result['ok']) {
+                    $final_res = $result['result'];
+                }
+                $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$this->REQUEST['user_id']), true);
+                if ($result['ok']) {
+                    $final_res = array_merge($result['result'], $final_res);
+                }
+                $full = false;
+                $this->madeline_connect($this->token);
+                    try {
+                        $this->madeline->peer_isset($this->REQUEST['user_id']) ? $this->get_pwr_chat($this->REQUEST['user_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
+                    } catch (\danog\MadelineProto\ResponseException $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\Exception $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\RPCErrorException $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    } catch (\danog\MadelineProto\TL\Exception $e) {
+                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                        error_log($e->getTraceAsString());
+                    }
+                if (isset($this->full_chat[$this->REQUEST['user_id']])) {
+                    $final_res = array_merge($final_res, $this->full_chat[$this->REQUEST['user_id']]);
+                }
+                if (empty($final_res)) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Chat not found']);
+                }
+                $result = ['ok' => true, 'result' => $final_res];
+                $this->add_to_db($result, $this->getprofilephotos($this->REQUEST));
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call('messages.addChatUser', $this->REQUEST)]);
                 break;
             case '/madeline':
