@@ -355,7 +355,7 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
         }
         require_once 'vendor/autoload.php';
-                $this->madeline_connect();
+        $this->madeline_connect();
         if ($type == 'file') {
             $mime = '';
             $ext = '';
