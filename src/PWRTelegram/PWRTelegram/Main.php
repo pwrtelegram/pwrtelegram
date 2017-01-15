@@ -634,7 +634,9 @@ class Main extends Proxy
                 $params = [];
                 if (isset($this->REQUEST['params'])) {
                     $params = json_decode($this->REQUEST['params']);
-                    if ($params === null) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Could not parse parameters.']);
+                    if ($params === null) {
+                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Could not parse parameters.']);
+                    }
                 }
                 $method = str_replace('->', '.', $this->REQUEST['method']);
                 if ($method == 'auth.logOut') {
