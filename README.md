@@ -108,6 +108,27 @@ On success, the following object is returned:
 | additional       	| Object                                                              	| Optional      	| Additional info about the user id (basically the result of getchat with user_id, not always available)                                                        	|
 
 
+### addChatUser *NEW*
+
+Add a user to a normal group (doesn't work with supergroups), works only if that user has contacted the bot.
+
+
+| Parameters           	| Type                                                                           	| Required 	| Description                                                                                                                                                                  	|
+|----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| chat_id              	| Integer                                                              	| Yes      	| Numeric id of the chat                                                                     	|
+| user_id              	| Integer or string                                                              	| Yes      	| ID of the user, a username can also be used                                                                     	|
+| fwd_limit            	| Integer                                                              	| Optional      	| Number of messages to forward to the user                                                                     	|
+
+On success, an [Updates](https://daniil.it/MadelineProto/API_docs/types/Updates.html) object is returned.
+
+
+### madeline
+
+Calls an MTProto method using MadelineProto, for a full list of methods see [here](https://daniil.it/MadelineProto/API_docs).  
+
+This method accepts the method to call as the method parameter, and the parameters as a json array in the params parameter.
+
+
 ### getChat
 
 The usage of this method is exactly the same as in the official API except that it supports using usernames of normal users and bots (as every other pwrtelegram method) and returns some additional info like the real_first_name, real_last_name, participants_count, admins_count, kicked_count, description, online (boolean specifying if the user is online), date (last time user was online), the bio and a lot of other info!

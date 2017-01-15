@@ -570,6 +570,42 @@ class Main extends Proxy
             case '/getprofilephotos':
                 $this->jsonexit($this->getprofilephotos($this->REQUEST));
                 break;
+            case '/addchatuser':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                if (!$this->issetandnotempty($this->REQUEST, 'chat_id')) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
+                }
+                if (!$this->issetandnotempty($this->REQUEST, 'user_id')) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing user_id.']);
+                }
+                if (!$this->issetandnotempty($this->REQUEST, 'fwd_limit')) {
+                    $this->REQUEST['fwd_limit'] = 0;
+                }
+                $this->madeline_connect($this->token);
+                file_get_contents('https://api.pwrtelegram.xyz/bot'.$this->token.'/getchat?chat_id='.$this->REQUEST['user_id']);
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call('messages.addChatUser', $this->REQUEST)]);
+                break;
+            case '/madeline':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                if (!$this->issetandnotempty($this->REQUEST, 'method')) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
+                }
+                $this->madeline_connect($this->token);
+                $params = [];
+                if (isset($this->REQUEST['params'])) {
+                    $params = json_decode($this->REQUEST['params']);
+                    if ($params === null) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Could not parse parameters.']);
+                }
+                $method = str_replace('->', '.', $this->REQUEST['method']);
+                if ($method == 'auth.logOut') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
+                }
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $params)]);
+                break;
         }
 
         // The sending method without the send keyword
