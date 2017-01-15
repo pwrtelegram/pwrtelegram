@@ -111,21 +111,21 @@ class Main extends Proxy
         $res = $this->curl($this->url.'/getUserProfilePhotos?'.http_build_query($params));
         if (!$res['ok']) {
             $this->madeline_connect();
-                try {
-            $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
-                    } catch (\danog\MadelineProto\ResponseException $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\Exception $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\RPCErrorException $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\TL\Exception $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    }
+            try {
+                $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
+            } catch (\danog\MadelineProto\ResponseException $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
+            } catch (\danog\MadelineProto\Exception $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
+            } catch (\danog\MadelineProto\RPCErrorException $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
+            } catch (\danog\MadelineProto\TL\Exception $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
+            }
             if (isset($info['photo'])) {
                 $meres = $this->get_me()['result']; // get my username
                 $me = $meres['username'];
@@ -441,7 +441,9 @@ class Main extends Proxy
                     $final_res = array_merge($result['result'], $final_res);
                 }
                 $full = true;
-                if (isset($this->REQUEST['full'])) $full = (bool)$this->REQUEST['full'];
+                if (isset($this->REQUEST['full'])) {
+                    $full = (bool) $this->REQUEST['full'];
+                }
                 $this->madeline_connect($this->token);
                     try {
                         $this->madeline->peer_isset($this->REQUEST['chat_id']) ? $this->get_pwr_chat($this->REQUEST['chat_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
