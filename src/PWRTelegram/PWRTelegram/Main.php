@@ -625,6 +625,7 @@ class Main extends Proxy
                 }
                 $result = ['ok' => true, 'result' => $final_res];
                 $this->add_to_db($result, $this->getprofilephotos($this->REQUEST));
+                $this->REQUEST['chat_id'] = -$this->REQUEST['chat_id'];
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call('messages.addChatUser', $this->REQUEST)]);
                 break;
             case '/madeline':
