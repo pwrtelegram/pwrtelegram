@@ -20,6 +20,8 @@ class API extends Tools
         foreach ($params as $key => $val) {
             $this->{$key} = $val;
         }
+        $info = $this->get_me();
+        ini_set('error_log', isset($info['result']['username']) ? '/tmp/'.$info['result']['username'].'.log' : '/tmp/php-error-index.log');
     }
 
     public function db_connect()
