@@ -84,7 +84,6 @@ class Main extends Proxy
         $info = $this->get_me();
         ini_set('error_log', isset($info['result']['username']) ? '/tmp/'.$info['result']['username'].'.log' : '/tmp/php-error-index.log');
 
-
         if ($this->token !== '') {
             $madeline_path = '/tmp/pwr_'.$info['result']['username'].'_'.hash('sha256', $this->token).'.madeline';
             if (!file_exists($madeline_path)) {
