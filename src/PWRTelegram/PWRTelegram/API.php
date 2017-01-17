@@ -454,7 +454,8 @@ class API extends Tools
                 break;
             case 'document':
                 try {
-                    $animated = (new \Mhor\MediaInfo\MediaInfo())->getInfo($path)->getGeneral()->get('count_of_audio_streams') == 0;
+                    $a = new \Mhor\MediaInfo\MediaInfo()->getInfo($path)->getGeneral();
+                    if (is_object($a)) $animated = $a->get('count_of_audio_streams') == 0;
                 } catch (\Exception $e) {
                 } catch (\danog\MadelineProto\Exception $e) {
                 } catch (\RuntimeException $e) {
