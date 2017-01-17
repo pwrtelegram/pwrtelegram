@@ -168,50 +168,52 @@ class Main extends Proxy
         return $res;
     }
 
-    public function getchat($params) {
-                $final_res = [];
-                $result = $this->curl($this->url.'/getchat?'.http_build_query($params));
-                if (!$result['ok']) {
-                    $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
-                }
-                if ($result['ok']) {
-                    $final_res = $result['result'];
-                }
-                $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$params['chat_id']), true);
-                if ($result['ok']) {
-                    $final_res = array_merge($result['result'], $final_res);
-                }
-                $full = true;
-                if (isset($params['full'])) {
-                    $full = (bool) $params['full'];
-                }
-                $this->madeline_connect($this->token);
-                    try {
-                        $this->madeline->peer_isset($params['chat_id']) ? $this->get_pwr_chat($params['chat_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
-                    } catch (\danog\MadelineProto\ResponseException $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\Exception $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\RPCErrorException $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    } catch (\danog\MadelineProto\TL\Exception $e) {
-                        error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                        error_log($e->getTraceAsString());
-                    }
-                if (isset($this->full_chat[$params['chat_id']])) {
-                    $final_res = array_merge($final_res, $this->full_chat[$params['chat_id']]);
-                }
-                if (isset($final_res['photo'])) {
-                    unset($final_res['photo']);
-                }
-                if (empty($final_res)) {
-                    $result = ['ok' => false, 'error_code' => 400, 'description' => 'Chat not found'];
-                } else {
-                    $result = ['ok' => true, 'result' => $final_res];
-                }
+    public function getchat($params)
+    {
+        $final_res = [];
+        $result = $this->curl($this->url.'/getchat?'.http_build_query($params));
+        if (!$result['ok']) {
+            $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
+        }
+        if ($result['ok']) {
+            $final_res = $result['result'];
+        }
+        $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$params['chat_id']), true);
+        if ($result['ok']) {
+            $final_res = array_merge($result['result'], $final_res);
+        }
+        $full = true;
+        if (isset($params['full'])) {
+            $full = (bool) $params['full'];
+        }
+        $this->madeline_connect($this->token);
+        try {
+            $this->madeline->peer_isset($params['chat_id']) ? $this->get_pwr_chat($params['chat_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
+        } catch (\danog\MadelineProto\ResponseException $e) {
+            error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+            error_log($e->getTraceAsString());
+        } catch (\danog\MadelineProto\Exception $e) {
+            error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+            error_log($e->getTraceAsString());
+        } catch (\danog\MadelineProto\RPCErrorException $e) {
+            error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+            error_log($e->getTraceAsString());
+        } catch (\danog\MadelineProto\TL\Exception $e) {
+            error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+            error_log($e->getTraceAsString());
+        }
+        if (isset($this->full_chat[$params['chat_id']])) {
+            $final_res = array_merge($final_res, $this->full_chat[$params['chat_id']]);
+        }
+        if (isset($final_res['photo'])) {
+            unset($final_res['photo']);
+        }
+        if (empty($final_res)) {
+            $result = ['ok' => false, 'error_code' => 400, 'description' => 'Chat not found'];
+        } else {
+            $result = ['ok' => true, 'result' => $final_res];
+        }
+
         return $result;
     }
 

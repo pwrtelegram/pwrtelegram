@@ -52,7 +52,3 @@ try {
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 }
-
-
-
-
