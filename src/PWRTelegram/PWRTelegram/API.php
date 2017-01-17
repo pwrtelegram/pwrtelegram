@@ -455,7 +455,9 @@ class API extends Tools
             case 'document':
                 try {
                     $a = (new \Mhor\MediaInfo\MediaInfo())->getInfo($path)->getGeneral();
-                    if (is_object($a)) $animated = $a->get('count_of_audio_streams') == 0;
+                    if (is_object($a)) {
+                        $animated = $a->get('count_of_audio_streams') == 0;
+                    }
                 } catch (\Exception $e) {
                 } catch (\danog\MadelineProto\Exception $e) {
                 } catch (\RuntimeException $e) {
