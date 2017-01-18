@@ -46,7 +46,9 @@ class API extends Tools
             require_once $this->pwrhomedir.'/vendor/autoload.php';
             $this->madeline_path = '/tmp/pwr_'.$this->get_me()['result']['username'].'_'.hash('sha256', $token).'.madeline';
             if (file_exists($this->madeline_path)) {
-                return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
+                try {
+                    return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
+                } catch (\danog\MadelineProto\Exception $e) { ; }
             }
             $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
             $this->madeline->bot_login($token);
