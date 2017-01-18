@@ -132,7 +132,7 @@ class API extends Tools
                 return ['ok' => true, 'error_code' => 202, 'description' => 'File is currently being downloaded. Please try again later.'];
             }
 */
-            $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
+        $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
         if ($result['ok'] == false) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
         }
@@ -330,7 +330,7 @@ class API extends Tools
                     $name = basename($downloadres['result']['file_path']);
                 }
                 $path = $this->homedir.'/ul/'.$me.'/'.$name;
-                shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($this->pwrtelegram_storage.$downloadres['result']['file_path']));
+                shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($this->pwrtelegram_storage.urlencode($downloadres['result']['file_path'])));
                 if (!file_exists($path)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
                 }
