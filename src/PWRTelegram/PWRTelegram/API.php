@@ -48,7 +48,8 @@ class API extends Tools
             if (file_exists($this->madeline_path)) {
                 try {
                     return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
-                } catch (\danog\MadelineProto\Exception $e) { ; }
+                } catch (\danog\MadelineProto\Exception $e) {
+                }
             }
             $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
             $this->madeline->bot_login($token);
