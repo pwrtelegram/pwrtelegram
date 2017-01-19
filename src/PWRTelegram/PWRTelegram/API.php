@@ -371,6 +371,7 @@ class API extends Tools
                 $mime = $mediaInfoContainer->getGeneral()->get('internet_media_type');
                 $audio = $mediaInfoContainer->getGeneral()->get('count_of_audio_streams');
             } catch (\RuntimeException $e) {
+            } catch (\Error $e) {
             }
             if ($mime == '') {
                 $mime = mime_content_type($path);
