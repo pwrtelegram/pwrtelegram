@@ -107,7 +107,9 @@ class Main extends Proxy
 
     public function getprofilephotos($params)
     {
-        if ($this->token === '') return [];
+        if ($this->token === '') {
+            return [];
+        }
         if (!$this->issetandnotempty($params, 'chat_id')) {
             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
         }
