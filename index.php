@@ -23,7 +23,6 @@ require_once '../storage_url.php';
 require_once '../db_connect.php';
 
 $pwrhomedir = realpath(__DIR__);
-
 $API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
 try {
     $API->run();

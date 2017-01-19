@@ -81,10 +81,10 @@ class Main extends Proxy
         $this->pwrtelegram_storage = 'https://'.$this->pwrtelegram_storage_domain.'/';
 
         $this->REQUEST = $_REQUEST;
-        $info = $this->get_me();
-        ini_set('error_log', isset($info['result']['username']) ? '/tmp/'.$info['result']['username'].'.log' : '/tmp/php-error-index.log');
 
         if ($this->token !== '') {
+            $info = $this->get_me();
+            ini_set('error_log', isset($info['result']['username']) ? '/tmp/'.$info['result']['username'].'.log' : '/tmp/php-error-index.log');
             $madeline_path = '/tmp/pwr_'.$info['result']['username'].'_'.hash('sha256', $this->token).'.madeline';
             if (!file_exists($madeline_path)) {
                 require 'vendor/autoload.php';
@@ -107,6 +107,7 @@ class Main extends Proxy
 
     public function getprofilephotos($params)
     {
+        if ($this->token === '') return [];
         if (!$this->issetandnotempty($params, 'chat_id')) {
             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
         }
@@ -130,15 +131,9 @@ class Main extends Proxy
                 error_log($e->getTraceAsString());
             }
             if (isset($info['photo'])) {
-                $meres = $this->get_me()['result']; // get my username
-                $me = $meres['username'];
-
-                if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
-                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
-                }
                 $upload = [];
                 try {
-                    $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'/ul/'.$me);
+                    $path = $this->madeline->download_to_dir($info['photo'], '/tmp');
                     $upload = $this->upload($path, 'file', '', 'photo');
                 } catch (\danog\MadelineProto\ResponseException $e) {
                     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
@@ -251,10 +246,9 @@ class Main extends Proxy
                 if ($user_id['ok']) {
                     $this->REQUEST[$key] = $user_id['result'];
                 } else {
-                    $id = '';
-                    $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST[$key]);
+                    $result = $this->token !== '' ? $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST[$key]) : ['ok' => false];
                     if ($result['ok'] && isset($result['result']['id'])) {
-                        $id = $result['result']['id'];
+                        $this->REQUEST[$key] = $result['result']['id'];
                     } else {
                         $this->REQUEST[$key] = $this->get_pwr_chat($this->REQUEST[$key]);
                     }
