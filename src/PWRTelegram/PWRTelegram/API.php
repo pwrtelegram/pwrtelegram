@@ -361,7 +361,6 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
         }
         require_once 'vendor/autoload.php';
-        $this->madeline_connect();
         if ($type == 'file') {
             $mime = '';
             $ext = '';
@@ -526,6 +525,7 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
+                $this->madeline_connect();
                 $inputFile = $this->madeline->upload($path);
                 $mime = mime_content_type($path);
                 $this->try_unlink($path);
