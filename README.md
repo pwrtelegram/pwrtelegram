@@ -25,34 +25,62 @@ The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/Bayern
 ## Features:  
 
 All of the official telegram bot API features plus:  
+
+* *NEW* It can be used with a normal account (with a phone number)!
+
+* *NEW* It can add users to a group!
+
 * *NEW* It can obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too.
+
 * Support for [deep telegram bots](https://telegram.me/daniilgentili).
+
 * Downloading of files up to 1.5 GB in size  
+
 * Anonymous file storage (the URL of downloaded files does not contain your bot's token)
+
 * Uploading of files up to 1.5 GB in size  
+
 * Uploading of files using an URL
+
 * Re-uploading of files using a file ID and different file type or file name.
+
 * Uploading of any file/URL/file ID with automagical type recognition.  
+
 * Uploading of any file/URL/file ID without sending the file to a specific user.  
+
 * Automagical metadata recognition of sent files/URLs/file IDs.  
+
 * Deleting of text messages sent from the bot.  
+
 * Uploading of files bigger than 5 megabytes with inline queries (supports both URLs and direct uploads)
+
 * Automatical type recognition for files sent using answerinlinequery 
+
 * Both webhooks and getupdates are supported.
+
 * webhook requests can be recieved even on insecure http servers.
+
 * Resolving of usernames not only with channels and groups but also with normal users and bots.
+
 * Added getMessage function!
+
 * The sendChatAction function now has a duration parameter!
+
 * Profile pictures of channels and chats can now be fetched!
+
 * [It is open source](https://github.com/pwrtelegram)!
+
 * [It can be installed on your own server](https://github.com/pwrtelegram/pwrtelegram-backend)!
+
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
+
 
 ## How do I enable it?  
 
 To enable it simply substitute the URL of the bot telegram API (https://api.telegram.org) with the URL of the pwrtelegram API (https://api.pwrtelegram.xyz for normal bots and https://deepapi.pwrtelegram.xyz for deep telegram bots) in your telegram client.
 
 You can use one of the following commands to do it:
+
 ```
 sed -i 's/api\.telegram\.org/api\.pwrtelegram\.xyz/g' client.py
 # OR
@@ -88,6 +116,60 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 * With this API you can use usernames to interact even with normal users and you can get info about bots using their username (with the getChat method).  
 
 * Do not send more than 50 different files (as in files with different sha256sums) without processing updates. Once reached this limit, files will not be sent if there's an unprocessed message from a user that isn't @pwrtelegramapi in front of the message queue (this limitation is only present if you use getupdates).  
+
+
+### Logging in as a normal user
+
+To login using a phone number, call the phonelogin method while passing the phone number as the phone parameter:
+
+```
+https://api.pwrtelegram.xyz/phonelogin?phone=+3984748839
+```
+
+On success, a temporary access token will be returned:
+
+```
+{"ok": true, "result": "hjJhh-_3838rhehhH2"}
+```
+
+Use it to call the completephonelogin method with the code you received (2fa isn't supported yet).
+
+```
+https://api.pwrtelegram.xyz/userhjJhh-_3838rhehhH2/completephonelogin?code=77486
+```
+
+On success, the permanent access token will be returned:
+
+```
+{"ok": true, "result": "101384885:hjJhh-_3838rhehhH2"}
+```
+
+If you get a lot of flood wait errors while uploading/downloading files using a normal bot, you can set a custom backend for that bot:
+
+```
+https://api.pwrtelegram.xyz/botTOKEN/setbackend?backend_token=101384885:hjJhh-_3838rhehhH2
+```
+
+To call methods as a logged in user use the following url (params can be passed using GET and POST):
+
+```
+https://api.pwrtelegram.xyz/user101384885:hjJhh-_3838rhehhH2/method?param=value
+```
+
+The methods that can be called using the user access token are the following (see https://daniil.it/MadelineProto for more info):
+
+* upload - Uploads the file uploaded using POST as the `file` parameter to telegram, returns an [InputFile](https://daniil.it/MadelineProto/API_docs/types/InputFile.html) object that must be used to generate an [InputMedia](https://daniil.it/MadelineProto/API_docs/types/InputMedia.html) object, that can be later sent using the [sendmedia method](https://daniil.it/MadelineProto/API_docs/methods/messages_sendMedia.html).
+
+* enableGetupdates - Enables storing updates and fetching using getUpdates
+
+* disableGetupdates - Disables storing updates and fetching using getUpdates, you MUST call this method if you only want to use the user as a backend
+
+* getUpdates - This method accepts an array of options as the first parameter, and returns an array of updates (an array containing the update id and an object of type [Update](https://daniil.it/MadelineProto/API_docs/types/Update.html)). 
+
+* getChat - Exactly the same usage and response as the getChat method of the main pwrtelegram API
+
+A lot of other methods are supported, to see a full list [click here](https://daniil.it/MadelineProto/API_docs/).
+
 
 ### getChatByFile
 

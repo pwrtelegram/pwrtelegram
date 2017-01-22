@@ -106,7 +106,7 @@ class Main extends Proxy
             } else {
                 $this->madeline_path = '/tmp/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
-                if (!file_exists($this->madeline_backend_path)) $this->madeline_backend_path = $default_backend; else $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
+                if (!file_exists($this->madeline_backend_path)) $this->madeline_backend_path = $default_backend; else $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }
         }
@@ -297,11 +297,29 @@ class Main extends Proxy
         if ($this->real_token === '' && !in_array($this->method, ['/phonelogin', '/getchat'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'The only method that can be called without authorization is getChat and phoneLogin']);
         if ($this->user && isset($this->bot_id)) {
             switch ($this->method) {
+                case '/getchat':
+                $result = $this->getchat($this->REQUEST);
+                $this->add_to_db($result, []);
+                $this->jsonexit($result);
+
                 case '/upload':
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'], $_FILES['file']['name'])]);
                 case '/getupdates':
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->get_updates($this->REQUEST)]);
+
+                case '/enablegetupdates':
+                $madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
+                $this->jsonexit(['ok' => true, 'result' => true]);
+
+                case '/disablegetupdates':
+                unset($madeline->API->settings['pwr']['update_handler']);
+                $this->jsonexit(['ok' => true, 'result' => true]);
+
                 default:
+                foreach ($this->REQUEST as &$param) {
+                    $json = json_decode($param);
+                    if (is_array($json) && isset($json['_'])) $param = $json;
+                }
                 $method = str_replace('->', '.', $this->method);
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
@@ -342,7 +360,7 @@ class Main extends Proxy
                 if (!isset($this->REQUEST['backend_token']) || $this->REQUEST['backend_token'] == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No verification backend token was provided.']);
                 }
-                $bot_id = explode(':', $this->REQUEST['backend_token'])[0];
+                $bot_id = basename(explode(':', $this->REQUEST['backend_token'])[0]);
                 $backend_session = '/tmp/pwruser_'.$bot_id.'_'.hash('sha256', $this->REQUEST['backend_token']).'.madeline';
                 $result = symlink($backend_session, '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline');
                 $this->jsonexit(['ok' => $result, 'result' => $result]);
