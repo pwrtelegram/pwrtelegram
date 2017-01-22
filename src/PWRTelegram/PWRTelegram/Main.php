@@ -27,7 +27,7 @@ class Main extends Proxy
         }
         if (isset($this->madeline_backend)) {
             $this->madeline_backend->API->reset_session();
-            \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path);
+            \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path, $this->madeline_backend);
         }
     }
 
@@ -324,11 +324,11 @@ class Main extends Proxy
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->get_updates($this->REQUEST)]);
 
                 case '/enablegetupdates':
-                $madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
+                $this->madeline->API->settings['pwr']['update_handler'] = $this->madeline->API->settings['updates']['callback'];
                 $this->jsonexit(['ok' => true, 'result' => true]);
 
                 case '/disablegetupdates':
-                unset($madeline->API->settings['pwr']['update_handler']);
+                unset($this->madeline->API->settings['pwr']['update_handler']);
                 $this->jsonexit(['ok' => true, 'result' => true]);
 
                 default:
@@ -379,7 +379,9 @@ class Main extends Proxy
                 }
                 $bot_id = basename(explode(':', $this->REQUEST['backend_token'])[0]);
                 $backend_session = '/tmp/pwruser_'.$bot_id.'_'.hash('sha256', $this->REQUEST['backend_token']).'.madeline';
-                $result = symlink($backend_session, '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline');
+                $dest = '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
+                $this->try_unlink($dest);
+                $result = symlink($backend_session, $dest);
                 $this->jsonexit(['ok' => $result, 'result' => $result]);
 
             case '/getfile':
