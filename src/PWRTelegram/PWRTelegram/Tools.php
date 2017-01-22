@@ -176,8 +176,8 @@ class Tools
             if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
                 return $this->userchecked = true;
             }
-            $this->madeline_connect();
-            $this->madeline->messages->sendMessage(['peer' => '@'.$me, 'message' => '/start']);
+            $this->madeline_backend_connect();
+            $this->madeline_backend->messages->sendMessage(['peer' => '@'.$me, 'message' => '/start']);
             if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
                 return $this->userchecked = true;
             }
