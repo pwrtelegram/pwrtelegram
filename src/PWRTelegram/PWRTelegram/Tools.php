@@ -111,8 +111,31 @@ class Tools
     public function jsonexit($wut, $options = 0)
     {
         $die = json_encode($wut, $options);
-        if ($die == 'null') {
-            $die = json_encode(['ok' => false, 'error_code' => 400, 'description' => 'An error occurred (json encoded result is null)']);
+        if ($die == 'null' || $die === false) {
+    switch (json_last_error()) {
+        case JSON_ERROR_NONE:
+            $error = 'No errors';
+        break;
+        case JSON_ERROR_DEPTH:
+            $error = 'Maximum stack depth exceeded';
+        break;
+        case JSON_ERROR_STATE_MISMATCH:
+            $error = 'Underflow or the modes mismatch';
+        break;
+        case JSON_ERROR_CTRL_CHAR:
+            $error = 'Unexpected control character found';
+        break;
+        case JSON_ERROR_SYNTAX:
+            $error = 'Syntax error, malformed JSON';
+        break;
+        case JSON_ERROR_UTF8:
+            $error = 'Malformed UTF-8 characters, possibly incorrectly encoded';
+        break;
+        default:
+            $error = 'Unknown error';
+        break;
+    }
+            $die = json_encode(['ok' => false, 'error_code' => 400, 'description' => 'An error occurred (json encoded result is null, '.$error.')']);
         }
         die($die);
     }
@@ -259,5 +282,15 @@ class Tools
     public function base64url_encode($data)
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+    public function utf8ize($d) {
+        if (is_array($d)) {
+            foreach ($d as $k => $v) {
+                $d[$k] = $this->utf8ize($v);
+            }
+        } else if (is_string ($d)) {
+            return utf8_encode($d);
+        }
+        return $d;
     }
 }
