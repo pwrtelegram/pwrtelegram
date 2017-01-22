@@ -40,15 +40,20 @@ class API extends Tools
     {
         if (!isset($this->madeline)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
+
             return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
         }
     }
-    public function madeline_connect_backend() {
+
+    public function madeline_connect_backend()
+    {
         if (!isset($this->madeline_backend)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
+
             return $this->madeline_backend = \danog\MadelineProto\Serialization::deserialize($this->madeline_backend_path);
         }
     }
+
     /**
      * Download given file id and return json with error or downloaded path.
      *

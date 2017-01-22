@@ -69,7 +69,9 @@ class Main extends Proxy
         $this->token = $this->real_token.($this->deep ? '/test' : '');
 
         $exploded = explode(':', $this->real_token);
-        if (count($exploded) == 2) $this->bot_id = basename($exploded[0]);
+        if (count($exploded) == 2) {
+            $this->bot_id = basename($exploded[0]);
+        }
 
         // The api url with the token
         $this->url = 'https://api.telegram.org/bot'.$this->token;
@@ -106,12 +108,18 @@ class Main extends Proxy
             } else {
                 $this->madeline_path = '/tmp/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
-                if (!file_exists($this->madeline_backend_path)) $this->madeline_backend_path = $default_backend; else $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
+                if (!file_exists($this->madeline_backend_path)) {
+                    $this->madeline_backend_path = $default_backend;
+                } else {
+                    $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
+                }
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
-            if ($this->user) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Invalid user token provided"]);
+            if ($this->user) {
+                $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Invalid user token provided']);
+            }
             $this->get_me();
             require 'vendor/autoload.php';
             $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
@@ -121,7 +129,9 @@ class Main extends Proxy
             $madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
         }
-        if ($this->user && $this->real_token !== '') $this->madeline_connect();
+        if ($this->user && $this->real_token !== '') {
+            $this->madeline_connect();
+        }
     }
 
     public function getprofilephotos($params)
@@ -186,7 +196,9 @@ class Main extends Proxy
 
     public function getchat($params)
     {
-        if (!isset($params['chat_id'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No chat_id provided']);
+        if (!isset($params['chat_id'])) {
+            $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No chat_id provided']);
+        }
         $final_res = [];
         $result = $this->curl($this->url.'/getchat?'.http_build_query($params));
         if (!$result['ok']) {
@@ -250,7 +262,9 @@ class Main extends Proxy
 
     public function run_file()
     {
-        if ($this->real_token === '' || $this->user) return false;
+        if ($this->real_token === '' || $this->user) {
+            return false;
+        }
         // If requesting a file
         if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
             $pwrapi_file_url = $this->pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
@@ -294,7 +308,9 @@ class Main extends Proxy
 
     public function run_methods()
     {
-        if ($this->real_token === '' && !in_array($this->method, ['/phonelogin', '/getchat'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'The only method that can be called without authorization is getChat and phoneLogin']);
+        if ($this->real_token === '' && !in_array($this->method, ['/phonelogin', '/getchat'])) {
+            $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'The only method that can be called without authorization is getChat and phoneLogin']);
+        }
         if ($this->user && isset($this->bot_id)) {
             switch ($this->method) {
                 case '/getchat':
@@ -318,7 +334,9 @@ class Main extends Proxy
                 default:
                 foreach ($this->REQUEST as &$param) {
                     $json = json_decode($param);
-                    if (is_array($json) && isset($json['_'])) $param = $json;
+                    if (is_array($json) && isset($json['_'])) {
+                        $param = $json;
+                    }
                 }
                 $method = str_replace('->', '.', $this->method);
                 if ($method == 'auth.logOut') {
@@ -326,7 +344,6 @@ class Main extends Proxy
                 }
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $this->REQUEST)]);
             }
-
         }
         // Else use a nice case switch
         switch ($this->method) {
