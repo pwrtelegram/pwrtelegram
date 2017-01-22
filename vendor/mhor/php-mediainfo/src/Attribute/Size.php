@@ -14,11 +14,11 @@ class Size implements AttributeInterface
     private $bit;
 
     /**
-     * @param int $size
+     * @param string|int $size
      */
     public function __construct($size)
     {
-        $this->bit = $size;
+        $this->bit = (int) $size;
     }
 
     /**

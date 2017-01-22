@@ -15,6 +15,9 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 class API extends Tools
 {
+    public $madeline_connected_bot = false;
+    public $madeline_connected_backend = false;
+
     public function __construct($params)
     {
         foreach ($params as $key => $val) {
@@ -33,30 +36,19 @@ class API extends Tools
         }
     }
 
-    public function madeline_connect($token = '')
+    public function madeline_connect()
     {
-        if ($token === '') {
-            if (!isset($this->madeline)) {
-                require_once $this->pwrhomedir.'/vendor/autoload.php';
-
-                return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
-            }
-        }
         if (!isset($this->madeline)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
-            $this->madeline_path = '/tmp/pwr_'.$this->get_me()['result']['username'].'_'.hash('sha256', $token).'.madeline';
-            if (file_exists($this->madeline_path)) {
-                try {
-                    return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
-                } catch (\danog\MadelineProto\Exception $e) {
-                } catch (\danog\MadelineProto\RPCErrorException $e) {
-                }
-            }
-            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
-            $this->madeline->bot_login($token);
+            return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
         }
     }
-
+    public function madeline_connect_backend() {
+        if (!isset($this->madeline_backend)) {
+            require_once $this->pwrhomedir.'/vendor/autoload.php';
+            return $this->madeline_backend = \danog\MadelineProto\Serialization::deserialize($this->madeline_backend_path);
+        }
+    }
     /**
      * Download given file id and return json with error or downloaded path.
      *
@@ -117,7 +109,7 @@ class API extends Tools
         unset($this->pdo);
         $path = '';
 
-        $this->madeline_connect();
+        $this->madeline_connect_backend();
         if (!$this->checkbotuser($me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
@@ -140,17 +132,17 @@ class API extends Tools
         if ($result['ok'] == false) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
         }
-        $result = $this->madeline->messages->searchGlobal(['offset_peer' => '@'.$me, 'q' => $file_id, 'offset_date' => 0, 'offset_id' => 0, 'limit' => 1]);
+        $result = $this->madeline_backend->messages->searchGlobal(['offset_peer' => '@'.$me, 'q' => $file_id, 'offset_date' => 0, 'offset_id' => 0, 'limit' => 1]);
 
         if (!isset($result['messages'][0]['reply_to_msg_id'])) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, search failed."];
         }
-        $result = $this->madeline->messages->getMessages(['id' => [$result['messages'][0]['reply_to_msg_id']]]);
+        $result = $this->madeline_backend->messages->getMessages(['id' => [$result['messages'][0]['reply_to_msg_id']]]);
         if (!isset($result['messages'][0]['media'])) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, error getting message."];
         }
         $media = $result['messages'][0]['media'];
-        $info = $this->madeline->get_download_info($media);
+        $info = $this->madeline_backend->get_download_info($media);
 
         $file_size = $info['size'];
         $file_name = $info['name'].$info['ext'];
@@ -525,8 +517,8 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $this->madeline_connect();
-                $inputFile = $this->madeline->upload($path);
+                $this->madeline_connect_backend();
+                $inputFile = $this->madeline_backend->upload($path);
                 $mime = mime_content_type($path);
                 $this->try_unlink($path);
                 switch ($type) {
@@ -555,12 +547,12 @@ class API extends Tools
                 }
                 $peer = '@'.$me;
                 $payload = 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]);
-                $result = $this->madeline->messages->sendMessage(['peer' => $peer, 'message' => $payload]);
+                $result = $this->madeline_backend->messages->sendMessage(['peer' => $peer, 'message' => $payload]);
                 if (!isset($result['id'])) {
                     return ['ok' => false, 'error_code' => 400, 'description' => 'Message id of text message is empty.'];
                 }
 
-                $result = $this->madeline->messages->sendMedia(['peer' => $peer, 'media' => $media, 'reply_to_msg_id' => $result['id']]);
+                $result = $this->madeline_backend->messages->sendMedia(['peer' => $peer, 'media' => $media, 'reply_to_msg_id' => $result['id']]);
                 $this->db_connect();
                 $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;');
                 $insert_stmt->execute([$file_hash, $me, $name, $size]);

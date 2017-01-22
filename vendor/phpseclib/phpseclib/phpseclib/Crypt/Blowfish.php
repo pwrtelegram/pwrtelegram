@@ -37,6 +37,8 @@
 
 namespace phpseclib\Crypt;
 
+use phpseclib\Crypt\Common\BlockCipher;
+
 /**
  * Pure-PHP implementation of Blowfish.
  *
@@ -45,12 +47,12 @@ namespace phpseclib\Crypt;
  * @author  Hans-Juergen Petrich <petrich@tronic-media.com>
  * @access  public
  */
-class Blowfish extends Base
+class Blowfish extends BlockCipher
 {
     /**
      * Block Length of the cipher
      *
-     * @see \phpseclib\Crypt\Base::block_size
+     * @see \phpseclib\Crypt\Common\SymmetricKey::block_size
      * @var int
      * @access private
      */
@@ -59,7 +61,7 @@ class Blowfish extends Base
     /**
      * The mcrypt specific name of the cipher
      *
-     * @see \phpseclib\Crypt\Base::cipher_name_mcrypt
+     * @see \phpseclib\Crypt\Common\SymmetricKey::cipher_name_mcrypt
      * @var string
      * @access private
      */
@@ -68,7 +70,7 @@ class Blowfish extends Base
     /**
      * Optimizing value while CFB-encrypting
      *
-     * @see \phpseclib\Crypt\Base::cfb_init_len
+     * @see \phpseclib\Crypt\Common\SymmetricKey::cfb_init_len
      * @var int
      * @access private
      */
@@ -273,7 +275,7 @@ class Blowfish extends Base
     /**
      * The Key Length (in bytes)
      *
-     * @see \phpseclib\Crypt\Base::setKeyLength()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::setKeyLength()
      * @var int
      * @access private
      * @internal The max value is 256 / 8 = 32, the min value is 128 / 8 = 16.  Exists in conjunction with $Nk
@@ -282,6 +284,22 @@ class Blowfish extends Base
      *    of that, we'll just precompute it once.
      */
     var $key_length = 16;
+
+    /**
+     * Default Constructor.
+     *
+     * @param int $mode
+     * @access public
+     * @throws \InvalidArgumentException if an invalid / unsupported mode is provided
+     */
+    function __construct($mode)
+    {
+        if ($mode == self::MODE_STREAM) {
+            throw new \InvalidArgumentException('Block ciphers cannot be ran in stream mode');
+        }
+
+        parent::__construct($mode);
+    }
 
     /**
      * Sets the key length.
@@ -293,13 +311,11 @@ class Blowfish extends Base
      */
     function setKeyLength($length)
     {
-        if ($length < 32) {
-            $this->key_length = 7;
-        } elseif ($length > 448) {
-            $this->key_length = 56;
-        } else {
-            $this->key_length = $length >> 3;
+        if ($length < 32 || $length > 448) {
+                throw new \LengthException('Key size of ' . $length . ' bits is not supported by this algorithm. Only keys of sizes between 32 and 448 bits are supported');
         }
+
+        $this->key_length = $length >> 3;
 
         parent::setKeyLength($length);
     }
@@ -307,9 +323,9 @@ class Blowfish extends Base
     /**
      * Test for engine validity
      *
-     * This is mainly just a wrapper to set things up for \phpseclib\Crypt\Base::isValidEngine()
+     * This is mainly just a wrapper to set things up for \phpseclib\Crypt\Common\SymmetricKey::isValidEngine()
      *
-     * @see \phpseclib\Crypt\Base::isValidEngine()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::isValidEngine()
      * @param int $engine
      * @access public
      * @return bool
@@ -330,7 +346,7 @@ class Blowfish extends Base
     /**
      * Setup the key (expansion)
      *
-     * @see \phpseclib\Crypt\Base::_setupKey()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_setupKey()
      * @access private
      */
     function _setupKey()
@@ -457,7 +473,7 @@ class Blowfish extends Base
     /**
      * Setup the performance-optimized function for de/encrypt()
      *
-     * @see \phpseclib\Crypt\Base::_setupInlineCrypt()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_setupInlineCrypt()
      * @access private
      */
     function _setupInlineCrypt()

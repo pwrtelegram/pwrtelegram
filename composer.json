@@ -6,6 +6,7 @@
         "mhor/php-mediainfo": "^2.2",
         "danog/madelineproto": "dev-master"
     },
+    "minimum-stability": "dev",
     "license": "AGPLv3",
     "authors": [
         {

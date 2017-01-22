@@ -1,99 +1,5 @@
 [
     {
-        "name": "phpseclib/phpseclib",
-        "version": "2.0.4",
-        "version_normalized": "2.0.4.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/phpseclib/phpseclib.git",
-            "reference": "ab8028c93c03cc8d9c824efa75dc94f1db2369bf"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/ab8028c93c03cc8d9c824efa75dc94f1db2369bf",
-            "reference": "ab8028c93c03cc8d9c824efa75dc94f1db2369bf",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.3"
-        },
-        "require-dev": {
-            "phing/phing": "~2.7",
-            "phpunit/phpunit": "~4.0",
-            "sami/sami": "~2.0",
-            "squizlabs/php_codesniffer": "~2.0"
-        },
-        "suggest": {
-            "ext-gmp": "Install the GMP (GNU Multiple Precision) extension in order to speed up arbitrary precision integer arithmetic operations.",
-            "ext-libsodium": "SSH2/SFTP can make use of some algorithms provided by the libsodium-php extension.",
-            "ext-mcrypt": "Install the Mcrypt extension in order to speed up a few other cryptographic operations.",
-            "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations."
-        },
-        "time": "2016-10-04T00:57:04+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "files": [
-                "phpseclib/bootstrap.php"
-            ],
-            "psr-4": {
-                "phpseclib\\": "phpseclib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Jim Wigginton",
-                "email": "terrafrost@php.net",
-                "role": "Lead Developer"
-            },
-            {
-                "name": "Patrick Monnerat",
-                "email": "pm@datasphere.ch",
-                "role": "Developer"
-            },
-            {
-                "name": "Andreas Fischer",
-                "email": "bantu@phpbb.com",
-                "role": "Developer"
-            },
-            {
-                "name": "Hans-Jürgen Petrich",
-                "email": "petrich@tronic-media.com",
-                "role": "Developer"
-            },
-            {
-                "name": "Graham Campbell",
-                "email": "graham@alt-three.com",
-                "role": "Developer"
-            }
-        ],
-        "description": "PHP Secure Communications Library - Pure-PHP implementations of RSA, AES, SSH2, SFTP, X.509 etc.",
-        "homepage": "http://phpseclib.sourceforge.net",
-        "keywords": [
-            "BigInteger",
-            "aes",
-            "asn.1",
-            "asn1",
-            "blowfish",
-            "crypto",
-            "cryptography",
-            "encryption",
-            "rsa",
-            "security",
-            "sftp",
-            "signature",
-            "signing",
-            "ssh",
-            "twofish",
-            "x.509",
-            "x509"
-        ]
-    },
-    {
         "name": "danog/phpstruct",
         "version": "1.2",
         "version_normalized": "1.2.0.0",
@@ -263,30 +169,30 @@
     },
     {
         "name": "symfony/filesystem",
-        "version": "v3.2.2",
-        "version_normalized": "3.2.2.0",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/filesystem.git",
-            "reference": "a0c6ef2dc78d33b58d91d3a49f49797a184d06f4"
+            "reference": "b2de62936fea037d501159f52b7b6172cc962282"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/filesystem/zipball/a0c6ef2dc78d33b58d91d3a49f49797a184d06f4",
-            "reference": "a0c6ef2dc78d33b58d91d3a49f49797a184d06f4",
+            "url": "https://api.github.com/repos/symfony/filesystem/zipball/b2de62936fea037d501159f52b7b6172cc962282",
+            "reference": "b2de62936fea037d501159f52b7b6172cc962282",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.9"
         },
-        "time": "2017-01-08T20:47:33+00:00",
+        "time": "2017-01-08T21:15:04+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.2-dev"
+                "dev-master": "3.3-dev"
             }
         },
-        "installation-source": "dist",
+        "installation-source": "source",
         "autoload": {
             "psr-4": {
                 "Symfony\\Component\\Filesystem\\": ""
@@ -314,30 +220,30 @@
     },
     {
         "name": "symfony/process",
-        "version": "v3.2.2",
-        "version_normalized": "3.2.2.0",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/process.git",
-            "reference": "350e810019fc52dd06ae844b6a6d382f8a0e8893"
+            "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/process/zipball/350e810019fc52dd06ae844b6a6d382f8a0e8893",
-            "reference": "350e810019fc52dd06ae844b6a6d382f8a0e8893",
+            "url": "https://api.github.com/repos/symfony/process/zipball/86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
+            "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.9"
         },
-        "time": "2017-01-02T20:32:22+00:00",
+        "time": "2017-01-21T17:10:26+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.2-dev"
+                "dev-master": "3.3-dev"
             }
         },
-        "installation-source": "dist",
+        "installation-source": "source",
         "autoload": {
             "psr-4": {
                 "Symfony\\Component\\Process\\": ""
@@ -365,17 +271,17 @@
     },
     {
         "name": "mhor/php-mediainfo",
-        "version": "2.3.0",
-        "version_normalized": "2.3.0.0",
+        "version": "2.3.1",
+        "version_normalized": "2.3.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/mhor/php-mediainfo.git",
-            "reference": "25273284c993e4bc067e7d00232b07897a0c707f"
+            "reference": "53961b37c0521c1b067de91c8ff24da3474592a0"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/25273284c993e4bc067e7d00232b07897a0c707f",
-            "reference": "25273284c993e4bc067e7d00232b07897a0c707f",
+            "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/53961b37c0521c1b067de91c8ff24da3474592a0",
+            "reference": "53961b37c0521c1b067de91c8ff24da3474592a0",
             "shasum": ""
         },
         "require": {
@@ -386,7 +292,7 @@
         "require-dev": {
             "phpunit/phpunit": "~4.0"
         },
-        "time": "2017-01-13T20:01:19+00:00",
+        "time": "2017-01-15T21:31:32+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -412,28 +318,175 @@
         "description": "PHP wrapper around the mediainfo command"
     },
     {
+        "name": "phpseclib/phpseclib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/phpseclib/phpseclib.git",
+            "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/74abcb45ed9de9508c61ab15371f1bc40292b9fd",
+            "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd",
+            "shasum": ""
+        },
+        "require": {
+            "paragonie/constant_time_encoding": "^1|^2",
+            "paragonie/random_compat": "^1.4|^2.0",
+            "php": ">=7.0"
+        },
+        "require-dev": {
+            "phing/phing": "~2.7",
+            "phpunit/phpunit": "~4.0",
+            "sami/sami": "~2.0",
+            "squizlabs/php_codesniffer": "~2.0"
+        },
+        "suggest": {
+            "ext-gmp": "Install the GMP (GNU Multiple Precision) extension in order to speed up arbitrary precision integer arithmetic operations.",
+            "ext-libsodium": "SSH2/SFTP can make use of some algorithms provided by the libsodium-php extension.",
+            "ext-mcrypt": "Install the Mcrypt extension in order to speed up a few other cryptographic operations.",
+            "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations."
+        },
+        "time": "2016-12-25T15:50:17+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "files": [
+                "phpseclib/bootstrap.php"
+            ],
+            "psr-4": {
+                "phpseclib\\": "phpseclib/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jim Wigginton",
+                "email": "terrafrost@php.net",
+                "role": "Lead Developer"
+            },
+            {
+                "name": "Patrick Monnerat",
+                "email": "pm@datasphere.ch",
+                "role": "Developer"
+            },
+            {
+                "name": "Andreas Fischer",
+                "email": "bantu@phpbb.com",
+                "role": "Developer"
+            },
+            {
+                "name": "Hans-Jürgen Petrich",
+                "email": "petrich@tronic-media.com",
+                "role": "Developer"
+            },
+            {
+                "name": "Graham Campbell",
+                "email": "graham@alt-three.com",
+                "role": "Developer"
+            }
+        ],
+        "description": "PHP Secure Communications Library - Pure-PHP implementations of RSA, AES, SSH2, SFTP, X.509 etc.",
+        "homepage": "http://phpseclib.sourceforge.net",
+        "keywords": [
+            "BigInteger",
+            "aes",
+            "asn.1",
+            "asn1",
+            "blowfish",
+            "crypto",
+            "cryptography",
+            "encryption",
+            "rsa",
+            "security",
+            "sftp",
+            "signature",
+            "signing",
+            "ssh",
+            "twofish",
+            "x.509",
+            "x509"
+        ]
+    },
+    {
+        "name": "vlucas/phpdotenv",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/vlucas/phpdotenv.git",
+            "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+            "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.9"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8 || ^5.0"
+        },
+        "time": "2016-12-14T21:01:27+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.4-dev"
+            }
+        },
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Dotenv\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause-Attribution"
+        ],
+        "authors": [
+            {
+                "name": "Vance Lucas",
+                "email": "vance@vancelucas.com",
+                "homepage": "http://www.vancelucas.com"
+            }
+        ],
+        "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
+        "keywords": [
+            "dotenv",
+            "env",
+            "environment"
+        ]
+    },
+    {
         "name": "danog/madelineproto",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/danog/MadelineProto.git",
-            "reference": "0fe0b925aa3c7289b4c945518d54edcf935db2dd"
+            "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/danog/MadelineProto/zipball/0fe0b925aa3c7289b4c945518d54edcf935db2dd",
-            "reference": "0fe0b925aa3c7289b4c945518d54edcf935db2dd",
+            "url": "https://api.github.com/repos/danog/MadelineProto/zipball/e469f05d646d007b28c6e68d4cf2159598441f7f",
+            "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f",
             "shasum": ""
         },
         "require": {
             "danog/phpstruct": "^1.2",
-            "paragonie/constant_time_encoding": "^1|^2",
-            "paragonie/random_compat": "^2.0",
             "php": ">=5.6.0",
-            "phpseclib/phpseclib": "^2.0"
+            "phpseclib/phpseclib": "dev-master|^2.0.4",
+            "vlucas/phpdotenv": "^2.4"
         },
-        "time": "2017-01-15T02:06:00+00:00",
+        "time": "2017-01-21T15:13:28+00:00",
         "type": "project",
         "installation-source": "source",
         "autoload": {

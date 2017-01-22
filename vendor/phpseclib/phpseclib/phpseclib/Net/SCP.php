@@ -32,6 +32,9 @@
 
 namespace phpseclib\Net;
 
+use phpseclib\Exception\FileNotFoundException;
+use phpseclib\Common\Functions\Strings;
+
 /**
  * Pure-PHP implementations of SCP.
  *
@@ -99,7 +102,7 @@ class SCP
      *
      * Connects to an SSH server
      *
-     * @param \phpseclib\Net\SSH1|\phpseclin\Net\SSH2 $ssh
+     * @param \phpseclib\Net\SSH1|\phpseclib\Net\SSH2 $ssh
      * @return \phpseclib\Net\SCP
      * @access public
      */
@@ -135,6 +138,7 @@ class SCP
      * @param string $data
      * @param int $mode
      * @param callable $callback
+     * @throws \phpseclib\Exception\FileNotFoundException if you're uploading via a file and the file doesn't exist
      * @return bool
      * @access public
      */
@@ -163,8 +167,7 @@ class SCP
             $size = strlen($data);
         } else {
             if (!is_file($data)) {
-                user_error("$data is not a valid file", E_USER_NOTICE);
-                return false;
+                throw new FileNotFoundException("$data is not a valid file");
             }
 
             $fp = @fopen($data, 'rb');
@@ -284,6 +287,7 @@ class SCP
      * Receives a packet from an SSH server
      *
      * @return string
+     * @throws \UnexpectedValueException on receipt of an unexpected packet
      * @access private
      */
     function _receive()
@@ -299,8 +303,11 @@ class SCP
                     $response = $this->ssh->_get_binary_packet();
                     switch ($response[SSH1::RESPONSE_TYPE]) {
                         case NET_SSH1_SMSG_STDOUT_DATA:
+                            if (strlen($response[SSH1::RESPONSE_DATA]) < 4) {
+                                return false;
+                            }
                             extract(unpack('Nlength', $response[SSH1::RESPONSE_DATA]));
-                            return $this->ssh->_string_shift($response[SSH1::RESPONSE_DATA], $length);
+                            return Strings::shift($response[SSH1::RESPONSE_DATA], $length);
                         case NET_SSH1_SMSG_STDERR_DATA:
                             break;
                         case NET_SSH1_SMSG_EXITSTATUS:
@@ -309,8 +316,7 @@ class SCP
                             $this->ssh->bitmap = 0;
                             return false;
                         default:
-                            user_error('Unknown packet received', E_USER_NOTICE);
-                            return false;
+                            throw new \UnexpectedValueException('Unknown packet received');
                     }
                 }
         }

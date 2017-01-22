@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "869a297ced4b957eb66a9aa5ca1c4e86",
+    "content-hash": "d43208051293ca80aea80cf1d16e3bac",
     "packages": [
         {
             "name": "danog/madelineproto",
@@ -12,20 +12,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/danog/MadelineProto.git",
-                "reference": "0fe0b925aa3c7289b4c945518d54edcf935db2dd"
+                "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/danog/MadelineProto/zipball/0fe0b925aa3c7289b4c945518d54edcf935db2dd",
-                "reference": "0fe0b925aa3c7289b4c945518d54edcf935db2dd",
+                "url": "https://api.github.com/repos/danog/MadelineProto/zipball/e469f05d646d007b28c6e68d4cf2159598441f7f",
+                "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f",
                 "shasum": ""
             },
             "require": {
                 "danog/phpstruct": "^1.2",
-                "paragonie/constant_time_encoding": "^1|^2",
-                "paragonie/random_compat": "^2.0",
                 "php": ">=5.6.0",
-                "phpseclib/phpseclib": "^2.0"
+                "phpseclib/phpseclib": "dev-master|^2.0.4",
+                "vlucas/phpdotenv": "^2.4"
             },
             "type": "project",
             "autoload": {
@@ -59,7 +58,7 @@
                 "telegram",
                 "video"
             ],
-            "time": "2017-01-15 02:06:00"
+            "time": "2017-01-21 15:13:28"
         },
         {
             "name": "danog/phpstruct",
@@ -116,16 +115,16 @@
         },
         {
             "name": "mhor/php-mediainfo",
-            "version": "2.3.0",
+            "version": "2.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mhor/php-mediainfo.git",
-                "reference": "25273284c993e4bc067e7d00232b07897a0c707f"
+                "reference": "53961b37c0521c1b067de91c8ff24da3474592a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/25273284c993e4bc067e7d00232b07897a0c707f",
-                "reference": "25273284c993e4bc067e7d00232b07897a0c707f",
+                "url": "https://api.github.com/repos/mhor/php-mediainfo/zipball/53961b37c0521c1b067de91c8ff24da3474592a0",
+                "reference": "53961b37c0521c1b067de91c8ff24da3474592a0",
                 "shasum": ""
             },
             "require": {
@@ -158,7 +157,7 @@
                 }
             ],
             "description": "PHP wrapper around the mediainfo command",
-            "time": "2017-01-13T20:01:19+00:00"
+            "time": "2017-01-15T21:31:32+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -271,20 +270,22 @@
         },
         {
             "name": "phpseclib/phpseclib",
-            "version": "2.0.4",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "ab8028c93c03cc8d9c824efa75dc94f1db2369bf"
+                "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/ab8028c93c03cc8d9c824efa75dc94f1db2369bf",
-                "reference": "ab8028c93c03cc8d9c824efa75dc94f1db2369bf",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/74abcb45ed9de9508c61ab15371f1bc40292b9fd",
+                "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.3"
+                "paragonie/constant_time_encoding": "^1|^2",
+                "paragonie/random_compat": "^1.4|^2.0",
+                "php": ">=7.0"
             },
             "require-dev": {
                 "phing/phing": "~2.7",
@@ -359,20 +360,20 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2016-10-04T00:57:04+00:00"
+            "time": "2016-12-25 15:50:17"
         },
         {
             "name": "symfony/filesystem",
-            "version": "v3.2.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "a0c6ef2dc78d33b58d91d3a49f49797a184d06f4"
+                "reference": "b2de62936fea037d501159f52b7b6172cc962282"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/a0c6ef2dc78d33b58d91d3a49f49797a184d06f4",
-                "reference": "a0c6ef2dc78d33b58d91d3a49f49797a184d06f4",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/b2de62936fea037d501159f52b7b6172cc962282",
+                "reference": "b2de62936fea037d501159f52b7b6172cc962282",
                 "shasum": ""
             },
             "require": {
@@ -381,7 +382,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.2-dev"
+                    "dev-master": "3.3-dev"
                 }
             },
             "autoload": {
@@ -408,20 +409,20 @@
             ],
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
-            "time": "2017-01-08T20:47:33+00:00"
+            "time": "2017-01-08 21:15:04"
         },
         {
             "name": "symfony/process",
-            "version": "v3.2.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "350e810019fc52dd06ae844b6a6d382f8a0e8893"
+                "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/350e810019fc52dd06ae844b6a6d382f8a0e8893",
-                "reference": "350e810019fc52dd06ae844b6a6d382f8a0e8893",
+                "url": "https://api.github.com/repos/symfony/process/zipball/86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
+                "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
                 "shasum": ""
             },
             "require": {
@@ -430,7 +431,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.2-dev"
+                    "dev-master": "3.3-dev"
                 }
             },
             "autoload": {
@@ -457,12 +458,62 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2017-01-02T20:32:22+00:00"
+            "time": "2017-01-21 17:10:26"
+        },
+        {
+            "name": "vlucas/phpdotenv",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vlucas/phpdotenv.git",
+                "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+                "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8 || ^5.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.4-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dotenv\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause-Attribution"
+            ],
+            "authors": [
+                {
+                    "name": "Vance Lucas",
+                    "email": "vance@vancelucas.com",
+                    "homepage": "http://www.vancelucas.com"
+                }
+            ],
+            "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
+            "keywords": [
+                "dotenv",
+                "env",
+                "environment"
+            ],
+            "time": "2016-12-14 21:01:27"
         }
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {
         "danog/madelineproto": 20
     },

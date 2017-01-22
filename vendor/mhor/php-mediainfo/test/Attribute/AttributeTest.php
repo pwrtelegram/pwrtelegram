@@ -19,8 +19,9 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
 
     public function testDuration()
     {
-        $duration = new Duration(1000);
-        $this->assertEquals(1000, $duration->getMilliseconds());
+        $duration = new Duration('1000');
+        $this->assertSame(1000, $duration->getMilliseconds());
+        $this->assertTrue(is_int($duration->getMilliseconds()));
         $this->assertSame('1000', (string) $duration);
     }
 
@@ -34,16 +35,18 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
 
     public function testRate()
     {
-        $rate = new Rate(15555, '15.55 Mo');
-        $this->assertEquals(15555, $rate->getAbsoluteValue());
+        $rate = new Rate('15555', '15.55 Mo');
+        $this->assertSame(15555.0, $rate->getAbsoluteValue());
+        $this->assertTrue(is_float($rate->getAbsoluteValue()));
         $this->assertEquals('15.55 Mo', $rate->getTextValue());
         $this->assertSame('15.55 Mo', (string) $rate);
     }
 
     public function testSize()
     {
-        $size = new Size(42);
-        $this->assertEquals(42, $size->getBit());
+        $size = new Size('42');
+        $this->assertSame(42, $size->getBit());
+        $this->assertTrue(is_int($size->getBit()));
         $this->assertSame('42', (string) $size);
     }
 }

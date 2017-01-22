@@ -236,11 +236,12 @@ class Tools
         $this->try_unlink($rpath);
     }
 
-    public function get_me()
+    public function get_me($strict = true)
     {
         if (!isset($this->me)) {
             $this->me = $this->curl($this->url.'/getme');
             if (!$this->me['ok']) {
+                if (!$strict) return [];
                 $this->jsonexit($this->me);
             }
         }
@@ -251,5 +252,9 @@ class Tools
     public function base64url_decode($data)
     {
         return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+    }
+    public function base64url_encode($data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }

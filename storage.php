@@ -108,7 +108,10 @@ try {
 
     if ($servefile) {
         require_once 'vendor/autoload.php';
-        $MadelineProto = \danog\MadelineProto\Serialization::deserialize($deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline');
+        $default_backend = $deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline';
+        $madeline_backend_path = '/tmp/pwrbackend_'.$bot.'.madeline';
+        if (!file_exists($madeline_backend_path)) $madeline_backend_path = $default_backend;
+        $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline_backend_path);
         \danog\MadelineProto\Logger::log($file_path);
         $MadelineProto->download_to_stream($select, fopen('php://output', 'w'), function ($percent) {
             flush();

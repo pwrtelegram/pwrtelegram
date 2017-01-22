@@ -35,18 +35,20 @@
 
 namespace phpseclib\Crypt;
 
+use phpseclib\Crypt\Common\BlockCipher;
+
 /**
  * Pure-PHP implementation of RC2.
  *
  * @package RC2
  * @access  public
  */
-class RC2 extends Base
+class RC2 extends BlockCipher
 {
     /**
      * Block Length of the cipher
      *
-     * @see \phpseclib\Crypt\Base::block_size
+     * @see \phpseclib\Crypt\Common\SymmetricKey::block_size
      * @var int
      * @access private
      */
@@ -55,7 +57,7 @@ class RC2 extends Base
     /**
      * The Key
      *
-     * @see \phpseclib\Crypt\Base::key
+     * @see \phpseclib\Crypt\Common\SymmetricKey::key
      * @see self::setKey()
      * @var string
      * @access private
@@ -65,7 +67,7 @@ class RC2 extends Base
     /**
      * The Original (unpadded) Key
      *
-     * @see \phpseclib\Crypt\Base::key
+     * @see \phpseclib\Crypt\Common\SymmetricKey::key
      * @see self::setKey()
      * @see self::encrypt()
      * @see self::decrypt()
@@ -77,7 +79,7 @@ class RC2 extends Base
     /**
      * Don't truncate / null pad key
      *
-     * @see \phpseclib\Crypt\Base::_clearBuffers()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_clearBuffers()
      * @var bool
      * @access private
      */
@@ -95,7 +97,7 @@ class RC2 extends Base
     /**
      * The mcrypt specific name of the cipher
      *
-     * @see \phpseclib\Crypt\Base::cipher_name_mcrypt
+     * @see \phpseclib\Crypt\Common\SymmetricKey::cipher_name_mcrypt
      * @var string
      * @access private
      */
@@ -104,7 +106,7 @@ class RC2 extends Base
     /**
      * Optimizing value while CFB-encrypting
      *
-     * @see \phpseclib\Crypt\Base::cfb_init_len
+     * @see \phpseclib\Crypt\Common\SymmetricKey::cfb_init_len
      * @var int
      * @access private
      */
@@ -260,11 +262,27 @@ class RC2 extends Base
     );
 
     /**
+     * Default Constructor.
+     *
+     * @param int $mode
+     * @access public
+     * @throws \InvalidArgumentException if an invalid / unsupported mode is provided
+     */
+    function __construct($mode)
+    {
+        if ($mode == self::MODE_STREAM) {
+            throw new \InvalidArgumentException('Block ciphers cannot be ran in stream mode');
+        }
+
+        parent::__construct($mode);
+    }
+
+    /**
      * Test for engine validity
      *
-     * This is mainly just a wrapper to set things up for \phpseclib\Crypt\Base::isValidEngine()
+     * This is mainly just a wrapper to set things up for \phpseclib\Crypt\Common\SymmetricKey::isValidEngine()
      *
-     * @see \phpseclib\Crypt\Base::__construct()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::__construct()
      * @param int $engine
      * @access public
      * @return bool
@@ -292,19 +310,16 @@ class RC2 extends Base
      *
      * @access public
      * @param int $length in bits
+     * @throws \LengthException if the key length isn't supported
      */
     function setKeyLength($length)
     {
-        if ($length < 8) {
-            $this->default_key_length = 8;
-        } elseif ($length > 1024) {
-            $this->default_key_length = 128;
-        } else {
-            $this->default_key_length = $length;
+        if ($length < 8 || $length > 1024) {
+            throw new \LengthException('Key size of ' . $length . ' bits is not supported by this algorithm. Only keys between 1 and 1024 bits, inclusive, are supported');
         }
-        $this->current_key_length = $this->default_key_length;
 
-        parent::setKeyLength($length);
+        $this->default_key_length = $this->current_key_length = $length;
+        $this->explicit_key_length = $length >> 3;
     }
 
     /**
@@ -326,26 +341,29 @@ class RC2 extends Base
      * has more then 128 bytes in it, and set $key to a single null byte if
      * it is empty.
      *
-     * If the key is not explicitly set, it'll be assumed to be a single
-     * null byte.
-     *
-     * @see \phpseclib\Crypt\Base::setKey()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::setKey()
      * @access public
      * @param string $key
      * @param int $t1 optional Effective key length in bits.
+     * @throws \LengthException if the key length isn't supported
      */
-    function setKey($key, $t1 = 0)
+    function setKey($key, $t1 = false)
     {
         $this->orig_key = $key;
 
-        if ($t1 <= 0) {
+        if ($t1 === false) {
             $t1 = $this->default_key_length;
-        } elseif ($t1 > 1024) {
-            $t1 = 1024;
         }
+
+        if ($t1 < 1 || $t1 > 1024) {
+            throw new \LengthException('Key size of ' . $length . ' bits is not supported by this algorithm. Only keys between 1 and 1024 bits, inclusive, are supported');
+        }
+
         $this->current_key_length = $t1;
-        // Key byte count should be 1..128.
-        $key = strlen($key) ? substr($key, 0, 128) : "\x00";
+        if (strlen($key) < 1 || strlen($key) > 128) {
+            throw new \LengthException('Key of size ' . strlen($key) . ' not supported by this algorithm. Only keys of sizes between 8 and 1024 bits, inclusive, are supported');
+        }
+
         $t = strlen($key);
 
         // The mcrypt RC2 implementation only supports effective key length
@@ -374,13 +392,16 @@ class RC2 extends Base
         $l[0] = $this->invpitable[$l[0]];
         array_unshift($l, 'C*');
 
-        parent::setKey(call_user_func_array('pack', $l));
+        $this->key = call_user_func_array('pack', $l);
+        $this->key_length = strlen($this->key);
+        $this->changed = true;
+        $this->_setEngine();
     }
 
     /**
      * Encrypts a message.
      *
-     * Mostly a wrapper for \phpseclib\Crypt\Base::encrypt, with some additional OpenSSL handling code
+     * Mostly a wrapper for \phpseclib\Crypt\Common\SymmetricKey::encrypt, with some additional OpenSSL handling code
      *
      * @see self::decrypt()
      * @access public
@@ -403,7 +424,7 @@ class RC2 extends Base
     /**
      * Decrypts a message.
      *
-     * Mostly a wrapper for \phpseclib\Crypt\Base::decrypt, with some additional OpenSSL handling code
+     * Mostly a wrapper for \phpseclib\Crypt\Common\SymmetricKey::decrypt, with some additional OpenSSL handling code
      *
      * @see self::encrypt()
      * @access public
@@ -426,8 +447,8 @@ class RC2 extends Base
     /**
      * Encrypts a block
      *
-     * @see \phpseclib\Crypt\Base::_encryptBlock()
-     * @see \phpseclib\Crypt\Base::encrypt()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_encryptBlock()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::encrypt()
      * @access private
      * @param string $in
      * @return string
@@ -471,8 +492,8 @@ class RC2 extends Base
     /**
      * Decrypts a block
      *
-     * @see \phpseclib\Crypt\Base::_decryptBlock()
-     * @see \phpseclib\Crypt\Base::decrypt()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_decryptBlock()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::decrypt()
      * @access private
      * @param string $in
      * @return string
@@ -514,9 +535,9 @@ class RC2 extends Base
     }
 
     /**
-     * Setup the \phpseclib\Crypt\Base::ENGINE_MCRYPT $engine
+     * Setup the \phpseclib\Crypt\Common\SymmetricKey::ENGINE_MCRYPT $engine
      *
-     * @see \phpseclib\Crypt\Base::_setupMcrypt()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_setupMcrypt()
      * @access private
      */
     function _setupMcrypt()
@@ -531,7 +552,7 @@ class RC2 extends Base
     /**
      * Creates the key schedule
      *
-     * @see \phpseclib\Crypt\Base::_setupKey()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_setupKey()
      * @access private
      */
     function _setupKey()
@@ -552,7 +573,7 @@ class RC2 extends Base
     /**
      * Setup the performance-optimized function for de/encrypt()
      *
-     * @see \phpseclib\Crypt\Base::_setupInlineCrypt()
+     * @see \phpseclib\Crypt\Common\SymmetricKey::_setupInlineCrypt()
      * @access private
      */
     function _setupInlineCrypt()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Pure-PHP ssh-agent client.
  *
@@ -15,6 +16,8 @@
 
 namespace phpseclib\System\SSH\Agent;
 
+use phpseclib\Crypt\RSA;
+use phpseclib\Exception\UnsupportedAlgorithmException;
 use phpseclib\System\SSH\Agent;
 
 /**
@@ -104,26 +107,29 @@ class Identity
      *
      * Wrapper for $this->key->getPublicKey()
      *
-     * @param int $format optional
+     * @param int $type optional
      * @return mixed
      * @access public
      */
-    function getPublicKey($format = null)
+    function getPublicKey($type = 'PKCS8')
     {
-        return !isset($format) ? $this->key->getPublicKey() : $this->key->getPublicKey($format);
+        return $this->key->getPublicKey($type);
     }
 
     /**
-     * Set Signature Mode
+     * Sets the hash
      *
-     * Doesn't do anything as ssh-agent doesn't let you pick and choose the signature mode. ie.
-     * ssh-agent's only supported mode is \phpseclib\Crypt\RSA::SIGNATURE_PKCS1
+     * ssh-agent only supports signatures with sha1 hashes but to maintain BC with RSA.php this function exists
      *
-     * @param int $mode
+     * @param string $hash optional
+     * @throws \phpseclib\Exception\UnsupportedAlgorithmException if the algorithm is unsupported
      * @access public
      */
-    function setSignatureMode($mode)
+    function setHash($hash = 'sha1')
     {
+        if ($hash != 'sha1') {
+            throw new UnsupportedAlgorithmException('ssh-agent can only be used with the sha1 hash');
+        }
     }
 
     /**
@@ -132,22 +138,29 @@ class Identity
      * See "2.6.2 Protocol 2 private key signature request"
      *
      * @param string $message
+     * @param int $padding optional
      * @return string
+     * @throws \RuntimeException on connection errors
+     * @throws \phpseclib\Exception\UnsupportedAlgorithmException if the algorithm is unsupported
      * @access public
      */
-    function sign($message)
+    function sign($message, $padding = RSA::PADDING_PKCS1)
     {
+        if ($padding != RSA::PADDING_PKCS1 && $padding != RSA::PADDING_RELAXED_PKCS1) {
+            throw new UnsupportedAlgorithmException('ssh-agent can only create PKCS1 signatures');
+        }
+
         // the last parameter (currently 0) is for flags and ssh-agent only defines one flag (for ssh-dss): SSH_AGENT_OLD_SIGNATURE
         $packet = pack('CNa*Na*N', Agent::SSH_AGENTC_SIGN_REQUEST, strlen($this->key_blob), $this->key_blob, strlen($message), $message, 0);
         $packet = pack('Na*', strlen($packet), $packet);
         if (strlen($packet) != fputs($this->fsock, $packet)) {
-            user_error('Connection closed during signing');
+            throw new \RuntimeException('Connection closed during signing');
         }
 
         $length = current(unpack('N', fread($this->fsock, 4)));
         $type = ord(fread($this->fsock, 1));
         if ($type != Agent::SSH_AGENT_SIGN_RESPONSE) {
-            user_error('Unable to retrieve signature');
+            throw new \RuntimeException('Unable to retrieve signature');
         }
 
         $signature_blob = fread($this->fsock, $length - 1);

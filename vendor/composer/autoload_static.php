@@ -7,8 +7,8 @@ namespace Composer\Autoload;
 class ComposerStaticInitde8a232de66fffef4be4dbea58c51255
 {
     public static $files = array (
-        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
+        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -28,6 +28,10 @@ class ComposerStaticInitde8a232de66fffef4be4dbea58c51255
         'M' => 
         array (
             'Mhor\\MediaInfo\\' => 15,
+        ),
+        'D' => 
+        array (
+            'Dotenv\\' => 7,
         ),
     );
 
@@ -51,6 +55,10 @@ class ComposerStaticInitde8a232de66fffef4be4dbea58c51255
         'Mhor\\MediaInfo\\' => 
         array (
             0 => __DIR__ . '/..' . '/mhor/php-mediainfo/src',
+        ),
+        'Dotenv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
         ),
     );
 

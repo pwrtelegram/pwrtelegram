@@ -20,13 +20,14 @@ class Main extends Proxy
 
     public function __destruct()
     {
-        if (isset($this->madeline_path)) {
+        if (isset($this->madeline)) {
             $this->madeline->API->store_db([], true);
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
-        } elseif (isset($this->madeline)) {
-            $this->madeline->API->reset_session();
-            \danog\MadelineProto\Serialization::serialize($this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline', $this->madeline);
+        }
+        if (isset($this->madeline_backend)) {
+            $this->madeline_backend->API->reset_session();
+            \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path);
         }
     }
 
@@ -60,12 +61,15 @@ class Main extends Proxy
         $this->method = '/'.strtolower(preg_replace("/.*\//", '', $this->uri));
 
         // The bot's token
-        $this->token = preg_replace(["/^\/bot/", "/^\/file\/bot/", "/\/.*/"], '', $_SERVER['REQUEST_URI']);
+        $this->real_token = preg_replace(["/^\/bot/", "/^\/user/", "/^\/file\/bot/", "/\/.*/"], '', $_SERVER['REQUEST_URI']);
 
         // The url of this api
-        $this->pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/bot'.$this->token;
+        $this->pwrtelegram_api = 'https://'.$_SERVER['HTTP_HOST'].'/bot'.$this->real_token;
 
-        $this->token = $this->token.($this->deep ? '/test' : '');
+        $this->token = $this->real_token.($this->deep ? '/test' : '');
+
+        $exploded = explode(':', $this->real_token);
+        if (count($exploded) == 2) $this->bot_id = basename($exploded[0]);
 
         // The api url with the token
         $this->url = 'https://api.telegram.org/bot'.$this->token;
@@ -82,32 +86,47 @@ class Main extends Proxy
 
         $this->REQUEST = $_REQUEST;
 
-        if ($this->token !== '') {
-            $info = $this->get_me();
-            ini_set('error_log', isset($info['result']['username']) ? '/tmp/'.$info['result']['username'].'.log' : '/tmp/php-error-index.log');
-            $madeline_path = '/tmp/pwr_'.$info['result']['username'].'_'.hash('sha256', $this->token).'.madeline';
-            if (!file_exists($madeline_path)) {
-                require 'vendor/autoload.php';
-                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
-                $madeline->bot_login($this->token);
-                $madeline->API->get_updates_difference();
-                $madeline->API->store_db([], true);
-                $madeline->API->reset_session();
-                \danog\MadelineProto\Serialization::serialize($madeline_path, $madeline);
+        $default_backend = $this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline';
+
+        $this->user = preg_match("/^\/user/", $_SERVER['REQUEST_URI']);
+
+        if ($this->real_token == '') {
+            $this->madeline_backend_path = $default_backend;
+            $this->madeline_path = $default_backend;
+        } else {
+            if ($this->user) {
+                if (isset($this->bot_id)) {
+                    $this->madeline_backend_path = '/tmp/pwruser_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
+                    $this->madeline_path = $this->madeline_backend_path;
+                    ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
+                } else {
+                    $this->madeline_backend_path = '/tmp/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
+                    $this->madeline_path = $this->madeline_backend_path;
+                }
+            } else {
+                $this->madeline_path = '/tmp/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_backend_path = '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
+                if (!file_exists($this->madeline_backend_path)) $this->madeline_backend_path = $default_backend; else $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
+                ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }
         }
-        /*
-        foreach ($this->REQUEST as &$value) {
-            $value = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($match) {
-                return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
-            }, $value);
+        if (!file_exists($this->madeline_path) && $this->real_token !== '') {
+            if ($this->user) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Invalid user token provided"]);
+            $this->get_me();
+            require 'vendor/autoload.php';
+            $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+            $madeline->bot_login($this->token);
+            $madeline->API->get_updates_difference();
+            $madeline->API->store_db([], true);
+            $madeline->API->reset_session();
+            \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
         }
-        */
+        if ($this->user && $this->real_token !== '') $this->madeline_connect();
     }
 
     public function getprofilephotos($params)
     {
-        if ($this->token === '') {
+        if ($this->real_token === '') {
             return [];
         }
         if (!$this->issetandnotempty($params, 'chat_id')) {
@@ -167,6 +186,7 @@ class Main extends Proxy
 
     public function getchat($params)
     {
+        if (!isset($params['chat_id'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No chat_id provided']);
         $final_res = [];
         $result = $this->curl($this->url.'/getchat?'.http_build_query($params));
         if (!$result['ok']) {
@@ -183,7 +203,7 @@ class Main extends Proxy
         if (isset($params['full'])) {
             $full = (bool) $params['full'];
         }
-        $this->madeline_connect($this->token);
+        $this->madeline_connect();
         try {
             $this->madeline->peer_isset($params['chat_id']) ? $this->get_pwr_chat($params['chat_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
         } catch (\danog\MadelineProto\ResponseException $e) {
@@ -230,7 +250,7 @@ class Main extends Proxy
 
     public function run_file()
     {
-
+        if ($this->real_token === '' || $this->user) return false;
         // If requesting a file
         if (preg_match("/^\/file\/bot/", $_SERVER['REQUEST_URI'])) {
             $pwrapi_file_url = $this->pwrtelegram_storage.preg_replace("/^\/file\/bot[^\/]*\//", '', $_SERVER['REQUEST_URI']);
@@ -245,10 +265,10 @@ class Main extends Proxy
         foreach (['user_id', 'chat_id', 'from_chat_id'] as $key) {
             if (isset($this->REQUEST[$key]) && preg_match('/^@/', $this->REQUEST[$key]) && $this->REQUEST[$key] != '@') {
                 $user_id = json_decode(file_get_contents('https://id.pwrtelegram.xyz/DB/getid?username='.$this->REQUEST[$key]), true);
-                if ($user_id['ok']) {
+                if ($user_id['ok'] && !$this->user) {
                     $this->REQUEST[$key] = $user_id['result'];
                 } else {
-                    $result = $this->token !== '' ? $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST[$key]) : ['ok' => false];
+                    $result = (!$this->user && $this->real_token !== '') ? $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST[$key]) : ['ok' => false];
                     if ($result['ok'] && isset($result['result']['id'])) {
                         $this->REQUEST[$key] = $result['result']['id'];
                     } else {
@@ -262,7 +282,7 @@ class Main extends Proxy
     public function get_pwr_chat($id)
     {
         if (!isset($this->full_chat[$id])) {
-            $this->madeline_connect($this->token);
+            $this->madeline_connect();
             $full_chat = $this->madeline->get_pwr_chat($id);
             $this->full_chat[$full_chat['id']] = $full_chat;
 
@@ -274,8 +294,59 @@ class Main extends Proxy
 
     public function run_methods()
     {
+        if ($this->real_token === '' && !in_array($this->method, ['/phonelogin', '/getchat'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'The only method that can be called without authorization is getChat and phoneLogin']);
+        if ($this->user && isset($this->bot_id)) {
+            switch ($this->method) {
+                case '/upload':
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'], $_FILES['file']['name'])]);
+                case '/getupdates':
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->get_updates($this->REQUEST)]);
+                default:
+                $method = str_replace('->', '.', $this->method);
+                if ($method == 'auth.logOut') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
+                }
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $this->REQUEST)]);
+            }
+
+        }
         // Else use a nice case switch
         switch ($this->method) {
+            case '/phonelogin':
+                if (!isset($this->REQUEST['phone']) || $this->REQUEST['phone'] == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No phone number was provided.']);
+                }
+                require 'vendor/autoload.php';
+                $this->real_token = $this->base64url_encode(\phpseclib\Crypt\Random::string(32));
+                $this->madeline_path = '/tmp/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
+                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+                $madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
+                $madeline->phone_login($this->REQUEST['phone']);
+                \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
+                $this->jsonexit(['ok' => true, 'result' => $this->real_token]);
+                break;
+            case '/completephonelogin':
+                if (!isset($this->REQUEST['code']) || $this->REQUEST['code'] == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No verification code was provided.']);
+                }
+                $authorization = $this->madeline->complete_phone_login($this->REQUEST['code']);
+                $this->real_token = $authorization['user']['id'].':'.$this->real_token;
+                unlink($this->madeline_path);
+                $this->madeline_backend_path = '/tmp/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_path = $this->madeline_backend_path;
+                $this->madeline->API->get_updates_difference();
+                $this->madeline->API->store_db([], true);
+                $this->madeline->API->reset_session();
+                $this->jsonexit(['ok' => true, 'result' => $this->real_token]);
+            case '/setbackend':
+                if (!isset($this->REQUEST['backend_token']) || $this->REQUEST['backend_token'] == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No verification backend token was provided.']);
+                }
+                $bot_id = explode(':', $this->REQUEST['backend_token'])[0];
+                $backend_session = '/tmp/pwruser_'.$bot_id.'_'.hash('sha256', $this->REQUEST['backend_token']).'.madeline';
+                $result = symlink($backend_session, '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline');
+                $this->jsonexit(['ok' => $result, 'result' => $result]);
+
             case '/getfile':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
@@ -454,7 +525,6 @@ class Main extends Proxy
                         curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_api.'/'.$result['method']);
                         unset($result['method']);
                         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($result));
-//                        curl_exec($ch);
                         echo 'Reverse webhook command from '.$me.' returned '.curl_exec($ch);
                         curl_close($ch);
                     }
@@ -591,7 +661,7 @@ class Main extends Proxy
                 if (!$this->issetandnotempty($this->REQUEST, 'fwd_limit')) {
                     $this->REQUEST['fwd_limit'] = 0;
                 }
-                $this->madeline_connect($this->token);
+                $this->madeline_connect();
                 $final_res = [];
                 $result = $this->curl($this->url.'/getchat?chat_id='.$this->REQUEST['user_id']);
                 if (!$result['ok']) {
@@ -605,7 +675,6 @@ class Main extends Proxy
                     $final_res = array_merge($result['result'], $final_res);
                 }
                 $full = false;
-                $this->madeline_connect($this->token);
                     try {
                         $this->madeline->peer_isset($this->REQUEST['user_id']) ? $this->get_pwr_chat($this->REQUEST['user_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
                     } catch (\danog\MadelineProto\ResponseException $e) {
@@ -639,7 +708,7 @@ class Main extends Proxy
                 if (!$this->issetandnotempty($this->REQUEST, 'method')) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
-                $this->madeline_connect($this->token);
+                $this->madeline_connect();
                 $params = [];
                 if (isset($this->REQUEST['params'])) {
                     $params = json_decode($this->REQUEST['params']);
