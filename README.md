@@ -150,7 +150,7 @@ If you get a lot of flood wait errors while uploading/downloading files using a 
 https://api.pwrtelegram.xyz/botTOKEN/setbackend?backend_token=101384885:hjJhh-_3838rhehhH2
 ```
 
-To call methods as a logged in user use the following url (params can be passed using GET and POST):
+To call methods as a logged in user use the following url (params can be passed using GET and POST, arrays must be encoded using json):
 
 ```
 https://api.pwrtelegram.xyz/user101384885:hjJhh-_3838rhehhH2/method?param=value
