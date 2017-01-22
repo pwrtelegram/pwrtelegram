@@ -112,7 +112,7 @@ class Tools
     {
         $die = json_encode($wut, $options);
         if ($die == 'null' || $die === false) {
-    switch (json_last_error()) {
+            switch (json_last_error()) {
         case JSON_ERROR_NONE:
             $error = 'No errors';
         break;
@@ -283,14 +283,17 @@ class Tools
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
-    public function utf8ize($d) {
+
+    public function utf8ize($d)
+    {
         if (is_array($d)) {
             foreach ($d as $k => $v) {
                 $d[$k] = $this->utf8ize($v);
             }
-        } else if (is_string ($d)) {
+        } elseif (is_string($d)) {
             return utf8_encode($d);
         }
+
         return $d;
     }
 }
