@@ -108,9 +108,9 @@ class Tools
     }
 
     // Die while outputting a json error
-    public function jsonexit($wut)
+    public function jsonexit($wut, $options = 0)
     {
-        $die = json_encode($wut);
+        $die = json_encode($wut, $options);
         if ($die == 'null') {
             $die = json_encode(['ok' => false, 'error_code' => 400, 'description' => 'An error occurred (json encoded result is null)']);
         }
