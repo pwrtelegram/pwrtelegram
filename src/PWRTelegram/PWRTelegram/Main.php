@@ -761,6 +761,37 @@ class Main extends Proxy
                 }
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $params)]);
                 break;
+
+                case '/upload':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                $this->madeline_connect();
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'], $_FILES['file']['name'])]);
+
+                case '/getmtprotoupdates':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                $this->madeline_connect();
+                $updates = $this->utf8ize($this->madeline->API->get_updates($this->REQUEST));
+                $this->jsonexit(['ok' => true, 'result' => $updates], JSON_UNESCAPED_UNICODE);
+
+                case '/enablegetmtprotoupdates':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                $this->madeline_connect();
+                $this->madeline->API->settings['pwr']['update_handler'] = $this->madeline->API->settings['updates']['callback'];
+                $this->jsonexit(['ok' => true, 'result' => true]);
+
+                case '/disablegetmtprotoupdates':
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                $this->madeline_connect();
+                unset($this->madeline->API->settings['pwr']['update_handler']);
+                $this->jsonexit(['ok' => true, 'result' => true]);
         }
 
         // The sending method without the send keyword

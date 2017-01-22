@@ -26,6 +26,8 @@ The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/Bayern
 
 All of the official telegram bot API features plus:  
 
+* *NEW* It can fetch any mtproto update, such as name changes, typing notifications, changes of the online status and much more!
+
 * *NEW* It can be used with a normal account (with a phone number)!
 
 * *NEW* It can add users to a group!
@@ -169,6 +171,20 @@ The methods that can be called using the user access token are the following (se
 * getChat - Exactly the same usage and response as the getChat method of the main pwrtelegram API
 
 A lot of other methods are supported, to see a full list [click here](https://daniil.it/MadelineProto/API_docs/).
+
+
+### Getting mtproto updates
+
+*NEW*
+
+To can fetch any mtproto update, such as name changes, typing notifications, changes of the online status, and so on, call the enableGetMTProtoUpdates method as the bot, and then fetch updates using the getMtprotoUpdates method.
+
+To disable mtproto update fetching run the disableGetMtprotoUpdates method.
+
+
+### Uploading files with the mtproto api
+
+To upload a file call the upload method - it Uploads the file uploaded using POST as the `file` parameter to telegram, returns an [InputFile](https://daniil.it/MadelineProto/API_docs/types/InputFile.html) object that must be used to generate an [InputMedia](https://daniil.it/MadelineProto/API_docs/types/InputMedia.html) object, that can be later sent using the [sendmedia method](https://daniil.it/MadelineProto/API_docs/methods/messages_sendMedia.html).
 
 
 ### getChatByFile
