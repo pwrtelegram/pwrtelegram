@@ -335,8 +335,8 @@ class Main extends Proxy
 
                 default:
                 foreach ($this->REQUEST as &$param) {
-                    $json = json_decode($param);
-                    if (is_array($json) && isset($json['_'])) {
+                    $json = json_decode($param, true);
+                    if (is_array($json)) {
                         $param = $json;
                     }
                 }
