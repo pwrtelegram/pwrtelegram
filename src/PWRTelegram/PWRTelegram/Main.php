@@ -58,7 +58,8 @@ class Main extends Proxy
         $this->uri = '/'.preg_replace(["/\?.*$/", "/^\//", "/[^\/]*\//"], '', $_SERVER['REQUEST_URI'], 1);
 
         // The method
-        $this->method = '/'.strtolower(preg_replace("/.*\//", '', $this->uri));
+        $this->method_normal = '/'.preg_replace("/.*\//", '', $this->uri);
+        $this->method = strtolower($method);
 
         // The bot's token
         $this->real_token = preg_replace(["/^\/bot/", "/^\/user/", "/^\/file\/bot/", "/\/.*/"], '', $_SERVER['REQUEST_URI']);
@@ -340,7 +341,7 @@ class Main extends Proxy
                         $param = $json;
                     }
                 }
-                $method = str_replace(['/', '->'], ['', '.'], $this->method);
+                $method = str_replace(['/', '->'], ['', '.'], $this->method_normal);
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
