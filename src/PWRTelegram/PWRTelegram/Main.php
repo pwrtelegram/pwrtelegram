@@ -59,7 +59,7 @@ class Main extends Proxy
 
         // The method
         $this->method_normal = '/'.preg_replace("/.*\//", '', $this->uri);
-        $this->method = strtolower($method);
+        $this->method = strtolower($this->method_normal);
 
         // The bot's token
         $this->real_token = preg_replace(["/^\/bot/", "/^\/user/", "/^\/file\/bot/", "/\/.*/"], '', $_SERVER['REQUEST_URI']);
