@@ -340,7 +340,7 @@ class Main extends Proxy
                         $param = $json;
                     }
                 }
-                $method = str_replace('->', '.', $this->method);
+                $method = str_replace(['/', '->'], ['', '.'], $this->method);
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
