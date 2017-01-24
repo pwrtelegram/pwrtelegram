@@ -15,9 +15,6 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 class API extends Tools
 {
-    public $madeline_connected_bot = false;
-    public $madeline_connected_backend = false;
-
     public function __construct($params)
     {
         foreach ($params as $key => $val) {
@@ -40,8 +37,18 @@ class API extends Tools
     {
         if (!isset($this->madeline)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
+            try {
+                return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
+            } catch (\danog\MadelineProto\Exception $e) {
+            } catch (\danog\MadelineProto\RPCErrorException $e) {
+            }
+                error_log("RELOGIN");
+                $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+                $this->madeline->bot_login($this->real_token);
+                $this->madeline->API->get_updates_difference();
+                $this->madeline->API->store_db([], true);
+                \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
 
-            return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
         }
     }
 
