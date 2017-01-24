@@ -42,13 +42,12 @@ class API extends Tools
             } catch (\danog\MadelineProto\Exception $e) {
             } catch (\danog\MadelineProto\RPCErrorException $e) {
             }
-                error_log("RELOGIN");
-                $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
-                $this->madeline->bot_login($this->real_token);
-                $this->madeline->API->get_updates_difference();
-                $this->madeline->API->store_db([], true);
-                \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
-
+            error_log('RELOGIN');
+            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+            $this->madeline->bot_login($this->real_token);
+            $this->madeline->API->get_updates_difference();
+            $this->madeline->API->store_db([], true);
+            \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
         }
     }
 
