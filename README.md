@@ -9,10 +9,9 @@ This repository contains the source code for the pwrtelegram API, a boosted vers
 The PWRTelegram API makes use of:  
 
 * The [Caddy](https://github.com/mholt/caddy) web server.
-* [HHVM](https://hhvm.com) as fastcgi engine
+* PHP 7
 * [php-mediainfo](https://github.com/mhor/php-mediainfo)
-* A modified version of [php-telegram-cli-client](https://github.com/zyberspace/php-telegram-cli-client)
-* A modified version of [telegram-cli](https://github.com/pwrtelegram/tg)
+* AN AWESOME+++ PHP MTProto client called [MadelineProto](https://github.com/danog/MadelineProto)
 * A modified version of [proxy.php](https://github.com/mcnemesis/proxy.php)
 * [telegram-lua-load](https://github.com/pwrtelegram/telegram-lua-load)
 
