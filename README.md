@@ -17,7 +17,7 @@ The PWRTelegram API makes use of:
 
 This API is written and maintained by [danog](https://github.com/danog) ([@danogentili on telegram](https://telegram.me/danogentili)) with the help of the folks over [@BotDevelopment](https://telegram.me/BotDevelopment), especially [itskenny0](https://github.com/itskenny0) ([@shitposting on telegram](https://telegram.me/shitposting)) and [Rondoozle](https://github.com/Rondoozle) ([@POTUS on Telegram](https://telegram.me/POTUS)).  
 
-It is hosted on Scaleway.
+It is hosted by Botstack.
 
 The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/BayernPars).
 
