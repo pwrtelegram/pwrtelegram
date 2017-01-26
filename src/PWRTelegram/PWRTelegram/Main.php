@@ -20,6 +20,9 @@ class Main extends Proxy
 
     public function __destruct()
     {
+        if ($this->real_token !== '' && isset($this->bot_id) && !$this->user) {
+            $this->madeline_connect();
+        }
         if (isset($this->madeline)) {
             $this->madeline->API->store_db([], true);
             $this->madeline->API->reset_session();
@@ -130,7 +133,7 @@ class Main extends Proxy
             $madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
         }
-        if ($this->real_token !== '' && isset($this->bot_id)) {
+        if ($this->real_token !== '' && isset($this->bot_id) && $this->user) {
             $this->madeline_connect();
         }
     }
