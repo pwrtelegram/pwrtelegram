@@ -41,6 +41,7 @@ class API extends Tools
                 return $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
             } catch (\danog\MadelineProto\Exception $e) {
             } catch (\danog\MadelineProto\RPCErrorException $e) {
+            } catch (\Error $e) {
             }
             error_log('RELOGIN');
             $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
