@@ -110,7 +110,7 @@ Just use it as you would use the official telegram bot API, only bear in the fol
 
 * The PWRTelegram API does not store in any way your bot's token but it does store the bot's username, the sha256 sum of uploaded files and the file ID and the size of uploaded and downloaded files.
 
-* This API won't be able to send big files if getUpdate or webhook requests aren't proxied through it. This is because when the API uploads these files using tg-cli it must obtain a file_id using the official bot API, and that can be done only by intercepting the incoming update with the file.
+* This API won't be able to send big files if getUpdate or webhook requests aren't proxied through it. This is because when the API uploads these files using MadelineProto it must obtain a file_id using the official bot API, and that can be done only by intercepting the incoming update with the file.
 
 * The methods used by the PWRTelegram API are the same ones used in the official telegram bot API, but they also have some additional features and in certain cases their behaviour is slightly modified (don't worry, that won't break your clients). There are also some methods that work only with the PWRTelegram API. Here's a list:
 
