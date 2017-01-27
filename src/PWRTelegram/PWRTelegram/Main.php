@@ -133,7 +133,7 @@ class Main extends Proxy
             $madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
         }
-        if ($this->real_token !== '' && isset($this->bot_id) && $this->user) {
+        if ($this->real_token !== '' && $this->user) {
             $this->madeline_connect();
         }
     }
