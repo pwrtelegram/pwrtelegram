@@ -371,6 +371,26 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No verification code was provided.']);
                 }
                 $authorization = $this->madeline->complete_phone_login($this->REQUEST['code']);
+                if ($authorization['_'] === 'account.noPassword') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => '2FA is enabled but no password is set.']);
+                }
+                if ($authorization['_'] === 'account.password') {
+                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->jsonexit(['ok' => false, 'error_code' => 401, 'description' => '2FA is enabled: call the complete2FALogin method with the password as password parameter (hint: '.$authorization['hint'].')']);
+                }
+                $this->real_token = $authorization['user']['id'].':'.$this->real_token;
+                unlink($this->madeline_path);
+                $this->madeline_backend_path = '/tmp/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_path = $this->madeline_backend_path;
+                $this->madeline->API->get_updates_difference();
+                $this->madeline->API->store_db([], true);
+                $this->madeline->API->reset_session();
+                $this->jsonexit(['ok' => true, 'result' => $this->real_token]);
+            case '/complete2falogin':
+                if (!isset($this->REQUEST['password']) || $this->REQUEST['password'] == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No password was provided.']);
+                }
+                $authorization = $this->madeline->complete_2fa_login($this->REQUEST['password']);
                 $this->real_token = $authorization['user']['id'].':'.$this->real_token;
                 unlink($this->madeline_path);
                 $this->madeline_backend_path = '/tmp/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';

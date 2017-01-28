@@ -145,6 +145,23 @@ On success, the permanent access token will be returned:
 {"ok": true, "result": "101384885:hjJhh-_3838rhehhH2"}
 ```
 
+If 2FA is enabled, the following json will be returned:
+```
+{"ok": false, "error_code": 401, "description": "2FA is enabled: call the complete2FALogin method with the password as password parameter (hint: urhint)"}
+```
+
+In this case you must complete login by calling the complete2FALogin method:
+
+```
+https://api.pwrtelegram.xyz/userhjJhh-_3838rhehhH2/complete2FALogin?password=password
+```
+
+On success, the permanent access token will be returned:
+
+```
+{"ok": true, "result": "101384885:hjJhh-_3838rhehhH2"}
+```
+
 If you get a lot of flood wait errors while uploading/downloading files using a normal bot, you can set a custom backend for that bot:
 
 ```
