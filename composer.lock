@@ -4,6 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
+    "hash": "b444a9538b1f2df7e6f9f0c7c96f7198",
     "content-hash": "d43208051293ca80aea80cf1d16e3bac",
     "packages": [
         {
@@ -12,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/danog/MadelineProto.git",
-                "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f"
+                "reference": "7d388f9cbef6a09779e0f1c1521192686d2d3c02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/danog/MadelineProto/zipball/e469f05d646d007b28c6e68d4cf2159598441f7f",
-                "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f",
+                "url": "https://api.github.com/repos/danog/MadelineProto/zipball/7d388f9cbef6a09779e0f1c1521192686d2d3c02",
+                "reference": "7d388f9cbef6a09779e0f1c1521192686d2d3c02",
                 "shasum": ""
             },
             "require": {
@@ -25,6 +26,9 @@
                 "php": ">=5.6.0",
                 "phpseclib/phpseclib": "dev-master|^2.0.4",
                 "vlucas/phpdotenv": "^2.4"
+            },
+            "require-dev": {
+                "phpdocumentor/reflection-docblock": "^3.1"
             },
             "type": "project",
             "autoload": {
@@ -58,7 +62,7 @@
                 "telegram",
                 "video"
             ],
-            "time": "2017-01-21 15:13:28"
+            "time": "2017-01-29 12:12:48"
         },
         {
             "name": "danog/phpstruct",
@@ -111,7 +115,7 @@
                 "struct",
                 "unpack"
             ],
-            "time": "2016-11-14T15:09:50+00:00"
+            "time": "2016-11-14 15:09:50"
         },
         {
             "name": "mhor/php-mediainfo",
@@ -157,7 +161,7 @@
                 }
             ],
             "description": "PHP wrapper around the mediainfo command",
-            "time": "2017-01-15T21:31:32+00:00"
+            "time": "2017-01-15 21:31:32"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -218,7 +222,7 @@
                 "hex2bin",
                 "rfc4648"
             ],
-            "time": "2016-07-11T20:32:06+00:00"
+            "time": "2016-07-11 20:32:06"
         },
         {
             "name": "paragonie/random_compat",
@@ -266,7 +270,7 @@
                 "pseudorandom",
                 "random"
             ],
-            "time": "2016-11-07T23:38:38+00:00"
+            "time": "2016-11-07 23:38:38"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -274,12 +278,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd"
+                "reference": "9220bcd49a1f981791ee45f8e8178658c8951ed2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/74abcb45ed9de9508c61ab15371f1bc40292b9fd",
-                "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/9220bcd49a1f981791ee45f8e8178658c8951ed2",
+                "reference": "9220bcd49a1f981791ee45f8e8178658c8951ed2",
                 "shasum": ""
             },
             "require": {
@@ -360,7 +364,7 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2016-12-25 15:50:17"
+            "time": "2017-01-27 20:44:21"
         },
         {
             "name": "symfony/filesystem",
@@ -417,12 +421,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e"
+                "reference": "31e5a3078c061925cc8d91b4d55f1ba4c895efc7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
-                "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
+                "url": "https://api.github.com/repos/symfony/process/zipball/31e5a3078c061925cc8d91b4d55f1ba4c895efc7",
+                "reference": "31e5a3078c061925cc8d91b4d55f1ba4c895efc7",
                 "shasum": ""
             },
             "require": {
@@ -458,7 +462,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2017-01-21 17:10:26"
+            "time": "2017-01-21 17:19:16"
         },
         {
             "name": "vlucas/phpdotenv",

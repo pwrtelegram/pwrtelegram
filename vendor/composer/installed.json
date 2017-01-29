@@ -20,7 +20,7 @@
         "require-dev": {
             "phpunit/phpunit": "5.4.*"
         },
-        "time": "2016-11-14T15:09:50+00:00",
+        "time": "2016-11-14 15:09:50",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -78,7 +78,7 @@
         "suggest": {
             "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
         },
-        "time": "2016-11-07T23:38:38+00:00",
+        "time": "2016-11-07 23:38:38",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -125,7 +125,7 @@
         "require-dev": {
             "phpunit/phpunit": "4.*|5.*"
         },
-        "time": "2016-07-11T20:32:06+00:00",
+        "time": "2016-07-11 20:32:06",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -185,7 +185,7 @@
         "require": {
             "php": ">=5.5.9"
         },
-        "time": "2017-01-08T21:15:04+00:00",
+        "time": "2017-01-08 21:15:04",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -225,18 +225,18 @@
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/process.git",
-            "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e"
+            "reference": "31e5a3078c061925cc8d91b4d55f1ba4c895efc7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/process/zipball/86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
-            "reference": "86f6ed54f12f901dc4cb95da368168e1ee9c9c1e",
+            "url": "https://api.github.com/repos/symfony/process/zipball/31e5a3078c061925cc8d91b4d55f1ba4c895efc7",
+            "reference": "31e5a3078c061925cc8d91b4d55f1ba4c895efc7",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.9"
         },
-        "time": "2017-01-21T17:10:26+00:00",
+        "time": "2017-01-21 17:19:16",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -292,7 +292,7 @@
         "require-dev": {
             "phpunit/phpunit": "~4.0"
         },
-        "time": "2017-01-15T21:31:32+00:00",
+        "time": "2017-01-15 21:31:32",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -318,18 +318,70 @@
         "description": "PHP wrapper around the mediainfo command"
     },
     {
+        "name": "vlucas/phpdotenv",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/vlucas/phpdotenv.git",
+            "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+            "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.9"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8 || ^5.0"
+        },
+        "time": "2016-12-14 21:01:27",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.4-dev"
+            }
+        },
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Dotenv\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause-Attribution"
+        ],
+        "authors": [
+            {
+                "name": "Vance Lucas",
+                "email": "vance@vancelucas.com",
+                "homepage": "http://www.vancelucas.com"
+            }
+        ],
+        "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
+        "keywords": [
+            "dotenv",
+            "env",
+            "environment"
+        ]
+    },
+    {
         "name": "phpseclib/phpseclib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/phpseclib/phpseclib.git",
-            "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd"
+            "reference": "9220bcd49a1f981791ee45f8e8178658c8951ed2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/74abcb45ed9de9508c61ab15371f1bc40292b9fd",
-            "reference": "74abcb45ed9de9508c61ab15371f1bc40292b9fd",
+            "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/9220bcd49a1f981791ee45f8e8178658c8951ed2",
+            "reference": "9220bcd49a1f981791ee45f8e8178658c8951ed2",
             "shasum": ""
         },
         "require": {
@@ -349,7 +401,7 @@
             "ext-mcrypt": "Install the Mcrypt extension in order to speed up a few other cryptographic operations.",
             "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations."
         },
-        "time": "2016-12-25T15:50:17+00:00",
+        "time": "2017-01-27 20:44:21",
         "type": "library",
         "installation-source": "source",
         "autoload": {
@@ -414,70 +466,18 @@
         ]
     },
     {
-        "name": "vlucas/phpdotenv",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/vlucas/phpdotenv.git",
-            "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
-            "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.9"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^4.8 || ^5.0"
-        },
-        "time": "2016-12-14T21:01:27+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.4-dev"
-            }
-        },
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "Dotenv\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "BSD-3-Clause-Attribution"
-        ],
-        "authors": [
-            {
-                "name": "Vance Lucas",
-                "email": "vance@vancelucas.com",
-                "homepage": "http://www.vancelucas.com"
-            }
-        ],
-        "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
-        "keywords": [
-            "dotenv",
-            "env",
-            "environment"
-        ]
-    },
-    {
         "name": "danog/madelineproto",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/danog/MadelineProto.git",
-            "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f"
+            "reference": "7d388f9cbef6a09779e0f1c1521192686d2d3c02"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/danog/MadelineProto/zipball/e469f05d646d007b28c6e68d4cf2159598441f7f",
-            "reference": "e469f05d646d007b28c6e68d4cf2159598441f7f",
+            "url": "https://api.github.com/repos/danog/MadelineProto/zipball/7d388f9cbef6a09779e0f1c1521192686d2d3c02",
+            "reference": "7d388f9cbef6a09779e0f1c1521192686d2d3c02",
             "shasum": ""
         },
         "require": {
@@ -486,7 +486,10 @@
             "phpseclib/phpseclib": "dev-master|^2.0.4",
             "vlucas/phpdotenv": "^2.4"
         },
-        "time": "2017-01-21T15:13:28+00:00",
+        "require-dev": {
+            "phpdocumentor/reflection-docblock": "^3.1"
+        },
+        "time": "2017-01-29 12:12:48",
         "type": "project",
         "installation-source": "source",
         "autoload": {

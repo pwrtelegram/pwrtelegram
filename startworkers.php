@@ -31,6 +31,7 @@ while (true) {
         $MadelineProto->API->get_updates_difference();
         $MadelineProto->API->store_db([], true);
         \danog\MadelineProto\Serialization::serialize($file, $MadelineProto);
+        usleep(250000);
     } catch (\danog\MadelineProto\ResponseException $e) {
         error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
         error_log($e->getTraceAsString());
