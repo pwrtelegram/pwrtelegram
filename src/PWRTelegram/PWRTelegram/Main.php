@@ -337,6 +337,37 @@ class Main extends Proxy
                 unset($this->madeline->API->settings['pwr']['update_handler']);
                 $this->jsonexit(['ok' => true, 'result' => true]);
 
+                case '/setwebhook':
+                if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
+                    $this->stop_worker();
+                    if (isset($_FILES['certificate']['error']) && $_FILES['certificate']['error'] == UPLOAD_ERR_OK) {
+                        $this->checkdir($this->homedir.'/hooks');
+                        rename($_FILES['certificate']['tmp_file'], $this->homedir.'/hooks/'.$this->bot_id.'.pem');
+                        $this->madeline->API->pem_path = $this->homedir.'/hooks/'.$this->bot_id.'.pem';
+                    } else {
+                        if (file_exists($this->homedir.'/hooks/'.$this->bot_id.'.pem')) {
+                            if (isset($this->madeline->API->pem_path)) unset($this->madeline->API->pem_path);
+
+                           unlink($this->homedir.'/hooks/'.$this->bot_id.'.pem');
+                        }
+
+                    }
+                    $this->madeline->API->hook_url = $this->REQUEST['url'];
+                    $this->madeline->API->settings['pwr']['update_handler'] = [$this->madeline->API, 'pwr_webhook'];
+                    $this->madeline->API->store_db([], true);
+                    $this->madeline->API->reset_session();
+                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->start_worker();
+                    $this->jsonexit(['ok' => true, 'result' => true]);
+                }
+
+                case '/deletewebhook':
+                    $this->stop_worker();
+                unset($this->madeline->hook_url);
+                unset($this->madeline->API->settings['pwr']['update_handler']);
+                            if (isset($this->madeline->API->pem_path)) unset($this->madeline->API->pem_path);
+                $this->jsonexit(['ok' => true, 'result' => true]);
+
                 default:
                 foreach ($this->REQUEST as &$param) {
                     $json = json_decode($param, true);

@@ -182,6 +182,10 @@ The methods that can be called using the user access token are the following (se
 
 * disableGetupdates - Disables storing updates and fetching using getUpdates, you MUST call this method if you only want to use the user as a backend
 
+* setWebHook - Like in the bot API, enables automatic sending of incoming updates to an http(s) endpoint as a json payload. Custom certificates are supported, too. This method also calls the disableGetUpdates method automatically
+
+* deleteWebHook - Deletes the webhook
+
 * getUpdates - This method accepts an array of options as the first parameter, and returns an array of updates (an array containing the update id and an object of type [Update](https://daniil.it/MadelineProto/API_docs/types/Update.html)). 
 
 * getChat - Exactly the same usage and response as the getChat method of the main pwrtelegram API

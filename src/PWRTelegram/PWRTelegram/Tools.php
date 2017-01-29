@@ -296,4 +296,10 @@ class Tools
 
         return $d;
     }
+    public function start_worker() {
+        shell_exec('php '.$this->pwrhomedir.'/startworkers.php start '.escapeshellarg($this->madeline_path));
+    }
+    public function stop_worker() {
+        shell_exec('php '.$this->pwrhomedir.'/startworkers.php stop '.escapeshellarg($this->madeline_path));
+    }
 }
