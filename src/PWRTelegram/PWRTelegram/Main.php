@@ -346,11 +346,12 @@ class Main extends Proxy
                         $this->madeline->API->pem_path = $this->homedir.'/hooks/'.$this->bot_id.'.pem';
                     } else {
                         if (file_exists($this->homedir.'/hooks/'.$this->bot_id.'.pem')) {
-                            if (isset($this->madeline->API->pem_path)) unset($this->madeline->API->pem_path);
+                            if (isset($this->madeline->API->pem_path)) {
+                                unset($this->madeline->API->pem_path);
+                            }
 
-                           unlink($this->homedir.'/hooks/'.$this->bot_id.'.pem');
+                            unlink($this->homedir.'/hooks/'.$this->bot_id.'.pem');
                         }
-
                     }
                     $this->madeline->API->hook_url = $this->REQUEST['url'];
                     $this->madeline->API->settings['pwr']['update_handler'] = [$this->madeline->API, 'pwr_webhook'];
@@ -365,7 +366,9 @@ class Main extends Proxy
                     $this->stop_worker();
                 unset($this->madeline->hook_url);
                 unset($this->madeline->API->settings['pwr']['update_handler']);
-                            if (isset($this->madeline->API->pem_path)) unset($this->madeline->API->pem_path);
+                            if (isset($this->madeline->API->pem_path)) {
+                                unset($this->madeline->API->pem_path);
+                            }
                 $this->jsonexit(['ok' => true, 'result' => true]);
 
                 default:
