@@ -108,8 +108,8 @@ try {
 
     if ($servefile) {
         require_once 'vendor/autoload.php';
-        $default_backend = $deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline';
-        $madeline_backend_path = '/tmp/pwrbackend_'.$bot.'.madeline';
+        $default_backend = $deep ? $this->homedir.'/sessions/deeppwr.madeline' : $this->pwrhomedir.'/sessions/pwr.madeline';
+        $madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$bot.'.madeline';
         if (!file_exists($madeline_backend_path)) {
             $madeline_backend_path = $default_backend;
         }

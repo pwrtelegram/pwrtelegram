@@ -115,7 +115,7 @@ class Main extends Proxy
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = $default_backend;
                 } else {
-                    $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
+                    $this->botusername = preg_replace(['|.*/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
                 }
                 ini_set('error_log', $this->homedir.'/'.$this->bot_id.'.log');
             }
