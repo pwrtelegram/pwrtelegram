@@ -21,7 +21,7 @@ class API extends Tools
             $this->{$key} = $val;
         }
         $info = $this->get_me();
-        ini_set('error_log', isset($info['result']['username']) ? '/tmp/'.$info['result']['username'].'.log' : '/tmp/php-error-index.log');
+        ini_set('error_log', isset($info['result']['username']) ? $this->homedir.'/'.$info['result']['username'].'.log' : $this->homedir.'/php-error-index.log');
     }
 
     public function db_connect()
@@ -134,12 +134,6 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
         }
         $file_type = $info['file_type'];
-/*
-            $cmd = $me.' '.$file_id.' '.$this->methods[$info['file_type']];
-            if (file_exists('/tmp/'.$cmd)) {
-                return ['ok' => true, 'error_code' => 202, 'description' => 'File is currently being downloaded. Please try again later.'];
-            }
-*/
         $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
         if ($result['ok'] == false) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];

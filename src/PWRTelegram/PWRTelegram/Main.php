@@ -92,7 +92,7 @@ class Main extends Proxy
 
         $this->REQUEST = $_REQUEST;
 
-        $default_backend = $this->deep ? '/tmp/deeppwr.madeline' : '/tmp/pwr.madeline';
+        $default_backend = $this->deep ? $this->homedir.'/deeppwr.madeline' : $this->homedir.'/pwr.madeline';
 
         $this->user = preg_match("/^\/user/", $_SERVER['REQUEST_URI']);
 
@@ -102,22 +102,22 @@ class Main extends Proxy
         } else {
             if ($this->user) {
                 if (isset($this->bot_id)) {
-                    $this->madeline_backend_path = '/tmp/pwruser_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
+                    $this->madeline_backend_path = $this->homedir.'/pwruser_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                     $this->madeline_path = $this->madeline_backend_path;
-                    ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
+                    ini_set('error_log', $this->homedir.'/'.$this->bot_id.'.log');
                 } else {
-                    $this->madeline_backend_path = '/tmp/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
+                    $this->madeline_backend_path = $this->homedir.'/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
                     $this->madeline_path = $this->madeline_backend_path;
                 }
             } else {
-                $this->madeline_path = '/tmp/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
-                $this->madeline_backend_path = '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
+                $this->madeline_path = $this->homedir.'/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_backend_path = $this->homedir.'/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = $default_backend;
                 } else {
                     $this->botusername = preg_replace(['|/tmp/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
                 }
-                ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
+                ini_set('error_log', $this->homedir.'/'.$this->bot_id.'.log');
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
@@ -168,7 +168,7 @@ class Main extends Proxy
             if (isset($info['photo'])) {
                 $upload = [];
                 try {
-                    $path = $this->madeline->download_to_dir($info['photo'], '/tmp');
+                    $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'');
                     $upload = $this->upload($path, 'file', '', 'photo');
                 } catch (\danog\MadelineProto\ResponseException $e) {
                     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
@@ -390,7 +390,7 @@ class Main extends Proxy
                 }
                 require 'vendor/autoload.php';
                 $this->real_token = $this->base64url_encode(\phpseclib\Crypt\Random::string(32));
-                $this->madeline_path = '/tmp/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_path = $this->homedir.'/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
                 $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
                 $madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
                 $madeline->phone_login($this->REQUEST['phone']);
@@ -411,7 +411,7 @@ class Main extends Proxy
                 }
                 $this->real_token = $authorization['user']['id'].':'.$this->real_token;
                 unlink($this->madeline_path);
-                $this->madeline_backend_path = '/tmp/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_backend_path = $this->homedir.'/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_path = $this->madeline_backend_path;
                 $this->madeline->API->get_updates_difference();
                 $this->madeline->API->store_db([], true);
@@ -424,7 +424,7 @@ class Main extends Proxy
                 $authorization = $this->madeline->complete_2fa_login($this->REQUEST['password']);
                 $this->real_token = $authorization['user']['id'].':'.$this->real_token;
                 unlink($this->madeline_path);
-                $this->madeline_backend_path = '/tmp/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_backend_path = $this->homedir.'/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_path = $this->madeline_backend_path;
                 $this->madeline->API->get_updates_difference();
                 $this->madeline->API->store_db([], true);
@@ -435,8 +435,8 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No verification backend token was provided.']);
                 }
                 $bot_id = basename(explode(':', $this->REQUEST['backend_token'])[0]);
-                $backend_session = '/tmp/pwruser_'.$bot_id.'_'.hash('sha256', $this->REQUEST['backend_token']).'.madeline';
-                $dest = '/tmp/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
+                $backend_session = $this->homedir.'/pwruser_'.$bot_id.'_'.hash('sha256', $this->REQUEST['backend_token']).'.madeline';
+                $dest = $this->homedir.'/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 $this->try_unlink($dest);
                 $result = symlink($backend_session, $dest);
                 $this->jsonexit(['ok' => $result, 'result' => $result]);
