@@ -134,7 +134,7 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
         }
         $file_type = $info['file_type'];
-        $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->botusername.'&text='.$file_id);
+        $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'].'&text='.$file_id);
         if ($result['ok'] == false) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
         }
@@ -179,8 +179,9 @@ class API extends Tools
         }
         $result = ['ok' => false];
         $count = 0;
+        $this->madeline_connect_backend();
         while (!$result['ok'] && $count < count($this->methods_keys)) {
-            $result = $this->curl($this->url.'/send'.$this->methods_keys[$count].'?chat_id='.$this->botusername.'&'.$this->methods_keys[$count].'='.$file_id);
+            $result = $this->curl($this->url.'/send'.$this->methods_keys[$count].'?chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'].'&'.$this->methods_keys[$count].'='.$file_id);
             $count++;
         }
         $count--;
@@ -489,11 +490,12 @@ class API extends Tools
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
             if ($size < 52428800) {
+                $this->madeline_connect_backend();
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
                 curl_setopt($ch, CURLOPT_URL, $this->url.'/send'.$type.'?'.http_build_query($newparams));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, ['chat_id' => $this->botusername, $type => new \CURLFile($path)]);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, ['chat_id' => $this->madeline_backend->API->datacenter->authorization['user']['id'], $type => new \CURLFile($path)]);
                 $result = json_decode(curl_exec($ch), true);
                 curl_close($ch);
                 if ($result['ok']) {

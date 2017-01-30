@@ -196,12 +196,13 @@ class Tools
     public function checkbotuser($me)
     {
         if (!isset($this->userchecked)) {
-            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
+            $this->madeline_connect_backend();
+            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'])['ok']) {
                 return $this->userchecked = true;
             }
             $this->madeline_connect_backend();
             $this->madeline_backend->messages->sendMessage(['peer' => '@'.$me, 'message' => '/start']);
-            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->botusername)['ok']) {
+            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'])['ok']) {
                 return $this->userchecked = true;
             }
 

@@ -86,8 +86,6 @@ class Main extends Proxy
         // The url of the storage
         $this->pwrtelegram_storage_domain = ($this->deep ? 'deep' : '').($this->beta ? 'beta' : '').$this->pwrtelegram_storage_domain;
 
-        $this->botusername = ($this->deep ? $this->deepbotusername : $this->botusername);
-
         $this->pwrtelegram_storage = 'https://'.$this->pwrtelegram_storage_domain.'/';
 
         $this->REQUEST = $_REQUEST;
@@ -113,8 +111,6 @@ class Main extends Proxy
                 $this->madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = $default_backend;
-                } else {
-                    $this->botusername = preg_replace(['|.*/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
                 }
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }
@@ -466,8 +462,9 @@ class Main extends Proxy
                 $notmecount = 0;
                 $todo = '';
                 $newresponse = ['ok' => true, 'result' => []];
+                $this->madeline_connect_backend();
                 foreach ($response['result'] as $cur) {
-                    if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->botusername) {
+                    if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->madeline_backend->API->datacenter->authorization['user']['id']) {
                         $this->handle_my_message($cur);
                         if ($notmecount == 0) {
                             $todo = $cur['update_id'] + 1;
@@ -586,12 +583,13 @@ class Main extends Proxy
                 }
                 $me = $this->get_me()['result']['username']; // get my username
                 $this->db_connect();
+                $this->madeline_connect_backend();
                 $test_stmt = $this->pdo->prepare('SELECT hash FROM hooks WHERE user=?');
                 $test_stmt->execute([$me]);
                 if ($test_stmt->fetchColumn() == hash('sha256', $hook) && $test_stmt->rowCount() == 1) {
                     $content = file_get_contents('php://input');
                     $cur = json_decode($content, true);
-                    if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->botusername) {
+                    if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->madeline_backend->API->datacenter->authorization['user']['id']) {
                         $this->handle_my_message($cur);
                         exit;
                     }
@@ -655,7 +653,8 @@ class Main extends Proxy
                 if (!$this->checkbotuser($me)) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
                 }
-                $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->botusername));
+                $this->madeline_connect_backend();
+                $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id']));
                 break;
             case '/getmessage':
                 if ($this->token == '') {
@@ -669,8 +668,9 @@ class Main extends Proxy
                 if (!$this->checkbotuser($me)) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
                 }
-                $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];
-                $this->REQUEST['chat_id'] = $this->botusername;
+                $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];~
+                $this->madeline_connect_backend();
+                $this->REQUEST['chat_id'] = $this->madeline_backend->API->datacenter->authorization['user']['id'];
 
                 $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
                 if ($res['ok']) {
