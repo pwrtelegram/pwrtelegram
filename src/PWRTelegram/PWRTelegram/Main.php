@@ -668,8 +668,7 @@ class Main extends Proxy
                 if (!$this->checkbotuser($me)) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
                 }
-                $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];~
-                $this->madeline_connect_backend();
+                $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id']; ~$this->madeline_connect_backend();
                 $this->REQUEST['chat_id'] = $this->madeline_backend->API->datacenter->authorization['user']['id'];
 
                 $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
