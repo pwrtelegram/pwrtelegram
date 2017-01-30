@@ -198,7 +198,7 @@ class Main extends Proxy
         if (!isset($params['chat_id'])) {
             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No chat_id provided']);
         }
-        $final_res = [];
+        $final_res = ['madeline' => false];
         $result = $this->curl($this->url.'/getchat?'.http_build_query($params));
         if (!$result['ok']) {
             $result = $this->curl($this->url.'/getchat?'.http_build_query($_REQUEST));
@@ -232,6 +232,7 @@ class Main extends Proxy
         }
         if (isset($this->full_chat[$params['chat_id']])) {
             $final_res = array_merge($final_res, $this->full_chat[$params['chat_id']]);
+            $final_res['madeline'] = true;
         }
         if (isset($final_res['photo'])) {
             unset($final_res['photo']);
