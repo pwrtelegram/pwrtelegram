@@ -55,10 +55,19 @@ if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
 */
 try {
     require_once 'db_connect.php';
+    $homedir = realpath(__DIR__.'/../').'/';
+    $pwrhomedir = realpath(__DIR__);
     $file_path = urldecode(preg_replace("/^\/*/", '', $_SERVER['REQUEST_URI']));
-    $bot = preg_replace('/\/.*$/', '', $file_path);
-    $selectstmt = $pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=? LIMIT 1;');
-    $selectstmt->execute([$file_path, $bot]);
+    $bot = basename(preg_replace('/\/.*$/', '', $file_path));
+    require_once 'vendor/autoload.php';
+    $default_backend = $deep ? $homedir.'/sessions/deeppwr.madeline' : $homedir.'/sessions/pwr.madeline';
+    $madeline_backend_path = $homedir.'/sessions/pwrbackend_'.$bot.'.madeline';
+    if (!file_exists($madeline_backend_path)) {
+        $madeline_backend_path = $default_backend;
+    }
+    $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline_backend_path);
+    $selectstmt = $pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=? AND backend=? LIMIT 1;');
+    $selectstmt->execute([$file_path, $bot, $MadelineProto->API->datacenter->authorization['user']['id']]);
     $select = $selectstmt->fetch(PDO::FETCH_ASSOC);
     if (!($selectstmt->rowCount() > 0)) {
         no_cache(404, '<html><body><h1>404 File not found.</h1><br><p>Could not fetch file info from database.</p></body></html>');
@@ -106,13 +115,6 @@ try {
     header('Content-disposition: attachment: filename="'.basename($select['file_path']).'"');
 
     if ($servefile) {
-        require_once 'vendor/autoload.php';
-        $default_backend = $deep ? $this->homedir.'/sessions/deeppwr.madeline' : $this->pwrhomedir.'/sessions/pwr.madeline';
-        $madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$bot.'.madeline';
-        if (!file_exists($madeline_backend_path)) {
-            $madeline_backend_path = $default_backend;
-        }
-        $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline_backend_path);
         \danog\MadelineProto\Logger::log($file_path);
         $MadelineProto->download_to_stream($select, fopen('php://output', 'w'), function ($percent) {
             flush();

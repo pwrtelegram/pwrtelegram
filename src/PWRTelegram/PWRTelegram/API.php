@@ -104,9 +104,10 @@ class API extends Tools
             return $result;
         }
         $me = $this->get_me()['result']['username']; // get my username
+        $this->madeline_connect_backend();
         $this->db_connect();
-        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
-        $selectstmt->execute([$file_id, $me]);
+        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? AND backend=? LIMIT 1;');
+        $selectstmt->execute([$file_id, $me, $this->madeline_backend->API->datacenter->authorization['user']['id']]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
 
         if ($selectstmt->rowCount() == '1' && $this->checkurl($this->pwrtelegram_storage.$select['file_path'])) {
@@ -117,11 +118,10 @@ class API extends Tools
 
             return $newresponse;
         }
-        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
+        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=? AND backend=?;')->execute([$file_id, $me, $this->madeline_backend->API->datacenter->authorization['user']['id']]);
         unset($this->pdo);
         $path = '';
 
-        $this->madeline_connect_backend();
         if (!$this->checkbotuser($me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
@@ -158,7 +158,7 @@ class API extends Tools
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
         $this->db_connect();
-        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, location, mime) VALUES (?, ?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, json_encode($info['InputFileLocation']), $info['mime']]);
+        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, location, mime, backend) VALUES (?, ?, ?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, json_encode($info['InputFileLocation']), $info['mime'], $this->madeline_backend->API->datacenter->authorization['user']['id']]);
 
         return $newresponse;
     }
@@ -278,8 +278,9 @@ class API extends Tools
         } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
                 $this->db_connect();
-                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
-                $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
+                $this->madeline_connect_backend();
+                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=? AND backend=?;');
+                $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me, $this->madeline_backend->API->datacenter->authorization['user']['id']]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                 $count = $select_stmt->rowCount();
                 if ($count > 0 && isset($fetch['file_id']) && $fetch['file_id'] != '') {
