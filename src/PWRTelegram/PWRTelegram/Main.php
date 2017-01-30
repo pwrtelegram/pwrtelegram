@@ -93,7 +93,6 @@ class Main extends Proxy
         $this->REQUEST = $_REQUEST;
 
         $default_backend = $this->deep ? $this->homedir.'/sessions/deeppwr.madeline' : $this->homedir.'/sessions/pwr.madeline';
-
         $this->user = preg_match("/^\/user/", $_SERVER['REQUEST_URI']);
 
         if ($this->real_token == '') {
@@ -104,7 +103,7 @@ class Main extends Proxy
                 if (isset($this->bot_id)) {
                     $this->madeline_backend_path = $this->homedir.'/sessions/pwruser_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                     $this->madeline_path = $this->madeline_backend_path;
-                    ini_set('error_log', $this->homedir.'/'.$this->bot_id.'.log');
+                    ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
                 } else {
                     $this->madeline_backend_path = $this->homedir.'/sessions/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
                     $this->madeline_path = $this->madeline_backend_path;
@@ -117,7 +116,7 @@ class Main extends Proxy
                 } else {
                     $this->botusername = preg_replace(['|.*/pwruser_|', '|_.*|'], '', $this->madeline_backend_path = readlink($this->madeline_backend_path));
                 }
-                ini_set('error_log', $this->homedir.'/'.$this->bot_id.'.log');
+                ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
