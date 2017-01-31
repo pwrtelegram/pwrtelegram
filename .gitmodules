@@ -1,3 +1,0 @@
-[submodule "php-telegram-cli-client"]
-	path = php-telegram-cli-client
-	url = https://github.com/zyberspace/php-telegram-cli-client
