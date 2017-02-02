@@ -70,39 +70,6 @@ class API extends Tools
      */
     public function download($file_id, $assume_timeout = false)
     {
-        $result = null;
-        if ($_SERVER['HTTP_HOST'] != $this->pwrtelegram_storage_domain && $assume_timeout) {
-            $storage_params = [];
-            foreach (['url', 'methods', 'methods_keys', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_url'] as $key) {
-                $storage_params[$key] = $this->{$key};
-            }
-            $storage_params['file_id'] = $file_id;
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_storage);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
-            $result = curl_exec($ch);
-            $result = json_decode($result, true);
-            curl_close($ch);
-            if ($result == null) {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HEADER, false);
-                curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_storage);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($storage_params));
-                $resultj = curl_exec($ch);
-                $result = json_decode($resultj, true);
-                curl_close($ch);
-            }
-            if ($result == null) {
-                return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file: decoded result is null, original result is ".$resultj.'.'];
-            }
-
-            return $result;
-        }
         $me = $this->get_me()['result']['username']; // get my username
         $this->madeline_connect_backend();
         $this->db_connect();

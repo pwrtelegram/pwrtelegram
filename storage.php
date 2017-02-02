@@ -6,26 +6,6 @@ set_time_limit(0);
 ini_set('log_errors', 1);
 ini_set('error_log', '/tmp/php-error-storage.log');
 
-if (isset($_POST['file_id']) && $_POST['file_id'] != '') {
-    header_remove();
-    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-    header('Cache-Control: post-check=0, pre-check=0', false);
-    header('Pragma: no-cache');
-    require_once 'src/PWRTelegram/PWRTelegram/Tools.php';
-    require_once 'src/PWRTelegram/PWRTelegram/API.php';
-    $tools = new \PWRTelegram\PWRTelegram\Tools();
-    require_once '../storage_url.php';
-    require_once '../db_connect.php';
-    foreach (['url', 'methods', 'methods_keys', 'token', 'pwrtelegram_storage', 'pwrtelegram_storage_domain', 'file_id', 'file_url'] as $key) {
-        $GLOBALS[$key] = $_POST[$key];
-    }
-    $homedir = realpath(__DIR__.'/../').'/';
-    $pwrhomedir = realpath(__DIR__);
-    $API = new \PWRTelegram\PWRTelegram\API($GLOBALS);
-    $res = $API->download($file_id);
-    $tools->jsonexit($res);
-}
-
 if ($_SERVER['REQUEST_URI'] == '/') {
     header("HTTP/1.1 418 I'm a teapot");
     exit('<html><h1>418 I&apos;m a teapot.</h1><br><p>My little teapot, my little teapot, oooh oooh oooh oooh...</p></html>');
@@ -40,20 +20,8 @@ function no_cache($status, $wut)
     die($wut);
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'HEAD') {
-    $servefile = false;
-} else {
-    $servefile = true;
-}
-/*
-if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
-    $redirect = 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-    header('HTTP/1.1 301 Moved Permanently');
-    header('Location: '.$redirect);
-    exit();
-}
-*/
 try {
+    $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
     require_once 'db_connect.php';
     $homedir = realpath(__DIR__.'/../').'/';
     $pwrhomedir = realpath(__DIR__);
