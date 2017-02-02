@@ -807,7 +807,7 @@ class Main extends Proxy
                 $this->madeline_connect();
                 $params = [];
                 if (isset($this->REQUEST['params'])) {
-                    $params = json_decode($this->REQUEST['params']);
+                    $params = json_decode($this->REQUEST['params'], true);
                     if ($params === null) {
                         $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Could not parse parameters.']);
                     }

@@ -10,7 +10,7 @@ if (!isset($argv[2])) {
 }
 $file = $argv[2];
 $sfile = preg_replace(['|^pwr_|', '|^pwruser_|', '|_.*|'], '', basename($argv[2]));
-                    ini_set('error_log', '/tmp/worker'.$sfile.'.log');
+ini_set('error_log', '/tmp/worker'.$sfile.'.log');
 echo $sfile;
 switch ($argv[1]) {
     case 'start':
