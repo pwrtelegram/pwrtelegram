@@ -23,12 +23,12 @@ class Main extends Proxy
         if ($this->real_token !== '' && isset($this->bot_id) && !$this->user) {
             $this->madeline_connect();
         }
-        if (isset($this->madeline)) {
+        if (isset($this->madeline) && is_object($this->madeline)) {
             $this->madeline->API->store_db([], true);
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
         }
-        if (isset($this->madeline_backend) && (!file_exists($this->madeline_backend_path) || filemtime($this->madeline_backend_path) < time() - 100)) {
+        if (isset($this->madeline_backend) && filemtime($this->madeline_backend_path) < time() - 1)) {
             $this->madeline_backend->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path, $this->madeline_backend);
         }
@@ -333,6 +333,7 @@ class Main extends Proxy
                 unset($this->madeline->API->settings['pwr']['update_handler']);
                 $this->jsonexit(['ok' => true, 'result' => true]);
 
+                case '/restartworker':
                 case '/setwebhook':
                 if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
                     $this->stop_worker();
