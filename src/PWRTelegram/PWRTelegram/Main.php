@@ -28,7 +28,7 @@ class Main extends Proxy
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
         }
-        if (isset($this->madeline_backend) && filemtime($this->madeline_backend_path) < time() - 1)) {
+        if (isset($this->madeline_backend) && filemtime($this->madeline_backend_path) < time() - 1) {
             $this->madeline_backend->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path, $this->madeline_backend);
         }
