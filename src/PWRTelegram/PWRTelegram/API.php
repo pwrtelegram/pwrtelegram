@@ -44,7 +44,9 @@ class API extends Tools
             } catch (\Error $e) {
             }
             error_log('RELOGIN');
-            if ($this->user) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Please login again.']);
+            if ($this->user) {
+                $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Please login again.']);
+            }
             $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
             $this->madeline->bot_login($this->real_token);
             $this->madeline->API->get_updates_difference();
