@@ -1,5 +1,5 @@
 # Pwrtelegram API
-Version 1.1 beta 3.   
+Version 2.   
 Licensed under AGPLv3.  
 
 [API status](https://status.pwrtelegram.xyz)
@@ -28,10 +28,6 @@ All of the official telegram bot API features plus:
 * *NEW* It can fetch any mtproto update, such as name changes, typing notifications, changes of the online status and much more!
 
 * *NEW* It can be used with a normal account (with a phone number)!
-
-* *NEW* It can add users to a group!
-
-* *NEW* It can obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too.
 
 * Support for [deep telegram bots](https://telegram.me/daniilgentili).
 
@@ -72,6 +68,8 @@ All of the official telegram bot API features plus:
 * [It is open source](https://github.com/pwrtelegram)!
 
 * [It can be installed on your own server](https://github.com/pwrtelegram/pwrtelegram-backend)!
+
+* It can obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too.
 
 * [You tell me!](https://telegram.me/pwrtelegramgroup)  
 
@@ -186,6 +184,8 @@ The methods that can be called using the user access token are the following (se
 
 * deleteWebHook - Deletes the webhook
 
+* getWebHookInfo - Gets info about the set webhook
+
 * getUpdates - This method accepts an array of options as the first parameter, and returns an array of updates (an array containing the update id and an object of type [Update](https://daniil.it/MadelineProto/API_docs/types/Update.html)). 
 
 * getChat - Exactly the same usage and response as the getChat method of the main pwrtelegram API
@@ -201,6 +201,8 @@ To can fetch any mtproto update, such as name changes, typing notifications, cha
 
 To disable mtproto update fetching run the disableGetMtprotoUpdates method.
 
+You can also set a webhook for mtproto updates, using the setmtprotowebhook method (deletemtprotowebhook unsets it, getmtprotowebhookinfo gets info about the webhook).  
+
 
 ### Uploading files with the mtproto api
 
@@ -209,9 +211,7 @@ To upload a file call the upload method - it Uploads the file uploaded using POS
 
 ### getChatByFile
 
-*NEW* 
-
-Use this method to obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too.
+Use this method to obtain info about the user that uploaded a certain file based on the file's file id. Works with stickers (the creator of the sticker pack is shown) and anonymous channel media too. Works only with file ids created between November 2016 and January 2017.  
 
 
 | Parameters           	| Type                                                                           	| Required 	| Description                                                                                                                                                                  	|
@@ -224,20 +224,6 @@ On success, the following object is returned:
 |----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
 | user_id              	| Integer                                                              	| Yes      	| User id of the user that uploaded the file. For stickers, the creator of the sticker pack.                                                                     	|
 | additional       	| Object                                                              	| Optional      	| Additional info about the user id (basically the result of getchat with user_id, not always available)                                                        	|
-
-
-### addChatUser *NEW*
-
-Add a user to a normal group (doesn't work with supergroups), works only if that user has contacted the bot.
-
-
-| Parameters           	| Type                                                                           	| Required 	| Description                                                                                                                                                                  	|
-|----------------------	|--------------------------------------------------------------------------------	|----------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| chat_id              	| Integer                                                              	| Yes      	| Numeric id of the chat                                                                     	|
-| user_id              	| Integer or string                                                              	| Yes      	| ID of the user, a username can also be used                                                                     	|
-| fwd_limit            	| Integer                                                              	| Optional      	| Number of messages to forward to the user                                                                     	|
-
-On success, an [Updates](https://daniil.it/MadelineProto/API_docs/types/Updates.html) object is returned.
 
 
 ### madeline

@@ -361,12 +361,12 @@ class Main extends Proxy
 
                 case '/deletewebhook':
                     $this->stop_worker();
-                unset($this->madeline->hook_url);
-                unset($this->madeline->API->settings['pwr']['update_handler']);
-                            if (isset($this->madeline->API->pem_path)) {
-                                unset($this->madeline->API->pem_path);
-                            }
-                $this->jsonexit(['ok' => true, 'result' => true]);
+                    unset($this->madeline->API->hook_url);
+                    unset($this->madeline->API->settings['pwr']['update_handler']);
+                    if (isset($this->madeline->API->pem_path)) {
+                        unset($this->madeline->API->pem_path);
+                    }
+                    $this->jsonexit(['ok' => true, 'result' => true]);
 
                 default:
                 foreach ($this->REQUEST as &$param) {
@@ -541,6 +541,42 @@ class Main extends Proxy
                 $newparams['results'] = json_encode($newresults);
                 $this->jsonexit($this->curl($this->url.'/answerinlinequery?'.http_build_query($newparams)));
                 break;
+                case '/setmtprotowebhook':
+                if (isset($this->REQUEST['url']) && $this->REQUEST['url'] != '') {
+                    $this->stop_worker();
+                    if (isset($_FILES['certificate']['error']) && $_FILES['certificate']['error'] == UPLOAD_ERR_OK) {
+                        $this->checkdir($this->homedir.'/hooks');
+                        rename($_FILES['certificate']['tmp_file'], $this->homedir.'/hooks/'.$this->bot_id.'.pem');
+                        $this->madeline->API->pem_path = $this->homedir.'/hooks/'.$this->bot_id.'.pem';
+                    } else {
+                        if (file_exists($this->homedir.'/hooks/'.$this->bot_id.'.pem')) {
+                            if (isset($this->madeline->API->pem_path)) {
+                                unset($this->madeline->API->pem_path);
+                            }
+
+                            unlink($this->homedir.'/hooks/'.$this->bot_id.'.pem');
+                        }
+                    }
+                    $this->madeline->API->hook_url = $this->REQUEST['url'];
+                    $this->madeline->API->settings['pwr']['update_handler'] = [$this->madeline->API, 'pwr_webhook'];
+                    $this->madeline->API->store_db([], true);
+                    $this->madeline->API->reset_session();
+                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->start_worker();
+                    $this->jsonexit(['ok' => true, 'result' => true]);
+                }
+
+                case '/deletemtprotowebhook':
+                    $this->stop_worker();
+                    unset($this->madeline->API->hook_url);
+                    unset($this->madeline->API->settings['pwr']['update_handler']);
+                            if (isset($this->madeline->API->pem_path)) {
+                                unset($this->madeline->API->pem_path);
+                            }
+                    $this->jsonexit(['ok' => true, 'result' => true]);
+            case '/getmtprotowebhookinfo':
+                $this->jsonexit(['ok' => true, 'result' => ['url' => (isset($this->madeline->API->hook_url) ? $this->madeline->API->hook_url : ''), 'has_custom_certificate' => isset($this->madeline->API->pem_path)]]);
+
             case '/setwebhook':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
