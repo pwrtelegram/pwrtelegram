@@ -20,9 +20,6 @@ class Main extends Proxy
 
     public function __destruct()
     {
-        if ($this->real_token !== '' && isset($this->bot_id) && !$this->user) {
-            $this->madeline_connect();
-        }
         if (isset($this->madeline) && is_object($this->madeline)) {
             $this->madeline->API->store_db([], true);
             $this->madeline->API->reset_session();
