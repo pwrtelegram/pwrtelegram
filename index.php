@@ -27,27 +27,27 @@ $API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
 try {
     $API->run();
 } catch (\danog\MadelineProto\ResponseException $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'error_description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'error_description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\RPCErrorException $e) {
-    echo json_encode(['ok' => false, 'error_code' => $e->getCode(), 'error_description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => $e->getCode(), 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\TL\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'error_description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\PDOException $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'error_description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'error_description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 }
