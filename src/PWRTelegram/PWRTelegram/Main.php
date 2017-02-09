@@ -25,7 +25,7 @@ class Main extends Proxy
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
         }
-        if (isset($this->madeline_backend) && filemtime($this->madeline_backend_path) < time() - 1) {
+        if (isset($this->madeline_backend)) {
             $this->madeline_backend->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path, $this->madeline_backend);
         }
@@ -107,7 +107,7 @@ class Main extends Proxy
                 $this->madeline_path = $this->homedir.'/sessions/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 if (!file_exists($this->madeline_backend_path)) {
-                    $this->madeline_backend_path = $default_backend;
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Set a custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
                 }
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }

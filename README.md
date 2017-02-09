@@ -90,6 +90,8 @@ The client can be written in any language, not necessarily python.
 
 Or you can manually substitute ```api.telegram.org``` with ```api.pwrtelegram.xyz``` or ```deepapi.pwrtelegram.xyz``` in your bot,
 
+Then you must set a custom backend (scroll down to see how to do that).  
+
 If you use webhooks you must recall the setwebhook method.  
 
 The API will automagically do the rest :)  
