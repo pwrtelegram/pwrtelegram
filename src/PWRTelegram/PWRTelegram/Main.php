@@ -106,9 +106,6 @@ class Main extends Proxy
             } else {
                 $this->madeline_path = $this->homedir.'/sessions/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
-                if (!file_exists($this->madeline_backend_path)) {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Set a custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
-                }
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
             }
         }

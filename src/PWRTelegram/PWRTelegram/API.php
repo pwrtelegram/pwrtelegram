@@ -58,6 +58,9 @@ class API extends Tools
     public function madeline_connect_backend()
     {
         if (!isset($this->madeline_backend)) {
+            if (!file_exists($this->madeline_backend_path)) {
+                $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Set a custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
+            }
             require_once $this->pwrhomedir.'/vendor/autoload.php';
 
             return $this->madeline_backend = \danog\MadelineProto\Serialization::deserialize($this->madeline_backend_path);
