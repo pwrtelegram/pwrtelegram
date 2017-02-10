@@ -430,6 +430,7 @@ class Main extends Proxy
                 }
                 $bot_id = basename(explode(':', $this->REQUEST['backend_token'])[0]);
                 $backend_session = $this->homedir.'/sessions/pwruser_'.$bot_id.'_'.hash('sha256', $this->REQUEST['backend_token']).'.madeline';
+                if (!file_exists($backend_session)) $this->jsonexit(['ok' => false, 'error_code' => 404, 'description' => 'User not found']);
                 $dest = $this->homedir.'/sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 $this->try_unlink($dest);
                 $result = symlink($backend_session, $dest);
