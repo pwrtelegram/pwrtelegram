@@ -39,7 +39,9 @@ class API extends Tools
             require_once $this->pwrhomedir.'/vendor/autoload.php';
             try {
                 $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
-                if (is_object($this->madeline)) return $this->madeline;
+                if (is_object($this->madeline)) {
+                    return $this->madeline;
+                }
             } catch (\danog\MadelineProto\Exception $e) {
             } catch (\danog\MadelineProto\RPCErrorException $e) {
             } catch (\Error $e) {
