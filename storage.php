@@ -85,7 +85,6 @@ try {
     $MadelineProto->API->store_db([], true);
     $MadelineProto->API->reset_session();
     \danog\MadelineProto\Serialization::serialize($madeline, $MadelineProto);
-
 } catch (\danog\MadelineProto\ResponseException $e) {
     no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>'.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()).'</p></body></html>');
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
