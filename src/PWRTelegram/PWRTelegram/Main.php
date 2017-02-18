@@ -107,7 +107,9 @@ class Main extends Proxy
                 $this->madeline_path = $this->homedir.'/sessions/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
-                if (!file_exists($this->madeline_backend_path)) $this->madeline_backend_path = $default_backend;
+                if (!file_exists($this->madeline_backend_path)) {
+                    $this->madeline_backend_path = $default_backend;
+                }
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
@@ -917,7 +919,9 @@ class Main extends Proxy
         $this->run_methods();
         $this->run_proxy();
     }
-    public function get_message($params) {
+
+    public function get_message($params)
+    {
         $me = $this->get_me()['result']['username']; // get my peer id
         if (!$this->checkbotuser($me)) {
             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
@@ -940,6 +944,7 @@ class Main extends Proxy
             unset($res['result']['forward_from']);
             unset($res['result']['forward_date']);
         }
+
         return $res;
     }
 }

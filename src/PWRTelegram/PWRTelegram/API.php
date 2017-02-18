@@ -142,9 +142,12 @@ class API extends Tools
         $parsed = $this->madeline->API->unpack_file_id($file_id);
         if ($parsed['type'] === 'photo') {
             if ($parsed['MessageMedia'][$parsed['type']]['id'] === 0) { // Thumbnail or other weird file
-                $name = $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['volume_id']. $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['secret']. $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['local_id'];
+                $name = $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['volume_id'].$parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['secret'].$parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['local_id'];
+
                 return ['ok' => true, 'file_type' => 'photo', 'file_size' => $this->curl($this->url.'/getfile?file_id='.$file_id)['result']['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
-            } else $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaPhoto', 'id' => ['_' => 'inputPhoto', 'id' => $parsed['MessageMedia'][$parsed['type']]['id'], 'access_hash' => $parsed['MessageMedia'][$parsed['type']]['access_hash']], 'caption' => '']]);
+            } else {
+                $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaPhoto', 'id' => ['_' => 'inputPhoto', 'id' => $parsed['MessageMedia'][$parsed['type']]['id'], 'access_hash' => $parsed['MessageMedia'][$parsed['type']]['access_hash']], 'caption' => '']]);
+            }
         } else {
             $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);
         }
@@ -152,10 +155,12 @@ class API extends Tools
         if ($full_photo) {
             return $result;
         }
+
         return $this->parse_finfo($result);
     }
 
-    public function parse_finfo($result) {
+    public function parse_finfo($result)
+    {
         foreach ($this->methods_keys as $curmethod) {
             if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
                 $method = $curmethod;
@@ -181,8 +186,12 @@ class API extends Tools
                 }
                 $result['file_id'] = $result['result'][$method]['file_id'];
             }
-            if (!isset($result['mime_type'])) $result['mime_type'] = 'application/octet-stream';
-            if (!isset($result['file_name'])) $result['file_name'] = $result['file_id'].($method === 'sticker' ? '.webp' : '');
+            if (!isset($result['mime_type'])) {
+                $result['mime_type'] = 'application/octet-stream';
+            }
+            if (!isset($result['file_name'])) {
+                $result['file_name'] = $result['file_id'].($method === 'sticker' ? '.webp' : '');
+            }
             unset($result['result']);
         }
 
