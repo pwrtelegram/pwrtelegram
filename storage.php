@@ -65,12 +65,12 @@ try {
     if ($seek_start > 0 || $seek_end < ($select['file_size'] - 1)) {
         header('HTTP/1.1 206 Partial Content');
         header('Content-Range: bytes '.$seek_start.'-'.$seek_end.'/'.$select['file_size']);
-        header('Content-Length: '.($seek_end - $seek_start) + 1);
+        header('Content-Length: '.($seek_end - $seek_start + 1));
     } else {
         header('Content-Length: '.$select['file_size']);
     }
-    header('Cache-Control: max-age=31556926;');
     header('Content-Type: '.$select['mime']);
+    header('Cache-Control: max-age=31556926;');
     header('Content-Transfer-Encoding: Binary');
     header('Content-disposition: attachment: filename="'.basename($select['file_path']).'"');
 
