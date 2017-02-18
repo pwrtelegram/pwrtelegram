@@ -64,7 +64,10 @@ class API extends Tools
             }
             require_once $this->pwrhomedir.'/vendor/autoload.php';
 
-            return $this->madeline_backend = \danog\MadelineProto\Serialization::deserialize($this->madeline_backend_path);
+            $this->madeline_backend = \danog\MadelineProto\Serialization::deserialize($this->madeline_backend_path);
+            if ($this->madeline_backend === false) {
+                $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Reset the custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
+            }
         }
     }
 
@@ -77,11 +80,10 @@ class API extends Tools
      */
     public function download($file_id, $assume_timeout = false)
     {
-        $me = $this->get_me()['result']['username']; // get my username
-        $this->madeline_connect_backend();
+        $me = $this->get_me()['result']['id'];
         $this->db_connect();
-        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? AND backend=? LIMIT 1;');
-        $selectstmt->execute([$file_id, $me, $this->madeline_backend->API->datacenter->authorization['user']['id']]);
+        $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
+        $selectstmt->execute([$file_id, $me]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
 
         if ($selectstmt->rowCount() == '1' && $this->checkurl($this->pwrtelegram_storage.$select['file_path'])) {
@@ -92,7 +94,7 @@ class API extends Tools
 
             return $newresponse;
         }
-        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=? AND backend=?;')->execute([$file_id, $me, $this->madeline_backend->API->datacenter->authorization['user']['id']]);
+        $this->pdo->prepare('DELETE FROM dl WHERE file_id=? AND bot=?;')->execute([$file_id, $me]);
         unset($this->pdo);
         $path = '';
 
@@ -100,39 +102,19 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
         $info = $this->get_finfo($file_id);
-
         if ($info['ok'] == false) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't forward file to download user."];
         }
-        if ($info['message_id'] == '') {
-            return ['ok' => false, 'error_code' => 400, 'description' => 'Reply message id is empty.'];
-        }
         $file_type = $info['file_type'];
-        $result = $this->curl($this->url.'/sendMessage?reply_to_message_id='.$info['message_id'].'&chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'].'&text='.$file_id);
-        if ($result['ok'] == false) {
-            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't send file id."];
-        }
-        $result = $this->madeline_backend->messages->searchGlobal(['offset_peer' => '@'.$me, 'q' => $file_id, 'offset_date' => 0, 'offset_id' => 0, 'limit' => 1]);
-
-        if (!isset($result['messages'][0]['reply_to_msg_id'])) {
-            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, search failed."];
-        }
-        $result = $this->madeline_backend->messages->getMessages(['id' => [$result['messages'][0]['reply_to_msg_id']]]);
-        if (!isset($result['messages'][0]['media'])) {
-            return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file, error getting message."];
-        }
-        $media = $result['messages'][0]['media'];
-        $info = $this->madeline_backend->get_download_info($media);
-
-        $file_size = $info['size'];
-        $file_name = $info['name'].$info['ext'];
+        $file_size = $info['file_size'];
+        $file_name = $info['file_name'];
         $file_path = $me.'/'.$file_type.'/'.$file_name;
         $newresponse['ok'] = true;
         $newresponse['result']['file_id'] = $file_id;
         $newresponse['result']['file_path'] = $file_path;
         $newresponse['result']['file_size'] = $file_size;
         $this->db_connect();
-        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, location, mime, backend) VALUES (?, ?, ?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, json_encode($info['InputFileLocation']), $info['mime'], $this->madeline_backend->API->datacenter->authorization['user']['id']]);
+        $this->pdo->prepare('INSERT IGNORE INTO dl (file_id, file_path, file_size, bot, mime) VALUES (?, ?, ?, ?, ?);')->execute([$file_id, $file_path, $file_size, $me, $info['mime_type']]);
 
         return $newresponse;
     }
@@ -154,36 +136,51 @@ class API extends Tools
         $result = ['ok' => false];
         $count = 0;
         $this->madeline_connect_backend();
-        while (!$result['ok'] && $count < count($this->methods_keys)) {
-            $result = $this->curl($this->url.'/send'.$this->methods_keys[$count].'?chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'].'&'.$this->methods_keys[$count].'='.$file_id);
-            $count++;
+        $this->madeline_connect();
+        $parsed = $this->madeline->API->unpack_file_id($file_id);
+        if ($parsed['type'] === 'photo') {
+            if ($parsed['MessageMedia'][$parsed['type']]['id'] === 0) { // Thumbnail or other weird file
+                $name = $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['volume_id']. $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['secret']. $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['local_id'];
+                return ['ok' => true, 'file_type' => 'photo', 'file_size' => $this->curl($this->url.'/getfile?file_id='.$file_id)['result']['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
+            } else $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaPhoto', 'id' => ['_' => 'inputPhoto', 'id' => $parsed['MessageMedia'][$parsed['type']]['id'], 'access_hash' => $parsed['MessageMedia'][$parsed['type']]['access_hash']], 'caption' => '']]);
+        } else {
+            $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);
         }
-        $count--;
+        $result = ['ok' => true, 'result' => $this->madeline->API->MTProto_to_botAPI(end($result['updates'])['message']['media'])];
         if ($full_photo) {
             return $result;
         }
+        return $this->parse_finfo($result);
+    }
+
+    public function parse_finfo($result) {
         foreach ($this->methods_keys as $curmethod) {
             if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
                 $method = $curmethod;
             }
         }
         if ($result['ok']) {
-            $result['message_id'] = $result['result']['message_id'];
             $result['file_type'] = $method;
-            $result['file_id'] = $file_id;
             if ($result['file_type'] == 'photo') {
                 $result['file_size'] = $result['result'][$method][0]['file_size'];
                 if (isset($result['result'][$method][0]['file_name'])) {
                     $result['file_name'] = $result['result'][$method][0]['file_name'];
+                    $result['file_id'] = $result['result'][$method][0]['file_id'];
                 }
             } else {
                 if (isset($result['result'][$method]['file_name'])) {
                     $result['file_name'] = $result['result'][$method]['file_name'];
                 }
                 if (isset($result['result'][$method]['file_size'])) {
-                    $result['file_name'] = $result['result'][$method]['file_size'];
+                    $result['file_size'] = $result['result'][$method]['file_size'];
                 }
+                if (isset($result['result'][$method]['mime_type'])) {
+                    $result['mime_type'] = $result['result'][$method]['mime_type'];
+                }
+                $result['file_id'] = $result['result'][$method]['file_id'];
             }
+            if (!isset($result['mime_type'])) $result['mime_type'] = 'application/octet-stream';
+            if (!isset($result['file_name'])) $result['file_name'] = $result['file_id'].($method === 'sticker' ? '.webp' : '');
             unset($result['result']);
         }
 
@@ -252,9 +249,8 @@ class API extends Tools
         } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
                 $this->db_connect();
-                $this->madeline_connect_backend();
-                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=? AND backend=?;');
-                $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me, $this->madeline_backend->API->datacenter->authorization['user']['id']]);
+                $select_stmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=?;');
+                $select_stmt->execute([preg_replace('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', '', $file), $me]);
                 $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
                 $count = $select_stmt->rowCount();
                 if ($count > 0 && isset($fetch['file_id']) && $fetch['file_id'] != '') {
@@ -464,7 +460,7 @@ class API extends Tools
 
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
-            if ($size < 52428800) {
+            if ($size < 52428800 && false) {
                 $this->madeline_connect_backend();
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
@@ -501,7 +497,8 @@ class API extends Tools
                 }
             } else {
                 $this->madeline_connect_backend();
-                $inputFile = $this->madeline_backend->upload($path);
+                $this->madeline_connect();
+                $inputFile = $this->madeline->upload($path);
                 $mime = mime_content_type($path);
                 $this->try_unlink($path);
                 switch ($type) {
@@ -528,31 +525,21 @@ class API extends Tools
                     $attributes[] = ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
                     $media = ['_' => 'inputMediaUploadedDocument', 'file' => $inputFile, 'mime_type' => $mime, 'attributes' => $attributes, 'caption' => $newparams['caption']];
                 }
-                $peer = '@'.$me;
-                $payload = 'exec_this '.json_encode(['file_hash' => $file_hash, 'bot' => $me, 'filename' => $name]);
-                $result = $this->madeline_backend->messages->sendMessage(['peer' => $peer, 'message' => $payload]);
-                if (!isset($result['id'])) {
-                    return ['ok' => false, 'error_code' => 400, 'description' => 'Message id of text message is empty.'];
-                }
-
-                $result = $this->madeline_backend->messages->sendMedia(['peer' => $peer, 'media' => $media, 'reply_to_msg_id' => $result['id']]);
+                $result = end($this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => $media])['updates']);
+                $result = $this->parse_finfo(['ok' => true, 'result' => $this->madeline->API->MTProto_to_botAPI($result)]);
+                $file_id = $result['file_id'];
+                $type = $result['file_type'];
                 $this->db_connect();
                 $insert_stmt = $this->pdo->prepare('DELETE FROM ul WHERE file_hash=? AND bot=? AND file_name=? AND file_size=?;');
                 $insert_stmt->execute([$file_hash, $me, $name, $size]);
-                $insert_stmt = $this->pdo->prepare('INSERT INTO ul (file_hash, bot, file_name, file_size) VALUES (?, ?, ?, ?);');
-                $insert_stmt->execute([$file_hash, $me, $name, $size]);
+                $insert_stmt = $this->pdo->prepare('INSERT INTO ul (file_hash, bot, file_name, file_size, file_type, file_id) VALUES (?, ?, ?, ?, ?, ?);');
+                $insert_stmt->execute([$file_hash, $me, $name, $size, $type, $file_id]);
                 $count = $insert_stmt->rowCount();
                 if ($count != '1') {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
-                $this->curl($this->pwrtelegram_api.'/getupdates');
-                $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND bot=? AND file_name=?;');
-                $select_stmt->execute([$file_hash, $me, $name]);
-                $fetch = $select_stmt->fetch(\PDO::FETCH_ASSOC);
-                $file_id = $fetch['file_id'];
-                $type = $fetch['file_type'];
                 if ($file_id == '') {
-                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't get file id. This error can be fixed by running getupdates (only trough the PWRTelegram API) and processing messages before sending another file, or if you're using webhooks remaking the setwebhook request to the PWRTelegram API."];
+                    return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't get file id.."];
                 }
             }
             if ($file_id == '') {

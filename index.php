@@ -35,7 +35,10 @@ try {
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\RPCErrorException $e) {
-    echo json_encode(['ok' => false, 'error_code' => $e->getCode(), 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    if (preg_match('|FLOOD_WAIT_|', $e->getMessage())) {
+        $n = preg_replace('|\D|', '', $e->getMessage());
+        echo json_encode(['ok' => false, 'error_code' => 429, 'description' => 'Too Many Requests: retry after '.$n, 'params' => ['retry_after' => $n]]);
+    } else echo json_encode(['ok' => false, 'error_code' => $e->getCode(), 'description' => $e->getMessage()]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\TL\Exception $e) {

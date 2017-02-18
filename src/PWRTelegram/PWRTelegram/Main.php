@@ -25,7 +25,7 @@ class Main extends Proxy
             $this->madeline->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
         }
-        if (isset($this->madeline_backend)) {
+        if (isset($this->madeline_backend) && is_object($this->madeline_backend)) {
             $this->madeline_backend->API->reset_session();
             \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path, $this->madeline_backend);
         }
@@ -107,6 +107,7 @@ class Main extends Proxy
                 $this->madeline_path = $this->homedir.'/sessions/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = $this->homedir.'/sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
+                if (!file_exists($this->madeline_backend_path)) $this->madeline_backend_path = $default_backend;
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
@@ -154,34 +155,7 @@ class Main extends Proxy
                 error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
                 error_log($e->getTraceAsString());
             }
-            if (isset($info['photo'])) {
-                $upload = [];
-                try {
-                    $path = $this->madeline->download_to_dir($info['photo'], $this->homedir.'');
-                    $upload = $this->upload($path, 'file', '', 'photo');
-                } catch (\danog\MadelineProto\ResponseException $e) {
-                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                    error_log($e->getTraceAsString());
-                } catch (\danog\MadelineProto\Exception $e) {
-                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                    error_log($e->getTraceAsString());
-                } catch (\danog\MadelineProto\RPCErrorException $e) {
-                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                    error_log($e->getTraceAsString());
-                } catch (\danog\MadelineProto\TL\Exception $e) {
-                    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-                    error_log($e->getTraceAsString());
-                }
-                if (isset($upload['ok']) && $upload['ok']) {
-                    $upload = $this->get_finfo($upload['result']['file_id'], true);
-                    if (isset($upload['ok']) && $upload['ok']) {
-                        if (!$this->issetandnotempty($params, 'offset')) {
-                            $params['offset'] = 0;
-                        }
-                        $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => array_slice([$upload['result']['photo']], $params['offset'])]];
-                    }
-                }
-            }
+            $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => [[$info['photo']]]]];
         }
 
         return $res;
@@ -447,6 +421,7 @@ class Main extends Proxy
                 }
                 $this->jsonexit($this->download($this->REQUEST['file_id']));
                 break;
+/*
             case '/getupdates':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
@@ -480,6 +455,7 @@ class Main extends Proxy
                 }
                 $this->jsonexit($newresponse);
                 break;
+*/
             case '/deletemessage':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
@@ -618,16 +594,12 @@ class Main extends Proxy
                 }
                 $me = $this->get_me()['result']['username']; // get my username
                 $this->db_connect();
-                $this->madeline_connect_backend();
+//                $this->madeline_connect_backend();
                 $test_stmt = $this->pdo->prepare('SELECT hash FROM hooks WHERE user=?');
                 $test_stmt->execute([$me]);
                 if ($test_stmt->fetchColumn() == hash('sha256', $hook) && $test_stmt->rowCount() == 1) {
                     $content = file_get_contents('php://input');
                     $cur = json_decode($content, true);
-                    if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->madeline_backend->API->datacenter->authorization['user']['id']) {
-                        $this->handle_my_message($cur);
-                        exit;
-                    }
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_URL, $hook);
@@ -698,29 +670,7 @@ class Main extends Proxy
                 if (!$this->issetandnotempty($this->REQUEST, 'chat_id')) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing chat_id.']);
                 }
-                $me = $this->get_me()['result']['username']; // get my peer id
-
-                if (!$this->checkbotuser($me)) {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
-                }
-                $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id']; ~$this->madeline_connect_backend();
-                $this->REQUEST['chat_id'] = $this->madeline_backend->API->datacenter->authorization['user']['id'];
-
-                $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
-                if ($res['ok']) {
-                    $res['result']['from'] = $res['result']['forward_from'];
-                    $res['result']['date'] = $res['result']['forward_date'];
-                    $chat_info = $this->curl($this->url.'/getChat?chat_id='.$this->REQUEST['from_chat_id']);
-                    if ($chat_info['ok']) {
-                        $res['result']['chat'] = $chat_info['result'];
-                    }
-                    if (isset($res['result']['forward_from_chat'])) {
-                        unset($res['result']['forward_from_chat']);
-                    }
-                    unset($res['result']['forward_from']);
-                    unset($res['result']['forward_date']);
-                }
-                $this->jsonexit($res);
+                $this->jsonexit($this->get_message($this->REQUEST));
                 break;
             case '/unsub2broadcasts':
             case '/sub2broadcasts':
@@ -852,6 +802,29 @@ class Main extends Proxy
                 }
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $params)]);
                 break;
+            case '/sendmessage':
+                if (!isset($this->REQUEST['mtproto']) || !$this->REQUEST['mtproto']) {
+                    $this->run_proxy();
+                    die;
+                }
+                if ($this->token == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
+                }
+                if (!isset($this->REQUEST['chat_id'])) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No chat_id was provided.']);
+                }
+                if (!isset($this->REQUEST['text'])) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No text was provided.']);
+                }
+                $this->madeline_connect();
+                if (isset($this->REQUEST['reply_markup'])) {
+                    $this->REQUEST['reply_markup'] = json_decode($this->REQUEST['reply_markup'], true);
+                    if ($this->REQUEST['reply_markup'] === null) {
+                        $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Could not parse reply markup.']);
+                    }
+                }
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call('messages.sendMessage', $this->REQUEST, ['botAPI' => true])]);
+                break;
 
                 case '/upload':
                 if ($this->token == '') {
@@ -943,5 +916,30 @@ class Main extends Proxy
         $this->run_chat_id();
         $this->run_methods();
         $this->run_proxy();
+    }
+    public function get_message($params) {
+        $me = $this->get_me()['result']['username']; // get my peer id
+        if (!$this->checkbotuser($me)) {
+            $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
+        }
+        $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];
+        $this->madeline_connect_backend();
+        $this->REQUEST['chat_id'] = $this->madeline_backend->API->datacenter->authorization['user']['id'];
+
+        $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
+        if ($res['ok']) {
+            $res['result']['from'] = $res['result']['forward_from'];
+            $res['result']['date'] = $res['result']['forward_date'];
+            $chat_info = $this->curl($this->url.'/getChat?chat_id='.$this->REQUEST['from_chat_id']);
+            if ($chat_info['ok']) {
+                $res['result']['chat'] = $chat_info['result'];
+            }
+            if (isset($res['result']['forward_from_chat'])) {
+                unset($res['result']['forward_from_chat']);
+            }
+            unset($res['result']['forward_from']);
+            unset($res['result']['forward_date']);
+        }
+        return $res;
     }
 }

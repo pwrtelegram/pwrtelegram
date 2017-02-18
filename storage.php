@@ -19,27 +19,21 @@ function no_cache($status, $wut)
     http_response_code($status);
     die($wut);
 }
-
 try {
     $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
     require_once 'db_connect.php';
     $homedir = realpath(__DIR__.'/../').'/';
     $pwrhomedir = realpath(__DIR__);
     $file_path = urldecode(preg_replace("/^\/*/", '', $_SERVER['REQUEST_URI']));
-    $bot = basename(preg_replace('/\/.*$/', '', $file_path));
     require_once 'vendor/autoload.php';
-    $default_backend = $deep ? $homedir.'/sessions/deeppwr.madeline' : $homedir.'/sessions/pwr.madeline';
-    $madeline_backend_path = $homedir.'/sessions/pwrbackend_'.$bot.'.madeline';
-    if (!file_exists($madeline_backend_path)) {
-        $madeline_backend_path = $default_backend;
-    }
-    $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline_backend_path);
-    $selectstmt = $pdo->prepare('SELECT * FROM dl WHERE file_path=? AND bot=? AND backend=? LIMIT 1;');
-    $selectstmt->execute([$file_path, $bot, $MadelineProto->API->datacenter->authorization['user']['id']]);
+    $selectstmt = $pdo->prepare('SELECT * FROM dl WHERE file_path=? LIMIT 1;');
+    $selectstmt->execute([$file_path]);
     $select = $selectstmt->fetch(PDO::FETCH_ASSOC);
     if (!($selectstmt->rowCount() > 0)) {
         no_cache(404, '<html><body><h1>404 File not found.</h1><br><p>Could not fetch file info from database.</p></body></html>');
     }
+    $madeline = glob($homedir.'/sessions/pwr_'.$select['bot'].'*')[0];
+    $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline);
     if (isset($_SERVER['HTTP_RANGE'])) {
         $range = explode('=', $_SERVER['HTTP_RANGE'], 2);
         if (count($range) == 1) {
@@ -61,8 +55,6 @@ try {
     } else {
         $range = '';
     }
-    $select['InputFileLocation'] = json_decode($select['location'], true);
-    $select['size'] = $select['file_size'];
     $listseek = explode('-', $range, 2);
     if (count($listseek) == 1) {
         $listseek[1] = '';
@@ -84,12 +76,16 @@ try {
 
     if ($servefile) {
         \danog\MadelineProto\Logger::log($file_path);
-        $MadelineProto->download_to_stream($select, fopen('php://output', 'w'), function ($percent) {
+        $MadelineProto->download_to_stream($select['file_id'], fopen('php://output', 'w'), function ($percent) {
             flush();
             ob_flush();
             \danog\MadelineProto\Logger::log('Download status: '.$percent.'%');
         }, $seek_start, $seek_end + 1);
     }
+    $MadelineProto->API->store_db([], true);
+    $MadelineProto->API->reset_session();
+    \danog\MadelineProto\Serialization::serialize($madeline, $MadelineProto);
+
 } catch (\danog\MadelineProto\ResponseException $e) {
     no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>'.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()).'</p></body></html>');
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
