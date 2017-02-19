@@ -196,8 +196,7 @@ class Tools
     public function checkbotuser($me)
     {
         if (!isset($this->userchecked)) {
-            $this->madeline_connect_backend();
-            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'])['ok']) {
+            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->get_backend_id())['ok']) {
                 return $this->userchecked = true;
             }
             $this->madeline_connect_backend();
@@ -306,5 +305,12 @@ class Tools
     public function stop_worker()
     {
         shell_exec('php '.$this->pwrhomedir.'/startworkers.php stop '.escapeshellarg($this->madeline_path));
+    }
+    public function get_backend_id() {
+        if (!isset($this->backend_id)) {
+            $this->madeline_connect_backend();
+            $this->backend_id = $this->madeline_backend->API->datacenter->autorization['user']['id'];
+        }
+        return $this->backend_id;
     }
 }

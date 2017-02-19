@@ -99,6 +99,7 @@ class Main extends Proxy
                     $this->madeline_backend_path = $this->homedir.'/sessions/pwruser_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                     $this->madeline_path = $this->madeline_backend_path;
                     ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
+                    $this->backend_id = $this->bot_id;
                 } else {
                     $this->madeline_backend_path = $this->homedir.'/sessions/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
                     $this->madeline_path = $this->madeline_backend_path;
@@ -109,7 +110,7 @@ class Main extends Proxy
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = $default_backend;
-                }
+                } else $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], readlink($this->backend_path));
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
@@ -662,8 +663,7 @@ class Main extends Proxy
                 if (!$this->checkbotuser($me)) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
                 }
-                $this->madeline_connect_backend();
-                $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id']));
+                $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->get_backend_id()));
                 break;
             case '/getmessage':
                 if ($this->token == '') {
@@ -927,8 +927,7 @@ class Main extends Proxy
             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
         }
         $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];
-        $this->madeline_connect_backend();
-        $this->REQUEST['chat_id'] = $this->madeline_backend->API->datacenter->authorization['user']['id'];
+        $this->REQUEST['chat_id'] = $this->get_backend_id();
 
         $res = $this->curl($this->url.'/forwardmessage?'.http_build_query($this->REQUEST));
         if ($res['ok']) {

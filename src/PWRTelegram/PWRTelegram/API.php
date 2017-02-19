@@ -137,7 +137,6 @@ class API extends Tools
         }
         $result = ['ok' => false];
         $count = 0;
-        $this->madeline_connect_backend();
         $this->madeline_connect();
         $parsed = $this->madeline->API->unpack_file_id($file_id);
         if ($parsed['type'] === 'photo') {
@@ -146,10 +145,10 @@ class API extends Tools
 
                 return ['ok' => true, 'file_type' => 'photo', 'file_size' => $this->curl($this->url.'/getfile?file_id='.$file_id)['result']['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
             } else {
-                $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaPhoto', 'id' => ['_' => 'inputPhoto', 'id' => $parsed['MessageMedia'][$parsed['type']]['id'], 'access_hash' => $parsed['MessageMedia'][$parsed['type']]['access_hash']], 'caption' => '']]);
+                $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaPhoto', 'id' => ['_' => 'inputPhoto', 'id' => $parsed['MessageMedia'][$parsed['type']]['id'], 'access_hash' => $parsed['MessageMedia'][$parsed['type']]['access_hash']], 'caption' => '']]);
             }
         } else {
-            $result = $this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);
+            $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);
         }
         $result = ['ok' => true, 'result' => $this->madeline->API->MTProto_to_botAPI(end($result['updates'])['message']['media'])];
         if ($full_photo) {
@@ -472,12 +471,11 @@ class API extends Tools
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
             }
             if ($size < 52428800 && false) {
-                $this->madeline_connect_backend();
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
                 curl_setopt($ch, CURLOPT_URL, $this->url.'/send'.$type.'?'.http_build_query($newparams));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, ['chat_id' => $this->madeline_backend->API->datacenter->authorization['user']['id'], $type => new \CURLFile($path)]);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, ['chat_id' => $this->get_backend_id(), $type => new \CURLFile($path)]);
                 $result = json_decode(curl_exec($ch), true);
                 curl_close($ch);
                 if ($result['ok']) {
@@ -507,7 +505,6 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $this->madeline_connect_backend();
                 $this->madeline_connect();
                 $inputFile = $this->madeline->upload($path);
                 $mime = mime_content_type($path);
@@ -536,7 +533,7 @@ class API extends Tools
                     $attributes[] = ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
                     $media = ['_' => 'inputMediaUploadedDocument', 'file' => $inputFile, 'mime_type' => $mime, 'attributes' => $attributes, 'caption' => $newparams['caption']];
                 }
-                $result = end($this->madeline->messages->sendMedia(['peer' => $this->madeline_backend->API->datacenter->authorization['user']['id'], 'media' => $media])['updates']);
+                $result = end($this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => $media])['updates']);
                 $result = $this->parse_finfo(['ok' => true, 'result' => $this->madeline->API->MTProto_to_botAPI($result)]);
                 $file_id = $result['file_id'];
                 $type = $result['file_type'];
