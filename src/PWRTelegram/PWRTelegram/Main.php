@@ -110,7 +110,7 @@ class Main extends Proxy
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = $default_backend;
-                } else $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], readlink($this->backend_path));
+                } else $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
             }
         }
         if (!file_exists($this->madeline_path) && $this->real_token !== '') {
