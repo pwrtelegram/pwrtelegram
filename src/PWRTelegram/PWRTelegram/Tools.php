@@ -306,11 +306,14 @@ class Tools
     {
         shell_exec('php '.$this->pwrhomedir.'/startworkers.php stop '.escapeshellarg($this->madeline_path));
     }
-    public function get_backend_id() {
+
+    public function get_backend_id()
+    {
         if (!isset($this->backend_id)) {
             $this->madeline_connect_backend();
             $this->backend_id = $this->madeline_backend->API->datacenter->autorization['user']['id'];
         }
+
         return $this->backend_id;
     }
 }
