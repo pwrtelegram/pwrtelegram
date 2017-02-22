@@ -25,9 +25,14 @@ The new PWRTelegram logo was created by [@BayernPars](https://telegram.me/Bayern
 
 All of the official telegram bot API features plus:  
 
-* *NEW* It can fetch any mtproto update, such as name changes, typing notifications, changes of the online status and much more!
+
+* *NEW* It can be used to send inline keyboards with text-only messages and text mentions for users without a username!
 
 * *NEW* It can be used with a normal account (with a phone number)!
+
+* *NEW* It can be used to sign up to telegram!
+
+* *NEW* It can fetch any mtproto update, such as name changes, typing notifications, changes of the online status and much more!
 
 * Support for [deep telegram bots](https://telegram.me/daniilgentili).
 
@@ -90,9 +95,9 @@ The client can be written in any language, not necessarily python.
 
 Or you can manually substitute ```api.telegram.org``` with ```api.pwrtelegram.xyz``` or ```deepapi.pwrtelegram.xyz``` in your bot,
 
-Then you must set a custom backend (scroll down to see how to do that).  
-
 If you use webhooks you must recall the setwebhook method.  
+
+Then, if you intend to use the API to download/upload files, you must set a custom backend (scroll down to see how to do that).  
 
 The API will automagically do the rest :)  
 
@@ -133,7 +138,7 @@ On success, a temporary access token will be returned:
 {"ok": true, "result": "hjJhh-_3838rhehhH2"}
 ```
 
-Use it to call the completephonelogin method with the code you received (2fa isn't supported yet).
+Use it to call the completephonelogin method with the code you received.
 
 ```
 https://api.pwrtelegram.xyz/userhjJhh-_3838rhehhH2/completephonelogin?code=77486
@@ -154,6 +159,17 @@ In this case you must complete login by calling the complete2FALogin method:
 
 ```
 https://api.pwrtelegram.xyz/userhjJhh-_3838rhehhH2/complete2FALogin?password=password
+```
+
+If the number you used doesn't have a telegram account, the following json will be returned:
+```
+{"ok": false, "error_code": 401, "description": "Need to sign up: call the completesignup method"}
+```
+
+In this case you must complete login by calling the completesignup method (last_name is optional):
+
+```
+https://api.pwrtelegram.xyz/userhjJhh-_3838rhehhH2/completesignup?first_name=Urlencoded%20first%20name&last_name=last%20name
 ```
 
 On success, the permanent access token will be returned:
@@ -193,6 +209,17 @@ The methods that can be called using the user access token are the following (se
 * getChat - Exactly the same usage and response as the getChat method of the main pwrtelegram API
 
 A lot of other methods are supported, to see a full list [click here](https://daniil.it/MadelineProto/API_docs/).
+
+
+### Sending text buttons in inline keyboards and text mentions for users without a user id
+
+Simply call the sendMessage method with the mtproto parameter set to true.
+
+Inline keyboards with only the text field will be interpreted as text buttons and when the user will press that button the specified text will be sent in the chat, just like for normal keyboards.
+
+To send text mentions use markdown or html links with the following syntax for the url: `mention:userid` or `mention:@username`.  That will send a text mention with the text you specified in the markup mentioning the user you specified.  
+
+Please note that bot API object conversion isn't 100% ready, so any message you've replied to won't be shown.  
 
 
 ### Getting mtproto updates

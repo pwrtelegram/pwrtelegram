@@ -382,6 +382,23 @@ class Main extends Proxy
                     \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
                     $this->jsonexit(['ok' => false, 'error_code' => 401, 'description' => '2FA is enabled: call the complete2FALogin method with the password as password parameter (hint: '.$authorization['hint'].')']);
                 }
+                if ($authorization['_'] === 'account.needSignup') {
+                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->jsonexit(['ok' => false, 'error_code' => 401, 'description' => 'Need to signup: call the completesignup method.']);
+                }
+                $this->real_token = $authorization['user']['id'].':'.$this->real_token;
+                unlink($this->madeline_path);
+                $this->madeline_backend_path = $this->homedir.'/sessions/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
+                $this->madeline_path = $this->madeline_backend_path;
+                $this->madeline->API->get_updates_difference();
+                $this->madeline->API->store_db([], true);
+                $this->madeline->API->reset_session();
+                $this->jsonexit(['ok' => true, 'result' => $this->real_token]);
+            case '/completesignup':
+                if (!isset($this->REQUEST['first_name']) || $this->REQUEST['first_name'] == '') {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No first name was provided.']);
+                }
+                $authorization = $this->madeline->complete_signup($this->REQUEST['first_name'], isset($this->REQUEST['last_name']) ? $this->REQUEST['last_name'] : '');
                 $this->real_token = $authorization['user']['id'].':'.$this->real_token;
                 unlink($this->madeline_path);
                 $this->madeline_backend_path = $this->homedir.'/sessions/pwruser_'.$authorization['user']['id'].'_'.hash('sha256', $this->real_token).'.madeline';
