@@ -196,7 +196,7 @@ class Tools
     public function checkbotuser($me)
     {
         if (!isset($this->userchecked)) {
-            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->get_backend_id())['ok']) {
+            if ($this->curl($this->url.'/sendChatAction?action=typing&chat_id='.$this->get_backend_id())['ok']) {
                 return $this->userchecked = true;
             }
             $this->madeline_connect_backend();

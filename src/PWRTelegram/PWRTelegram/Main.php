@@ -91,8 +91,8 @@ class Main extends Proxy
         $this->user = preg_match("/^\/user/", $_SERVER['REQUEST_URI']);
 
         if ($this->real_token == '') {
-            $this->madeline_backend_path = $default_backend;
-            $this->madeline_path = $default_backend;
+            $this->madeline_backend_path = '';
+            $this->madeline_path = '';
         } else {
             if ($this->user) {
                 if (isset($this->bot_id)) {
