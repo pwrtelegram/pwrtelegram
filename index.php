@@ -35,6 +35,9 @@ try {
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\RPCErrorException $e) {
+    if ($e->getMessage() === 'SESSION_REVOKED') {
+        unlink($API->madeline_path);
+    }
     if (preg_match('|FLOOD_WAIT_|', $e->getMessage())) {
         $n = preg_replace('|\D|', '', $e->getMessage());
         echo json_encode(['ok' => false, 'error_code' => 429, 'description' => 'Too Many Requests: retry after '.$n, 'params' => ['retry_after' => $n]]);
