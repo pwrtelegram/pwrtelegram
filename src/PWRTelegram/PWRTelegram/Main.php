@@ -581,6 +581,7 @@ class Main extends Proxy
                             }
                     $this->jsonexit(['ok' => true, 'result' => true]);
             case '/getmtprotowebhookinfo':
+                $this->madeline_connect();
                 $this->jsonexit(['ok' => true, 'result' => ['url' => (isset($this->madeline->API->hook_url) ? $this->madeline->API->hook_url : ''), 'has_custom_certificate' => isset($this->madeline->API->pem_path)]]);
 
             case '/setwebhook':
