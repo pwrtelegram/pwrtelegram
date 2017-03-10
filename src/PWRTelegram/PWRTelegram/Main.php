@@ -562,6 +562,7 @@ class Main extends Proxy
                             unlink($this->homedir.'/hooks/'.$this->bot_id.'.pem');
                         }
                     }
+                    $this->madeline_connect();
                     $this->madeline->API->hook_url = $this->REQUEST['url'];
                     $this->madeline->API->settings['pwr']['update_handler'] = [$this->madeline->API, 'pwr_webhook'];
                     $this->madeline->API->store_db([], true);
