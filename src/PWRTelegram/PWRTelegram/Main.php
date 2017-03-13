@@ -350,6 +350,8 @@ class Main extends Proxy
                         unset($this->madeline->API->pem_path);
                     }
                     $this->jsonexit(['ok' => true, 'result' => true]);
+                case '/getwebhookinfo':
+                    $this->jsonexit(['ok' => true, 'result' => ['url' => (isset($this->madeline->API->hook_url) ? $this->madeline->API->hook_url : ''), 'has_custom_certificate' => isset($this->madeline->API->pem_path)]]);
 
                 default:
                 foreach ($this->REQUEST as &$param) {
