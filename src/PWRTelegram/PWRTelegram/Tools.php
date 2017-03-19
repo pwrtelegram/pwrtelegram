@@ -137,6 +137,9 @@ class Tools
     }
             $die = json_encode(['ok' => false, 'error_code' => 400, 'description' => 'An error occurred (json encoded result is null, '.$error.')']);
         }
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+        header('Access-Control-Expose-Headers: Content-Length,Content-Type,Date,Server');
         die($die);
     }
 

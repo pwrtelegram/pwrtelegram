@@ -304,6 +304,9 @@ class Main extends Proxy
                 case '/upload':
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'], $_FILES['file']['name'])]);
 
+                case '/download':
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'])]);
+
                 case '/getupdates':
                 $updates = $this->utf8ize($this->madeline->API->get_updates($this->REQUEST));
                 $this->jsonexit(['ok' => true, 'result' => $updates], JSON_UNESCAPED_UNICODE);
