@@ -220,7 +220,7 @@ class Main extends Proxy
         if (isset($final_res['photo'])) {
             unset($final_res['photo']);
         }
-        if (empty($final_res)) {
+        if (count($final_res) < 2) {
             $result = ['ok' => false, 'error_code' => 400, 'description' => 'Chat not found'];
         } else {
             $result = ['ok' => true, 'result' => $final_res];
