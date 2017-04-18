@@ -344,7 +344,6 @@ class API extends Tools
 
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
         }
-        require_once 'vendor/autoload.php';
         if ($type == 'file') {
             $mime = '';
             $ext = '';
@@ -369,7 +368,7 @@ class API extends Tools
                 $type = 'video';
             } elseif ($ext == 'webp') {
                 $type = 'sticker';
-            } elseif (preg_match('/^audio\/.*/', $mime) && preg_match('/mp3|flac/', $ext)) {
+            } elseif (preg_match('/^audio\/.*/', $mime) || preg_match('/mp3|flac/', $ext)) {
                 $type = 'audio';
             } elseif (preg_match('/^audio\/ogg/', $mime)) {
                 $type = 'voice';
@@ -389,12 +388,12 @@ class API extends Tools
                     foreach (['performer' => 'performer', 'track_name' => 'title', 'duration' => 'duration'] as $orig => $param) {
                         try {
                             $tmpget = $general->get($orig);
-                            if (is_object($tmpget)) {
+                            if (is_object($tmpget) || is_string($tmpget)) {
                                 if ($orig == 'duration') {
                                     $newparams[$param] = ceil($tmpget->getMilliseconds() / 1000);
                                     continue;
                                 }
-                                $newparams[$param] = $tmpget->__toString();
+                                $newparams[$param] = $tmpget;
                             }
                         } catch (\Exception $e) {
                         }
@@ -413,12 +412,12 @@ class API extends Tools
                     foreach (['width' => 'width', 'height' => 'height', 'duration' => 'duration'] as $orig => $param) {
                         try {
                             $tmpget = $general->get($orig);
-                            if (is_object($tmpget)) {
+                            if (is_object($tmpget) || is_string($tmpget) || is_numeric($tmpget)) {
                                 if ($orig == 'duration') {
                                     $newparams[$param] = ceil($tmpget->getMilliseconds() / 1000);
                                     continue;
                                 }
-                                $newparams[$param] = $tmpget->__toString();
+                                $newparams[$param] = is_object($tmpget) ? $tmpget->getAbsoluteValue() : $tmpget;
                             }
                         } catch (\Exception $e) {
                         }
@@ -428,8 +427,8 @@ class API extends Tools
                     foreach (['width' => 'width', 'height' => 'height'] as $orig => $param) {
                         try {
                             $tmpget = $video[0]->get($orig);
-                            if (is_object($tmpget)) {
-                                $newparams[$param] = $tmpget->getAbsoluteValue();
+                            if (is_object($tmpget) || is_string($tmpget) || is_numeric($tmpget)) {
+                                $newparams[$param] = is_object($tmpget) ? $tmpget->getAbsoluteValue() : $tmpget;
                             }
                         } catch (\Exception $e) {
                         }
@@ -458,6 +457,7 @@ class API extends Tools
                 $val = $oldparams[$param];
             }
         }
+
         $file_hash = hash_file('sha256', $path);
         $this->db_connect();
         $select_stmt = $this->pdo->prepare('SELECT * FROM ul WHERE file_hash=? AND file_type=? AND bot=? AND file_name=?;');
