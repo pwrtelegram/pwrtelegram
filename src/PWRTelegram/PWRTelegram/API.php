@@ -244,6 +244,8 @@ class API extends Tools
         if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
         }
+        $this->madeline_connect();
+
         $path = $this->homedir.'ul/'.$me.'/'.$MadelineProto->base64url_encode($MadelineProto->random(64));
         if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
@@ -507,7 +509,6 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $this->madeline_connect();
                 $inputFile = $this->madeline->upload($path);
                 $mime = mime_content_type($path);
                 $this->try_unlink($path);
