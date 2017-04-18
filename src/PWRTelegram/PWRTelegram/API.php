@@ -244,7 +244,7 @@ class API extends Tools
         if (!$this->checkdir($this->homedir.'/ul/'.$me)) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
         }
-        $path = $this->homedir.'ul/'.$me.'/'.$file_name;
+        $path = $this->homedir.'ul/'.$me.'/'.$MadelineProto->base64url_encode($MadelineProto->random(64));
         if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
             if ($size < 1) {
@@ -253,9 +253,10 @@ class API extends Tools
             if ($size > 1610612736) {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
-            if (!rename($file, $path)) {
+            /*if (!rename($file, $path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't rename file."];
-            }
+            }*/
+            $path = $file;
         } elseif (filter_var($file, FILTER_VALIDATE_URL) && $whattype == 'url') {
             if (preg_match('|^http(s)?://'.$this->pwrtelegram_storage_domain.'/|', $file)) {
                 $this->db_connect();
@@ -278,6 +279,7 @@ class API extends Tools
                     }
                 }
             }
+
             unset($this->pdo);
             shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
