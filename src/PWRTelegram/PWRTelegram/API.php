@@ -50,7 +50,7 @@ class API extends Tools
             if ($this->user) {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Please login again.']);
             }
-            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true]]);
+            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], "app_info" => ["api_id" => 6,"api_hash" => "eb06d4abfb49dc3eeb1aeb98ae0f581e"]]);
             $this->madeline->bot_login($this->real_token);
             $this->madeline->API->get_updates_difference();
             $this->madeline->API->store_db([], true);
