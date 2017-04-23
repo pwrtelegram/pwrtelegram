@@ -42,7 +42,7 @@ try {
         list($size_unit, $range_orig) = $range;
         if ($size_unit == 'bytes') {
             //multiple ranges could be specified at the same time, but for simplicity only serve the first range
-               //http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
+            //http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
             $list = explode(',', $range_orig, 2);
             if (count($list) == 1) {
                 $list[1] = '';
@@ -55,14 +55,19 @@ try {
     } else {
         $range = '';
     }
+
     $listseek = explode('-', $range, 2);
     if (count($listseek) == 1) {
         $listseek[1] = '';
     }
     list($seek_start, $seek_end) = $listseek;
-    $seek_end = (empty($seek_end)) ? ($select['file_size'] - 1) : min(abs(intval($seek_end)), ($select['file_size'] - 1));
-    $seek_start = (empty($seek_start) || $seek_end < abs(intval($seek_start))) ? 0 : max(abs(intval($seek_start)), 0);
-    if ($seek_start > 0 || $seek_end < ($select['file_size'] - 1)) {
+    $seek_end = empty($seek_end) ? ($select['file_size'] - 1) : min(abs(intval($seek_end)), $select['file_size'] - 1);
+    if (!empty($seek_start) && $seek_end < abs(intval($seek_start))) {
+        no_cache(416, '<html><body><h1>416 Requested Range Not Satisfiable.</h1><br><p>Could not use selected range.</p></body></html>');
+    }
+//    $seek_start = (empty($seek_start) || $seek_end < abs(intval($seek_start))) ? 0 : abs(intval($seek_start));
+    $seek_start = empty($seek_start) ? 0 : abs(intval($seek_start));
+    if ($seek_start > 0 || $seek_end < $select['file_size'] - 1) {
         header('HTTP/1.1 206 Partial Content');
         header('Content-Range: bytes '.$seek_start.'-'.$seek_end.'/'.$select['file_size']);
         header('Content-Length: '.($seek_end - $seek_start + 1));
@@ -72,6 +77,7 @@ try {
     header('Content-Type: '.$select['mime']);
     header('Cache-Control: max-age=31556926;');
     header('Content-Transfer-Encoding: Binary');
+    header('Accept-Ranges: bytes');
     header('Content-disposition: attachment: filename="'.basename($select['file_path']).'"');
 
     if ($servefile) {
