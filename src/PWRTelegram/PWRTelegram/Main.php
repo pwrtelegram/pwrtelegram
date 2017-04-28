@@ -493,17 +493,17 @@ class Main extends Proxy
                 $this->jsonexit($newresponse);
                 break;
 */
-            case '/deletemessage':
+            case '/deletemessages':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
-                $this->REQUEST['parse_mode'] = 'Markdown';
-                $this->REQUEST['text'] = '_This message was deleted_';
-                $res = $this->curl($this->url.'/editMessageText?'.http_build_query($this->REQUEST));
-                if ($res['ok']) {
-                    $res['result'] = 'The message was deleted successfully.';
-                }
-                $this->jsonexit($res);
+                if (!isset($this->REQUEST['chat_id']))                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No chat_id was provided.']);
+                if (!isset($this->REQUEST['ids'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No ids were provided.']);
+                $this->madeline_connect();
+                $this->REQUEST['ids'] = json_decode($this->REQUEST['ids'], true);
+                if (is_null($this->REQUEST['ids'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Invalid json provided.']);
+                in_array($this->madeline->get_pwr_chat($this->REQUEST['chat_id'])['type'], ['chat', 'user']) ? $this->madeline->messages->deleteMessages(['revoke' => true, 'id' => $this->REQUEST['ids']]) : $this->madeline->channels->deleteMessages(['channel' => $this->REQUEST['chat_id'], 'id' => $this->REQUEST['ids']]);
+                $this->jsonexit(['ok' => true, 'result' => true]);
                 break;
             case '/answerinlinequery':
                 if ($this->token == '') {

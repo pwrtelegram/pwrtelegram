@@ -353,22 +353,21 @@ On success, they will return a json array containing the following elements:
 Otherwise the error is returned.
 
 
-### deleteMessage
+### deleteMessages
 
-Use this method to delete text messages sent by the bot or via the bot (for inline bots).  
+Use this method to delete any messages sent by the bot or by any user in any group or private char.  
 On success, if the message is deleted by the bot, a json array is returned with the following values:
 
 * ok => true
 
-* result => "The message was deleted successfully."
+* result => true
 
 Otherwise the error is returned.
 
 | Parameters        	| Type              	| Required             	| Description                                                                                                                                              	|
 |-------------------	|-------------------	|----------------------	|----------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| chat_id           	| Integer or String 	| No (see description) 	| Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel, group or user (in the format @username) 	|
-| message_id        	| Integer           	| No (see description) 	| Required if inline_message_id is not specified. Unique identifier of the sent message                                                                    	|
-| inline_message_id 	| String            	| No (see description) 	| Required if chat_id and message_id are not specified. Identifier of the inline message                                                                   	|
+| chat_id           	| Integer or String 	| Yes	| Unique identifier for the target chat or username of the target channel, group or user (in the format @username) 	|
+| ids        	| Integer           	| Yes	| Json array containing the ids of the messages to delete	|
 
 
 ### You can use both getupdates and webhooks to get updates
