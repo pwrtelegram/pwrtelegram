@@ -509,7 +509,9 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'message' => 'Only messages in private chats and groups (not supergroups) can be deleted.']);
                 }
                 $this->REQUEST['ids'] = json_decode($this->REQUEST['ids'], true);
-                if (is_null($this->REQUEST['ids'])) $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Invalid json provided.']);
+                if (is_null($this->REQUEST['ids'])) {
+                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Invalid json provided.']);
+                }
                 $this->madeline->messages->deleteMessages(['revoke' => true, 'id' => $this->REQUEST['ids']]);
                 $this->jsonexit(['ok' => true, 'result' => true]);
                 break;
