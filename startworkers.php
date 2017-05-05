@@ -12,7 +12,9 @@ $file = $argv[2];
 $sfile = preg_replace(['|^pwr_|', '|^pwruser_|', '|_.*|'], '', basename($argv[2]));
 ini_set('error_log', '/tmp/worker'.$sfile.'.log');
 $lock = '/tmp/workerlock'.$sfile;
-if (!file_exists($lock)) touch($lock);
+if (!file_exists($lock)) {
+    touch($lock);
+}
 $lock = fopen($lock, 'w+');
 echo $sfile;
 switch ($argv[1]) {
@@ -30,6 +32,7 @@ switch ($argv[1]) {
     case 'check':
         echo flock($lock, LOCK_EX) ? 'STARTED' : 'STOPPED';
         flock($lock, LOCK_UN);
+
         return 0;
 }
 flock($lock, LOCK_EX);
@@ -37,7 +40,9 @@ $size = 0;
 while (true) {
     try {
         clearstatcache();
-        if (filesize($file) !== $size) $MadelineProto = \danog\MadelineProto\Serialization::deserialize($file);
+        if (filesize($file) !== $size) {
+            $MadelineProto = \danog\MadelineProto\Serialization::deserialize($file);
+        }
         $MadelineProto->API->get_updates_difference();
         $MadelineProto->API->store_db([], true);
         $size = \danog\MadelineProto\Serialization::serialize($file, $MadelineProto);
