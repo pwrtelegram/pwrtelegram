@@ -40,9 +40,9 @@ class API extends Tools
             try {
                 $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
                 if (is_object($this->madeline)) {
-                    if (!$this->check_worker()) {
-                        $this->start_worker();
-                    }
+                    //if (!$this->check_worker()) {
+                    //    $this->start_worker();
+                    //}
 
                     return $this->madeline;
                 }
