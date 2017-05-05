@@ -305,6 +305,11 @@ class Tools
         shell_exec('php '.$this->pwrhomedir.'/startworkers.php start '.escapeshellarg($this->madeline_path));
     }
 
+    public function check_worker()
+    {
+        return shell_exec('php '.$this->pwrhomedir.'/startworkers.php check '.escapeshellarg($this->madeline_path)) === 'STARTED';
+    }
+
     public function stop_worker()
     {
         shell_exec('php '.$this->pwrhomedir.'/startworkers.php stop '.escapeshellarg($this->madeline_path));

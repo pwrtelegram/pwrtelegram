@@ -11,6 +11,9 @@ if (!isset($argv[2])) {
 $file = $argv[2];
 $sfile = preg_replace(['|^pwr_|', '|^pwruser_|', '|_.*|'], '', basename($argv[2]));
 ini_set('error_log', '/tmp/worker'.$sfile.'.log');
+$lock = '/tmp/workerlock'.$sfile;
+if (!file_exists($lock)) touch($lock);
+$lock = fopen($lock, 'w+');
 echo $sfile;
 switch ($argv[1]) {
     case 'start':
@@ -24,13 +27,20 @@ switch ($argv[1]) {
         error_log(shell_exec('tmux kill-session -t '.escapeshellarg($sfile)));
 
         return 0;
+    case 'check':
+        echo flock($lock, LOCK_EX) ? 'STARTED' : 'STOPPED';
+        flock($lock, LOCK_UN);
+        return 0;
 }
+flock($lock, LOCK_EX);
+$size = 0;
 while (true) {
     try {
-        $MadelineProto = \danog\MadelineProto\Serialization::deserialize($file);
+        clearstatcache();
+        if (filesize($file) !== $size) $MadelineProto = \danog\MadelineProto\Serialization::deserialize($file);
         $MadelineProto->API->get_updates_difference();
         $MadelineProto->API->store_db([], true);
-        \danog\MadelineProto\Serialization::serialize($file, $MadelineProto);
+        $size = \danog\MadelineProto\Serialization::serialize($file, $MadelineProto);
         usleep(250000);
     } catch (\danog\MadelineProto\ResponseException $e) {
         error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
@@ -55,3 +65,4 @@ while (true) {
         error_log($e->getTraceAsString());
     }
 }
+flock($lock, LOCK_UN);
