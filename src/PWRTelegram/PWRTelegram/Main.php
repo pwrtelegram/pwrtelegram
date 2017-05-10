@@ -20,7 +20,7 @@ class Main extends Proxy
 
     public function __destruct()
     {
-        if (isset($this->madeline) && is_object($this->madeline)) {
+        if (isset($this->madeline) && is_object($this->madeline) && $this->madeline_path !== '') {
             $this->madeline->API->store_db([], true);
             $this->madeline->API->reset_session();
             if ($this->madeline->API->settings['msg_array_limit']['incoming'] > 200) {
