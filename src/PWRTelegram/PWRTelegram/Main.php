@@ -55,6 +55,7 @@ class Main extends Proxy
             'video'    => 'video',
             'voice'    => 'document',
             'document' => 'document',
+            'gif' => 'document',
             'sticker'  => 'document',
             'audio'    => 'audio',
             'file'     => '',
