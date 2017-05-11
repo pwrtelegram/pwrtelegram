@@ -17,7 +17,7 @@ function no_cache($status, $wut)
     header('Cache-Control: post-check=0, pre-check=0', false);
     header('Pragma: no-cache');
     http_response_code($status);
-    echo($wut);
+    echo $wut;
 }
 try {
     $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
@@ -103,6 +103,7 @@ try {
     if ($e->rpc === 'SESSION_REVOKED') {
         no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>The token/session was revoked</p></body></html>');
         unlink($madeline);
+
         return;
     }
     no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>Telegram said: '.$e->getMessage().'</p></body></html>');

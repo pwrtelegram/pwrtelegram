@@ -158,7 +158,9 @@ class Main extends Proxy
             $this->madeline_connect();
             try {
                 $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
-                if (!isset($info['photo'])) return $res;
+                if (!isset($info['photo'])) {
+                    return $res;
+                }
                 $res = ['ok' => true, 'result' => ['total_count' => 1, 'photos' => [[$info['photo']]]]];
             } catch (\danog\MadelineProto\ResponseException $e) {
                 error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
