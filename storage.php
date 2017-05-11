@@ -17,7 +17,7 @@ function no_cache($status, $wut)
     header('Cache-Control: post-check=0, pre-check=0', false);
     header('Pragma: no-cache');
     http_response_code($status);
-    die($wut);
+    echo($wut);
 }
 try {
     $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
@@ -100,7 +100,12 @@ try {
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\RPCErrorException $e) {
-    no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>'.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()).'</p></body></html>');
+    if ($e->rpc === 'SESSION_REVOKED') {
+        no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>The token/session was revoked</p></body></html>');
+        unlink($madeline);
+        return;
+    }
+    no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>Telegram said: '.$e->getMessage().'</p></body></html>');
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log($e->getTraceAsString());
 } catch (\danog\MadelineProto\TL\Exception $e) {
