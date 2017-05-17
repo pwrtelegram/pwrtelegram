@@ -47,8 +47,14 @@ class API extends Tools
                     return $this->madeline;
                 }
             } catch (\danog\MadelineProto\Exception $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
             } catch (\danog\MadelineProto\RPCErrorException $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
             } catch (\Error $e) {
+                error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+                error_log($e->getTraceAsString());
             }
             error_log('RELOGIN');
             if ($this->user) {
