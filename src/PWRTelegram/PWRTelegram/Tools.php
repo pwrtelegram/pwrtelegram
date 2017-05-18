@@ -287,7 +287,6 @@ class Tools
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
-
     public function start_worker()
     {
         shell_exec('php '.$this->pwrhomedir.'/startworkers.php start '.escapeshellarg($this->madeline_path));
