@@ -312,7 +312,7 @@ class Main extends Proxy
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'])]);
 
                 case '/getupdates':
-                $updates = $this->utf8ize($this->madeline->API->get_updates($this->REQUEST));
+                $updates = $this->madeline->API->get_updates($this->REQUEST);
                 $this->jsonexit(['ok' => true, 'result' => $updates], JSON_UNESCAPED_UNICODE);
 
                 case '/enablegetupdates':
@@ -371,7 +371,7 @@ class Main extends Proxy
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
-                $this->jsonexit(['ok' => true, 'result' => $this->utf8ize($this->madeline->API->method_call($method, $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc]))]);
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
             }
         }
         // Else use a nice case switch
@@ -887,7 +887,7 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
                 $this->madeline_connect();
-                $updates = $this->utf8ize($this->madeline->API->get_updates($this->REQUEST));
+                $updates = $this->madeline->API->get_updates($this->REQUEST);
                 $this->jsonexit(['ok' => true, 'result' => $updates], JSON_UNESCAPED_UNICODE);
 
                 case '/enablegetmtprotoupdates':
