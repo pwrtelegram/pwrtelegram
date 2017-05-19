@@ -51,15 +51,15 @@ class Main extends Proxy
         $this->homedir = realpath($this->pwrhomedir.'/../').'/';
         // Available methods and their equivalent in tg-cli
         $this->methods = [
-            'photo'    => 'photo',
-            'video'    => 'video',
-            'voice'    => 'document',
-            'document' => 'document',
-            'gif'      => 'document',
-            'sticker'  => 'document',
-            'audio'    => 'audio',
+            'photo'         => 'photo',
+            'video'         => 'video',
+            'voice'         => 'document',
+            'document'      => 'document',
+            'gif'           => 'document',
+            'sticker'       => 'document',
+            'audio'         => 'audio',
             'video_note'    => 'video_note',
-            'file'     => '',
+            'file'          => '',
         ];
         $this->methods_keys = array_keys($this->methods);
         // Deep telegram
