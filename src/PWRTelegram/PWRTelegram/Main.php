@@ -58,6 +58,7 @@ class Main extends Proxy
             'gif'      => 'document',
             'sticker'  => 'document',
             'audio'    => 'audio',
+            'video_note'    => 'video_note',
             'file'     => '',
         ];
         $this->methods_keys = array_keys($this->methods);
