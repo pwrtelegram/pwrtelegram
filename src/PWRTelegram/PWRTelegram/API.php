@@ -15,15 +15,6 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 class API extends Tools
 {
-    public function __construct($params)
-    {
-        foreach ($params as $key => $val) {
-            $this->{$key} = $val;
-        }
-        $info = $this->get_me();
-        ini_set('error_log', isset($info['result']['username']) ? $this->homedir.'/'.$info['result']['username'].'.log' : $this->homedir.'/php-error-index.log');
-    }
-
     public function db_connect()
     {
         if (!isset($this->pdo)) {
@@ -60,7 +51,7 @@ class API extends Tools
             if ($this->user) {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Please login again.']);
             }
-            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode => $this->deep]]]);
+            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
             $this->madeline->bot_login($this->real_token);
             $this->madeline->API->get_updates_difference();
             $this->madeline->API->store_db([], true);
