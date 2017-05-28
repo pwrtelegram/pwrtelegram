@@ -577,9 +577,12 @@ class API extends Tools
 */
         return $res;
     }
-    public function upload_callback($percent) {
-        \danog\MadelineProto\Logger::log(['Upload status: '.$percent.'%'], \danog\MadelineProto\Logger::NOTICE);
-        if (isset($this->REQUEST['upload_callback'])) var_dump(file_get_contents($this->REQUEST['upload_callback'].$percent));
-    }
 
+    public function upload_callback($percent)
+    {
+        \danog\MadelineProto\Logger::log(['Upload status: '.$percent.'%'], \danog\MadelineProto\Logger::NOTICE);
+        if (isset($this->REQUEST['upload_callback'])) {
+            var_dump(file_get_contents($this->REQUEST['upload_callback'].$percent));
+        }
+    }
 }
