@@ -194,7 +194,6 @@ class API extends Tools
             }
             unset($result['result']);
         }
-
         return $result;
     }
 
@@ -405,6 +404,7 @@ class API extends Tools
                     $newparams['duration'] = shell_exec('ffprobe -show_format '.escapeshellarg($path)." 2>&1 | sed -n '/duration/s/.*=//p;s/\..*//g'  | sed 's/\..*//g' | tr -d '\n'");
                 }
                 break;
+            case 'video_note':
             case 'video':
                 try {
                     $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
@@ -521,6 +521,11 @@ class API extends Tools
 
                     case 'document':
                     $attributes = $animated ? [['_' => 'documentAttributeAnimated']] : [];
+                    break;
+
+                    case 'video_note':
+                    if ($newparams['width'] !== $newparams['height']) $newparams['width'] = $newparams['height'];
+                    $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height'], 'round_message' => true]];
                     break;
 
                     case 'video':

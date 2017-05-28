@@ -58,7 +58,7 @@ class Main extends Proxy
             'gif'           => 'document',
             'sticker'       => 'document',
             'audio'         => 'audio',
-            'video_note'    => 'video_note',
+            'video_note'    => 'videonote',
             'file'          => '',
         ];
         $this->methods_keys = array_keys($this->methods);
@@ -909,7 +909,7 @@ class Main extends Proxy
         }
 
         // The sending method without the send keyword
-        $smethod = preg_replace(['|.*/send|', '|.*/upload|'], '', $this->method);
+        $smethod = str_replace('videonote', 'video_note', preg_replace(['|.*/send|', '|.*/upload|'], '', $this->method));
         if (array_key_exists($smethod, $this->methods)) { // If using one of the send methods
             if ($this->token == '') {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
@@ -953,6 +953,7 @@ class Main extends Proxy
                 }
 */
                 $params[$upload['result']['file_type']] = $upload['result']['file_id'];
+                $upload['result']['file_type'] = $upload['result']['file_type'] === 'video_note' ? 'videonote' : $upload['result']['file_type'];
                 $this->jsonexit($this->curl($this->url.'/send'.$upload['result']['file_type'].'?'.http_build_query($params)));
             } else {
                 $this->jsonexit($upload);
