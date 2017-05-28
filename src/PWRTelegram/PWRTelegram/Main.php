@@ -929,6 +929,7 @@ class Main extends Proxy
                     $type = 'url';
                 }
             }
+
             // $file is the file's path/url/id
             if (isset($this->REQUEST['name']) && $this->REQUEST['name'] != '') {
                 // $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]
@@ -952,9 +953,9 @@ class Main extends Proxy
                     $params['caption'] = $upload['result']['caption'];
                 }
 */
-                $params[$upload['result']['file_type']] = $upload['result']['file_id'];
-                $upload['result']['file_type'] = $upload['result']['file_type'] === 'video_note' ? 'videonote' : $upload['result']['file_type'];
-                $this->jsonexit($this->curl($this->url.'/send'.$upload['result']['file_type'].'?'.http_build_query($params)));
+                $params[$this->methods[$upload['result']['file_type']]] = $upload['result']['file_id'];
+                //$upload['result']['file_type'] = $upload['result']['file_type'] === 'video_note' ? 'videonote' : $upload['result']['file_type'];
+                $this->jsonexit($this->curl($this->url.'/send'.$this->methods[$upload['result']['file_type']].'?'.http_build_query($params)));
             } else {
                 $this->jsonexit($upload);
             }

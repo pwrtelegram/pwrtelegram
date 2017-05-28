@@ -511,7 +511,7 @@ class API extends Tools
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't store data into database."];
                 }
             } else {
-                $inputFile = $this->madeline->upload($path);
+                $inputFile = $this->madeline->upload($path, '', [$this, 'upload_callback']);
                 $mime = mime_content_type($path);
                 $this->try_unlink($path);
                 switch ($type) {
@@ -577,4 +577,9 @@ class API extends Tools
 */
         return $res;
     }
+    public function upload_callback($percent) {
+        \danog\MadelineProto\Logger::log(['Upload status: '.$percent.'%'], \danog\MadelineProto\Logger::NOTICE);
+        if (isset($this->REQUEST['upload_callback'])) var_dump(file_get_contents($this->REQUEST['upload_callback'].$percent));
+    }
+
 }
