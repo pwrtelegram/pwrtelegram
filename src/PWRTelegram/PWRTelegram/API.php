@@ -194,6 +194,7 @@ class API extends Tools
             }
             unset($result['result']);
         }
+
         return $result;
     }
 
@@ -524,7 +525,9 @@ class API extends Tools
                     break;
 
                     case 'video_note':
-                    if ($newparams['width'] !== $newparams['height']) $newparams['width'] = $newparams['height'];
+                    if ($newparams['width'] !== $newparams['height']) {
+                        $newparams['width'] = $newparams['height'];
+                    }
                     $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height'], 'round_message' => true]];
                     break;
 
