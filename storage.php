@@ -18,6 +18,7 @@ function no_cache($status, $wut)
     header('Pragma: no-cache');
     http_response_code($status);
     echo $wut;
+    die;
 }
 try {
     $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
@@ -81,6 +82,7 @@ try {
     header('Content-disposition: attachment: filename="'.basename($select['file_path']).'"');
 
     if ($servefile) {
+        $pdo->prepare("INSERT INTO dl_stats (file, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1;")->execute([$file_path]);
         \danog\MadelineProto\Logger::log($file_path);
         $MadelineProto->download_to_stream($select['file_id'], fopen('php://output', 'w'), function ($percent) {
             flush();
