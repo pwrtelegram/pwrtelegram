@@ -1,10 +1,11 @@
 <?php
 
 $deep = preg_match('/^deep/', $_SERVER['HTTP_HOST']);
+$beta = strpos($_SERVER['HTTP_HOST'], 'beta') !== false;
 
 set_time_limit(0);
 ini_set('log_errors', 1);
-ini_set('error_log', '/tmp/php-error-storage.log');
+ini_set('error_log', '/tmp/php-error-storage'.($beta?'beta':'').'.log');
 
 if ($_SERVER['REQUEST_URI'] == '/') {
     header("HTTP/1.1 418 I'm a teapot");
@@ -34,7 +35,6 @@ try {
         no_cache(404, '<html><body><h1>404 File not found.</h1><br><p>Could not fetch file info from database.</p></body></html>');
     }
     $madeline = glob($homedir.'/sessions/pwr_'.$select['bot'].'*')[0];
-    $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline);
     if (isset($_SERVER['HTTP_RANGE'])) {
         $range = explode('=', $_SERVER['HTTP_RANGE'], 2);
         if (count($range) == 1) {
@@ -83,6 +83,7 @@ try {
 
     if ($servefile) {
         $pdo->prepare('INSERT INTO dl_stats (file, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1;')->execute([$file_path]);
+        $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline, true);
         \danog\MadelineProto\Logger::log($file_path);
         $MadelineProto->download_to_stream($select['file_id'], fopen('php://output', 'w'), function ($percent) {
             flush();
