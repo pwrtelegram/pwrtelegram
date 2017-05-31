@@ -85,12 +85,14 @@ try {
         $pdo->prepare('INSERT INTO dl_stats (file, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1;')->execute([$file_path]);
         $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline, true);
         \danog\MadelineProto\Logger::log($file_path);
+        $MadelineProto->API->getting_state = true;
         $MadelineProto->download_to_stream($select['file_id'], fopen('php://output', 'w'), function ($percent) {
             flush();
             ob_flush();
             \danog\MadelineProto\Logger::log('Download status: '.$percent.'%');
         }, $seek_start, $seek_end + 1);
     }
+    $MadelineProto->API->getting_state = false;
     $MadelineProto->API->store_db([], true);
     $MadelineProto->API->reset_session();
     \danog\MadelineProto\Serialization::serialize($madeline, $MadelineProto);
