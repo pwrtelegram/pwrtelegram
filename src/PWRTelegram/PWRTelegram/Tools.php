@@ -204,7 +204,7 @@ class Tools
             }
             $this->madeline_connect_backend();
             $this->madeline_backend->messages->sendMessage(['peer' => '@'.$me, 'message' => '/start']);
-            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->madeline_backend->API->datacenter->authorization['user']['id'])['ok']) {
+            if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->madeline_backend->API->authorization['user']['id'])['ok']) {
                 return $this->userchecked = true;
             }
 
