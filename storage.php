@@ -5,7 +5,7 @@ $beta = strpos($_SERVER['HTTP_HOST'], 'beta') !== false;
 
 set_time_limit(0);
 ini_set('log_errors', 1);
-ini_set('error_log', '/tmp/php-error-storage'.($beta?'beta':'').'.log');
+ini_set('error_log', '/tmp/php-error-storage'.($beta ? 'beta' : '').'.log');
 
 if ($_SERVER['REQUEST_URI'] == '/') {
     header("HTTP/1.1 418 I'm a teapot");
