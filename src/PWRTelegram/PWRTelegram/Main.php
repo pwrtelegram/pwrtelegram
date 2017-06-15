@@ -342,7 +342,7 @@ class Main extends Proxy
                         }
                     }
                     $this->madeline->API->hook_url = $this->REQUEST['url'];
-                    $this->madeline->API->settings['pwr']['update_handler'] = [$this->madeline->API, 'pwr_webhook'];
+                    $this->madeline->API->settings['pwr']['update_handler'] = 'pwr_webhook';
                     $this->madeline->API->store_db([], true);
                     $this->madeline->API->reset_session();
                     \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
@@ -581,7 +581,7 @@ class Main extends Proxy
                     }
                     $this->madeline_connect();
                     $this->madeline->API->hook_url = $this->REQUEST['url'];
-                    $this->madeline->API->settings['pwr']['update_handler'] = [$this->madeline->API, 'pwr_webhook'];
+                    $this->madeline->API->settings['pwr']['update_handler'] = 'pwr_webhook';
                     $this->madeline->API->store_db([], true);
                     $this->madeline->API->reset_session();
                     \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
