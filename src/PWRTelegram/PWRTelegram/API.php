@@ -101,7 +101,7 @@ class API extends Tools
         unset($this->pdo);
         $path = '';
 
-        if (!$this->checkbotuser($me)) {
+        if (!$this->checkbotuser()) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
         $info = $this->get_finfo($file_id);
@@ -133,7 +133,7 @@ class API extends Tools
     {
         $me = $this->get_me()['result']['username']; // get my peer id
 
-        if (!$this->checkbotuser($me)) {
+        if (!$this->checkbotuser()) {
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
         }
         $result = ['ok' => false];
@@ -256,6 +256,9 @@ class API extends Tools
             if ($size > 1610612736) {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
+            if ($size > 50*1024*1024 && isset($this->official_pwr)) {
+                return ['ok' => false, 'error_code' => 400, 'description' => 'File too big to upload with the hosted version of the API. Please install the API on your own server with https://github.com/pwrtelegram/pwrtelegram-backend or use directly https://daniil.it/MadelineProto'];
+            }
             /*if (!rename($file, $path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't rename file."];
             }*/
@@ -284,7 +287,7 @@ class API extends Tools
             }
 
             unset($this->pdo);
-            shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg($file));
+            shell_exec('wget -qQ '.(isset($this->official_pwr) ? 50*1024*1024 : 1610612736).' -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
             }
@@ -299,6 +302,11 @@ class API extends Tools
 
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
+            if ($size > 50*1024*1024 && isset($this->official_pwr)) {
+                $this->try_unlink($path);
+                return ['ok' => false, 'error_code' => 400, 'description' => 'File too big to upload with the hosted version of the API. Please install the API on your own server with https://github.com/pwrtelegram/pwrtelegram-backend or use directly https://daniil.it/MadelineProto'];
+            }
+
         } elseif (!preg_match('/[^A-Za-z0-9\-\_]/', $file) && $whattype == 'url') {
             $info = $this->get_finfo($file);
             if ($info['ok'] != true) {
@@ -315,6 +323,11 @@ class API extends Tools
                 if (!(isset($downloadres['result']['file_path']) && $downloadres['result']['file_path'] != '')) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file from file id."];
                 }
+                if ($downloadres['result']['file_size'] > 50*1024*1024 && isset($this->official_pwr)) {
+                    $this->try_unlink($path);
+                    return ['ok' => false, 'error_code' => 400, 'description' => 'File too big to upload with the hosted version of the API. Please install the API on your own server with https://github.com/pwrtelegram/pwrtelegram-backend or use directly https://daniil.it/MadelineProto'];
+                }
+
                 if ($name == '') {
                     $name = basename($downloadres['result']['file_path']);
                 }
@@ -471,32 +484,10 @@ class API extends Tools
         unset($this->pdo);
 
         if ($file_id == '') {
-            if (!$this->checkbotuser($me)) {
+            if (!$this->checkbotuser()) {
                 $this->try_unlink($path);
 
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."];
-            }
-            if ($size < 52428800 && false) {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:multipart/form-data']);
-                curl_setopt($ch, CURLOPT_URL, $this->url.'/send'.$type.'?'.http_build_query($newparams));
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, ['chat_id' => $this->get_backend_id(), $type => new \CURLFile($path)]);
-                $result = json_decode(curl_exec($ch), true);
-                curl_close($ch);
-                if ($result['ok']) {
-                    foreach ($this->methods_keys as $curmethod) {
-                        if (isset($result['result'][$curmethod]) && is_array($result['result'][$curmethod])) {
-                            $type = $curmethod;
-                        }
-                    }
-                    if ($type == 'photo') {
-                        $fetch = end($result['result'][$type]);
-                    } else {
-                        $fetch = $result['result'][$type];
-                    }
-                    $file_id = $fetch['file_id'];
-                }
             }
 
             if ($file_id != '') {

@@ -99,6 +99,10 @@ class Main extends Proxy
 
         $this->REQUEST = $_REQUEST;
 
+        if (($decoded = json_decode(file_get_contents('php://input'), true)) !== null) {
+            $this->REQUEST = array_merge($this->REQEST, $decoded);
+        }
+
         $default_backend = $this->deep ? $this->homedir.'/sessions/deeppwr.madeline' : $this->homedir.'/sessions/pwr.madeline';
         $this->user = preg_match("/^\/user/", $_SERVER['REQUEST_URI']);
 
@@ -706,9 +710,7 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
                 }
 
-                $me = $this->get_me()['result']['username']; // get my peer id
-
-                if (!$this->checkbotuser($me)) {
+                if (!$this->checkbotuser()) {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
                 }
                 $this->jsonexit($this->curl($this->url.'/getchat?chat_id='.$this->get_backend_id()));
@@ -973,7 +975,7 @@ class Main extends Proxy
     public function get_message($params)
     {
         $me = $this->get_me()['result']['username']; // get my peer id
-        if (!$this->checkbotuser($me)) {
+        if (!$this->checkbotuser()) {
             $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => "Couldn't initiate chat."]);
         }
         $this->REQUEST['from_chat_id'] = $this->REQUEST['chat_id'];

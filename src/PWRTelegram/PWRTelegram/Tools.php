@@ -110,6 +110,7 @@ class Tools
     // Die while outputting a json error
     public function jsonexit($wut, $options = 0)
     {
+        $code = isset($wut['error_code']) ? $wut['error_code'] : 200;
         $die = json_encode($wut, $options);
         if ($die == 'null' || $die === false) {
             switch (json_last_error()) {
@@ -136,10 +137,12 @@ class Tools
         break;
     }
             $die = json_encode(['ok' => false, 'error_code' => 400, 'description' => 'An error occurred (json encoded result is null, '.$error.')']);
+            $code = 400;
         }
         header('Content-Type: application/json');
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Expose-Headers: Content-Length,Content-Type,Date,Server');
+        http_response_code($code);
         die($die);
     }
 
@@ -192,18 +195,16 @@ class Tools
     /**
      * Check if tg-cli ever contacted contacted username, if not send a /start command.
      *
-     * @param $me - The username to check
-     *
      * @return true if user is in dialoglist or if it was contacted successfully, false if it couldn't be contacted.
      */
-    public function checkbotuser($me)
+    public function checkbotuser()
     {
         if (!isset($this->userchecked)) {
             if ($this->curl($this->url.'/sendChatAction?action=typing&chat_id='.$this->get_backend_id())['ok']) {
                 return $this->userchecked = true;
             }
             $this->madeline_connect_backend();
-            $this->madeline_backend->messages->sendMessage(['peer' => '@'.$me, 'message' => '/start']);
+            $this->madeline_backend->messages->sendMessage(['peer' => '@'.$this->get_me()['result']['username'], 'message' => '/start']);
             if ($this->curl($this->url.'/sendMessage?text=SHISH&chat_id='.$this->madeline_backend->API->authorization['user']['id'])['ok']) {
                 return $this->userchecked = true;
             }
