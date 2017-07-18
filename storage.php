@@ -34,7 +34,7 @@ try {
     if (!($selectstmt->rowCount() > 0)) {
         no_cache(404, '<html><body><h1>404 File not found.</h1><br><p>Could not fetch file info from database.</p></body></html>');
     }
-    if ($select['file_size'] > 20*1024*1024) {
+    if ($select['file_size'] > 20 * 1024 * 1024) {
         //no_cache(405, '<html><body><h1>405 Not allowed.</h1><br><p>File too big to upload with the hosted version of the API. Please install the API on your own server with <a href="https://github.com/pwrtelegram/pwrtelegram-backend">pwrtelegram-backend</a> or use directly <a href="https://daniil.it/MadelineProto">MadelineProto</a>.</p></body></html>');
     }
     $madeline = glob($homedir.'/sessions/pwr_'.$select['bot'].'*')[0];

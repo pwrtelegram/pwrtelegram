@@ -256,7 +256,7 @@ class API extends Tools
             if ($size > 1610612736) {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
-            if ($size > 50*1024*1024 && isset($this->official_pwr)) {
+            if ($size > 50 * 1024 * 1024 && isset($this->official_pwr)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big to upload with the hosted version of the API. Please install the API on your own server with https://github.com/pwrtelegram/pwrtelegram-backend or use directly https://daniil.it/MadelineProto'];
             }
             /*if (!rename($file, $path)) {
@@ -287,7 +287,7 @@ class API extends Tools
             }
 
             unset($this->pdo);
-            shell_exec('wget -qQ '.(isset($this->official_pwr) ? 50*1024*1024 : 1610612736).' -O '.escapeshellarg($path).' '.escapeshellarg($file));
+            shell_exec('wget -qQ '.(isset($this->official_pwr) ? 50 * 1024 * 1024 : 1610612736).' -O '.escapeshellarg($path).' '.escapeshellarg($file));
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
             }
@@ -302,11 +302,11 @@ class API extends Tools
 
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big.'];
             }
-            if ($size > 50*1024*1024 && isset($this->official_pwr)) {
+            if ($size > 50 * 1024 * 1024 && isset($this->official_pwr)) {
                 $this->try_unlink($path);
+
                 return ['ok' => false, 'error_code' => 400, 'description' => 'File too big to upload with the hosted version of the API. Please install the API on your own server with https://github.com/pwrtelegram/pwrtelegram-backend or use directly https://daniil.it/MadelineProto'];
             }
-
         } elseif (!preg_match('/[^A-Za-z0-9\-\_]/', $file) && $whattype == 'url') {
             $info = $this->get_finfo($file);
             if ($info['ok'] != true) {
@@ -323,8 +323,9 @@ class API extends Tools
                 if (!(isset($downloadres['result']['file_path']) && $downloadres['result']['file_path'] != '')) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file from file id."];
                 }
-                if ($downloadres['result']['file_size'] > 50*1024*1024 && isset($this->official_pwr)) {
+                if ($downloadres['result']['file_size'] > 50 * 1024 * 1024 && isset($this->official_pwr)) {
                     $this->try_unlink($path);
+
                     return ['ok' => false, 'error_code' => 400, 'description' => 'File too big to upload with the hosted version of the API. Please install the API on your own server with https://github.com/pwrtelegram/pwrtelegram-backend or use directly https://daniil.it/MadelineProto'];
                 }
 
