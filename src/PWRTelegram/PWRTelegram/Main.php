@@ -100,7 +100,7 @@ class Main extends Proxy
         $this->REQUEST = $_REQUEST;
 
         if (($decoded = json_decode(file_get_contents('php://input'), true)) !== null) {
-            $this->REQUEST = array_merge($this->REQEST, $decoded);
+            $this->REQUEST = array_merge($this->REQUEST, $decoded);
         }
 
         $default_backend = $this->deep ? $this->homedir.'/sessions/deeppwr.madeline' : $this->homedir.'/sessions/pwr.madeline';
