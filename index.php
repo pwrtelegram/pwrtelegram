@@ -22,13 +22,15 @@ require_once 'src/PWRTelegram/PWRTelegram/Main.php';
 require_once '../storage_url.php';
 require_once '../db_connect.php';
 
-function parseTLTrace($trace) {
+function parseTLTrace($trace)
+{
     $t = '';
     foreach (explode(PHP_EOL, $trace) as $frame) {
         if (strpos($frame, 'db_token') === false) {
             $t .= $frame.PHP_EOL;
         }
     }
+
     return $t;
 }
 
