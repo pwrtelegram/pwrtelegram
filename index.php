@@ -22,6 +22,16 @@ require_once 'src/PWRTelegram/PWRTelegram/Main.php';
 require_once '../storage_url.php';
 require_once '../db_connect.php';
 
+function parseTLTrace($trace) {
+    $t = '';
+    foreach (explode(PHP_EOL, $trace) as $frame) {
+        if (strpos($frame, 'db_token') === false) {
+            $t .= $frame.PHP_EOL;
+        }
+    }
+    return $t;
+}
+
 $pwrhomedir = realpath(__DIR__);
 $API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
 try {
@@ -29,11 +39,11 @@ try {
 } catch (\danog\MadelineProto\ResponseException $e) {
     echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log($e->getTraceAsString());
+    error_log(parseTLTrace($e->getTLTrace()));
 } catch (\danog\MadelineProto\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())."\nTL Trace: ".parseTLTrace($e->getTLTrace())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log($e->getTraceAsString());
+    error_log(parseTLTrace($e->getTLTrace()));
 } catch (\danog\MadelineProto\RPCErrorException $e) {
     if ($e->getMessage() === 'SESSION_REVOKED') {
         unlink($API->madeline_path);
@@ -45,17 +55,17 @@ try {
         echo json_encode(['ok' => false, 'error_code' => $e->getCode(), 'description' => $e->getMessage()]);
     }
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log($e->getTraceAsString());
+    error_log(parseTLTrace($e->getTLTrace()));
 } catch (\danog\MadelineProto\TL\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
+    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())."\nTL Trace: ".parseTLTrace($e->getTLTrace())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log($e->getTraceAsString());
+    error_log(parseTLTrace($e->getTLTrace()));
 } catch (\PDOException $e) {
     echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log($e->getTraceAsString());
+    error_log(parseTLTrace($e->getTLTrace()));
 } catch (\Exception $e) {
     echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log($e->getTraceAsString());
+    error_log(parseTLTrace($e->getTLTrace()));
 }
