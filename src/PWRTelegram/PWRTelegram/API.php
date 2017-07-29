@@ -246,8 +246,13 @@ class API extends Tools
             return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't create storage directory."];
         }
         $this->madeline_connect();
-
-        $path = $this->homedir.'ul/'.$me.'/'.$this->madeline->base64url_encode($this->madeline->random(64));
+        
+        // Edited By @WeCanCo
+        // for: if duplicate request for same link, dont create another file
+        //$path = $this->homedir.'ul/'.$me.'/'.$this->madeline->base64url_encode($this->madeline->random(64));
+        $path = $this->homedir.'ul/'.$me.'/'.$this->base64_encode($file); 
+        // End
+        
         if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
             if ($size < 1) {
@@ -287,7 +292,29 @@ class API extends Tools
             }
 
             unset($this->pdo);
-            shell_exec('wget -qQ '.(isset($this->official_pwr) ? 50 * 1024 * 1024 : 1610612736).' -O '.escapeshellarg($path).' '.escapeshellarg($file));
+            
+            // Added By @WeCanCo
+            // If File Downloaded But Not Sent, by requast agian, send file without redownloading file.
+            $fileDownloaded=false;
+            if(file_exists($path)){
+                $existFileSize=filesize($path);
+                $FileHeader = get_headers($file, true);
+                if(isset($FileHeader['Content-Length'])){
+                    $fileTotalSize = $FileHeader['Content-Length']
+                }else{
+                    $fileTotalSize =0;
+                }
+                if($existFileSize == $fileTotalSize){
+                    $fileDownloaded=true;
+                }else{
+                     return ['ok' => false, 'error_code' => 400, 'description' => "file in process...", 'file_size'=>$existFileSize,'total_size'=>$fileTotalSize];
+                }
+            }
+            if(!$fileDownloaded){
+                shell_exec('wget -qQ '.(isset($this->official_pwr) ? 50 * 1024 * 1024 : 1610612736).' -O '.escapeshellarg($path).' '.escapeshellarg($file));
+            }
+            // End
+            
             if (!file_exists($path)) {
                 return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
             }
