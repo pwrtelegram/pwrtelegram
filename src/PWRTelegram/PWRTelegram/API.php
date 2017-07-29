@@ -333,7 +333,7 @@ class API extends Tools
                     $name = basename($downloadres['result']['file_path']);
                 }
                 $path = $this->homedir.'/ul/'.$me.'/'.$name;
-                shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg(str_replace("%2F","/",$this->pwrtelegram_storage.urlencode($downloadres['result']['file_path']))));
+                shell_exec('wget -qQ 1610612736 -O '.escapeshellarg($path).' '.escapeshellarg(str_replace('%2F', '/', $this->pwrtelegram_storage.urlencode($downloadres['result']['file_path']))));
                 if (!file_exists($path)) {
                     return ['ok' => false, 'error_code' => 400, 'description' => "Couldn't download file."];
                 }
