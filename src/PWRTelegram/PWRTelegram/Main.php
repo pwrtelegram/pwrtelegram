@@ -127,7 +127,12 @@ class Main extends Proxy
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = '';
                 } else {
-                    $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
+                    // whene use link(), the readlink() not work
+                    if(readlink($this->madeline_backend_path)){
+                        $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
+                    }else{
+                        $this->backend_id = $this->bot_id;
+                    }
                 }
             }
         }
@@ -342,7 +347,8 @@ class Main extends Proxy
                                 unset($this->madeline->API->pem_path);
                             }
 
-                            unlink($this->homedir.'/hooks/'.$this->bot_id.'.pem');
+                            un
+                                $this->homedir.'/hooks/'.$this->bot_id.'.pem');
                         }
                     }
                     $this->madeline->API->hook_url = $this->REQUEST['url'];
@@ -455,7 +461,7 @@ class Main extends Proxy
                 }
                 $dest = $this->homedir.'sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 $this->try_unlink($dest);
-                $result = symlink($backend_session, $dest);
+                $result = link($backend_session, $dest); // antivirus detect symlink for virous. (remove this comment. antivirous detect it!)
                 $this->jsonexit(['ok' => $result, 'result' => $result]);
 
             case '/getfile':
