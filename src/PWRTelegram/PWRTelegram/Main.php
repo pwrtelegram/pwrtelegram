@@ -376,7 +376,7 @@ class Main extends Proxy
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
-                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->method_call($method, $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
             }
         }
         // Else use a nice case switch
@@ -685,6 +685,7 @@ class Main extends Proxy
                         curl_close($ch);
                     }
                 } else {
+                    $this->curl($this->url.'/deletewebhook');
                     $this->jsonexit(['ok' => true, 'error_code' => 400, 'description' => "Couldn't find webhook in database"]);
                 }
                 exit;
@@ -831,7 +832,7 @@ class Main extends Proxy
                 $result = ['ok' => true, 'result' => $final_res];
                 $this->add_to_db($result, $this->getprofilephotos($this->REQUEST));
                 $this->REQUEST['chat_id'] = -$this->REQUEST['chat_id'];
-                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call('messages.addChatUser', $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->method_call('messages.addChatUser', $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
                 break;
             case '/madeline':
                 if ($this->token == '') {
@@ -852,7 +853,7 @@ class Main extends Proxy
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
-                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call($method, $params, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->method_call($method, $params, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
                 break;
             case '/sendmessage':
                 if (!isset($this->REQUEST['mtproto']) || !$this->REQUEST['mtproto']) {
@@ -875,7 +876,7 @@ class Main extends Proxy
                         $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Could not parse reply markup.']);
                     }
                 }
-                $this->jsonexit(['ok' => true, 'result' => $this->madeline->API->method_call('messages.sendMessage', $this->REQUEST, ['botAPI' => true, 'datacenter' => $this->madeline->API->datacenter->curdc])]);
+                $this->jsonexit(['ok' => true, 'result' => $this->madeline->method_call('messages.sendMessage', $this->REQUEST, ['botAPI' => true, 'datacenter' => $this->madeline->API->datacenter->curdc])]);
                 break;
 
                 case '/upload':
