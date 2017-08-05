@@ -367,7 +367,7 @@ class Main extends Proxy
 
                 default:
                 foreach ($this->REQUEST as &$param) {
-                    $json = json_decode($param, true);
+                    $json = json_decode(json_encode($param), true); // solution of this error: json_decode() expects parameter 1 to be string...
                     if (is_array($json)) {
                         $param = $json;
                     }
