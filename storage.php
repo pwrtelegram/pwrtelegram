@@ -21,6 +21,7 @@ function no_cache($status, $wut)
     echo $wut;
     die;
 }
+
 try {
     $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
     require_once 'db_connect.php';

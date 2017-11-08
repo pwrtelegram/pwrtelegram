@@ -42,16 +42,16 @@ class Tools
         return $res;
     }
 
-     /**
-      * Checks if array key exists and value isn't empty.
-      *
-      * @param $array - The array
-      * @param $key - The key
-      */
-     public function issetandnotempty($array, $key)
-     {
-         return array_key_exists($key, $array) && !empty($array[$key]);
-     }
+    /**
+     * Checks if array key exists and value isn't empty.
+     *
+     * @param $array - The array
+     * @param $key - The key
+     */
+    public function issetandnotempty($array, $key)
+    {
+        return array_key_exists($key, $array) && !empty($array[$key]);
+    }
 
     public function exit_redirect($where)
     {
@@ -98,7 +98,7 @@ class Tools
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
         curl_exec($ch);
         $retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    //	error_log($url . $retcode. curl_error($ch));
+        //	error_log($url . $retcode. curl_error($ch));
         curl_close($ch);
         if ($retcode == 200) {
             return true;

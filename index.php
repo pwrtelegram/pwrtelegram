@@ -36,6 +36,7 @@ function parseTLTrace($trace)
 
 $pwrhomedir = realpath(__DIR__);
 $API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
+
 try {
     $API->run();
 } catch (\danog\MadelineProto\ResponseException $e) {

@@ -28,6 +28,7 @@ class API extends Tools
     {
         if (!isset($this->madeline)) {
             require_once $this->pwrhomedir.'/vendor/autoload.php';
+
             try {
                 $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
                 if (is_object($this->madeline)) {
@@ -362,6 +363,7 @@ class API extends Tools
         if ($type == 'file') {
             $mime = '';
             $ext = '';
+
             try {
                 $mediaInfo = new \Mhor\MediaInfo\MediaInfo();
                 $mediaInfoContainer = $mediaInfo->getInfo($path);
@@ -562,11 +564,11 @@ class API extends Tools
             $size = $fetch['file_size'];
         }
         $res = ['ok' => true, 'result' => ['file_size' => $size, 'file_type' => $type, 'file_id' => $file_id]];
-/*
-        if (isset($newparams['caption']) && $newparams['caption'] != '') {
-            $res['result']['caption'] = $newparams['caption'];
-        }
-*/
+        /*
+                if (isset($newparams['caption']) && $newparams['caption'] != '') {
+                    $res['result']['caption'] = $newparams['caption'];
+                }
+        */
         return $res;
     }
 

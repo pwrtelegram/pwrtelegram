@@ -51,15 +51,15 @@ class Main extends Proxy
         $this->homedir = realpath($this->pwrhomedir.'/../').'/';
         // Available methods and their equivalent in tg-cli
         $this->methods = [
-            'photo'         => 'photo',
-            'video'         => 'video',
-            'voice'         => 'document',
-            'document'      => 'document',
-            'gif'           => 'document',
-            'sticker'       => 'document',
-            'audio'         => 'audio',
-            'video_note'    => 'videonote',
-            'file'          => '',
+            'photo'      => 'photo',
+            'video'      => 'video',
+            'voice'      => 'document',
+            'document'   => 'document',
+            'gif'        => 'document',
+            'sticker'    => 'document',
+            'audio'      => 'audio',
+            'video_note' => 'videonote',
+            'file'       => '',
         ];
         $this->methods_keys = array_keys($this->methods);
         // Deep telegram
@@ -161,6 +161,7 @@ class Main extends Proxy
         $res = $this->curl($this->url.'/getUserProfilePhotos?'.http_build_query($params));
         if (!$res['ok']) {
             $this->madeline_connect();
+
             try {
                 $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
                 if (!isset($info['photo'])) {
@@ -207,6 +208,7 @@ class Main extends Proxy
             $full = (bool) $params['full'];
         }
         $this->madeline_connect();
+
         try {
             $this->madeline->peer_isset($params['chat_id']) || !isset($final_res['username']) ? $this->get_pwr_chat($params['chat_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
         } catch (\danog\MadelineProto\ResponseException $e) {
@@ -751,6 +753,7 @@ class Main extends Proxy
                 }
                 $this->db_connect();
                 $res = ['ok' => true, 'result' => true];
+
                 try {
                     $this->pdo->prepare('DELETE FROM broadcast WHERE namespace=? AND chat_id=?')->execute([$this->REQUEST['namespace'], $this->REQUEST['chat_id']]);
                     $this->pdo->prepare('INSERT IGNORE INTO broadcast (namespace, chat_id, subbed) VALUES (?, ?, ?)')->execute([$this->REQUEST['namespace'], $this->REQUEST['chat_id'], $this->REQUEST['subbed']]);
@@ -808,6 +811,7 @@ class Main extends Proxy
                     $final_res = array_merge($result['result'], $final_res);
                 }
                 $full = false;
+
                     try {
                         $this->madeline->peer_isset($this->REQUEST['user_id']) ? $this->get_pwr_chat($this->REQUEST['user_id'], $full, true) : $this->get_pwr_chat('@'.$final_res['username'], $full, true);
                     } catch (\danog\MadelineProto\ResponseException $e) {
@@ -951,11 +955,11 @@ class Main extends Proxy
             $upload = $this->upload($file, $type, $name, $smethod, $forcename, $this->REQUEST);
             if (isset($upload['ok']) && $upload['ok'] && preg_match('|^/send|', $this->method)) {
                 $params = $this->REQUEST;
-/*
-                if (isset($upload['result']['caption']) && $upload['result']['caption'] != '') {
-                    $params['caption'] = $upload['result']['caption'];
-                }
-*/
+                /*
+                                if (isset($upload['result']['caption']) && $upload['result']['caption'] != '') {
+                                    $params['caption'] = $upload['result']['caption'];
+                                }
+                */
                 $params[$this->methods[$upload['result']['file_type']]] = $upload['result']['file_id'];
                 //$upload['result']['file_type'] = $upload['result']['file_type'] === 'video_note' ? 'videonote' : $upload['result']['file_type'];
                 $this->jsonexit($this->curl($this->url.'/send'.$this->methods[$upload['result']['file_type']].'?'.http_build_query($params)));
