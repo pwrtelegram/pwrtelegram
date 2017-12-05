@@ -315,7 +315,7 @@ class Main extends Proxy
                 case '/getdialogs':
                 $this->jsonexit($this->madeline->get_dialogs());
                 break;
-                    
+
                 case '/upload':
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'], $_FILES['file']['name'])]);
 
