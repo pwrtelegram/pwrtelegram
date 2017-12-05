@@ -784,6 +784,10 @@ class Main extends Proxy
                 $this->add_to_db($getchat, $result);
                 $this->jsonexit($result);
                 break;
+            case '/getdialogs':
+                $this->madeline_connect();
+                $this->jsonexit($this->madeline->get_dialogs());
+                break;
             case '/addchatuser':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
