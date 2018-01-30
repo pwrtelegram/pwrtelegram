@@ -143,6 +143,7 @@ class API extends Tools
         if (in_array($parsed['type'], ['photo', 'thumbnail'])) {
             $name = $parsed['MessageMedia']['photo']['sizes'][0]['location']['volume_id'].$parsed['MessageMedia']['photo']['sizes'][0]['location']['secret'].$parsed['MessageMedia']['photo']['sizes'][0]['location']['local_id'];
             $botAPIres = $this->curl($this->url.'/getfile?file_id='.$file_id)['result'];
+
             return ['ok' => true, 'file_type' => 'photo', 'file_size' => $botAPIres['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
         } else {
             $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);

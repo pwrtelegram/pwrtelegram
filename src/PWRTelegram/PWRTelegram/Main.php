@@ -200,6 +200,7 @@ class Main extends Proxy
         if ($result['ok']) {
             $final_res = $result['result'];
         }
+
         try {
             $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$params['chat_id']), true);
         } catch (\danog\MadelineProto\Exception $e) {
