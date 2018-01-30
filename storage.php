@@ -83,7 +83,7 @@ try {
     header('Cache-Control: max-age=31556926;');
     header('Content-Transfer-Encoding: Binary');
     header('Accept-Ranges: bytes');
-    header('Content-disposition: attachment: filename="'.basename($select['file_path']).'"');
+    //header('Content-disposition: attachment: filename="'.basename($select['file_path']).'"');
 
     if ($servefile) {
         $pdo->prepare('INSERT INTO dl_stats (file, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1;')->execute([$file_path]);
@@ -95,11 +95,11 @@ try {
             ob_flush();
             \danog\MadelineProto\Logger::log('Download status: '.$percent.'%');
         }, $seek_start, $seek_end + 1);
+        $MadelineProto->API->getting_state = false;
+        $MadelineProto->API->store_db([], true);
+        $MadelineProto->API->reset_session();
+        \danog\MadelineProto\Serialization::serialize($madeline, $MadelineProto);
     }
-    $MadelineProto->API->getting_state = false;
-    $MadelineProto->API->store_db([], true);
-    $MadelineProto->API->reset_session();
-    \danog\MadelineProto\Serialization::serialize($madeline, $MadelineProto);
 } catch (\danog\MadelineProto\ResponseException $e) {
     no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>'.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()).'</p></body></html>');
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
