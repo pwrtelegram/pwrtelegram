@@ -48,8 +48,10 @@ try {
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log(parseTLTrace($e->getTLTrace()));
 } catch (\danog\MadelineProto\RPCErrorException $e) {
-    if ($e->getMessage() === 'SESSION_REVOKED') {
-        unlink($API->madeline_path);
+    if (in_array($e->rpc, ['SESSION_REVOKED', 'AUTH_KEY_UNREGISTERED'])) {
+        if (file_exists($API->madeline_path)) {
+            unlink($API->madeline_path);
+        }
     }
     if (preg_match('|FLOOD_WAIT_|', $e->getMessage())) {
         $n = preg_replace('|\D|', '', $e->getMessage());

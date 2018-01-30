@@ -123,6 +123,7 @@ class Main extends Proxy
             } else {
                 $this->madeline_path = $this->homedir.'sessions/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
                 $this->madeline_backend_path = $this->homedir.'sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
+                //$this->madeline_backend_path = $this->homedir.'sessions/pwrbackend_global.madeline';
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = '';
@@ -199,7 +200,12 @@ class Main extends Proxy
         if ($result['ok']) {
             $final_res = $result['result'];
         }
-        $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$params['chat_id']), true);
+
+        try {
+            $result = json_decode(file_get_contents('https://id.pwrtelegram.xyz/db/getchat?id='.$params['chat_id']), true);
+        } catch (\danog\MadelineProto\Exception $e) {
+            $result['ok'] = false;
+        }
         if ($result['ok']) {
             $final_res = array_merge($result['result'], $final_res);
         }
@@ -312,9 +318,12 @@ class Main extends Proxy
                 $this->add_to_db($result, []);
                 $this->jsonexit($result);
 
+                case '/getme':
+                $this->REQUEST['chat_id'] = $this->bot_id;
+                $this->jsonexit($this->getchat($this->REQUEST));
+
                 case '/getdialogs':
                 $this->jsonexit($this->madeline->get_dialogs());
-                break;
 
                 case '/upload':
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->upload($_FILES['file']['tmp_name'], $_FILES['file']['name'])]);
@@ -382,6 +391,7 @@ class Main extends Proxy
                 if ($method == 'auth.logOut') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Missing method to call.']);
                 }
+
                 $this->jsonexit(['ok' => true, 'result' => $this->madeline->method_call($method, $this->REQUEST, ['datacenter' => $this->madeline->API->datacenter->curdc])]);
             }
         }
@@ -395,7 +405,7 @@ class Main extends Proxy
                 $this->real_token = $this->base64url_encode(\phpseclib\Crypt\Random::string(32));
                 $this->madeline_path = $this->homedir.'sessions/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
                 $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
-                $madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
+                //$madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
                 $madeline->phone_login($this->REQUEST['phone']);
                 \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
                 $this->jsonexit(['ok' => true, 'result' => $this->real_token]);
@@ -944,7 +954,6 @@ class Main extends Proxy
                     $type = 'url';
                 }
             }
-
             // $file is the file's path/url/id
             if (isset($this->REQUEST['name']) && $this->REQUEST['name'] != '') {
                 // $name is the file's name that must be overwritten if it was set with $_FILES[$smethod]["name"]

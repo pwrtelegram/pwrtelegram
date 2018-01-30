@@ -89,8 +89,7 @@ class API extends Tools
         $selectstmt = $this->pdo->prepare('SELECT * FROM dl WHERE file_id=? AND bot=? LIMIT 1;');
         $selectstmt->execute([$file_id, $me]);
         $select = $selectstmt->fetch(\PDO::FETCH_ASSOC);
-
-        if ($selectstmt->rowCount() == '1' && $this->checkurl($this->pwrtelegram_storage.$select['file_path'])) {
+        if ($selectstmt->rowCount() === 1 && $this->checkurl($this->pwrtelegram_storage.$select['file_path'])) {
             $newresponse['ok'] = true;
             $newresponse['result']['file_id'] = $select['file_id'];
             $newresponse['result']['file_path'] = $select['file_path'];
@@ -141,14 +140,11 @@ class API extends Tools
         $count = 0;
         $this->madeline_connect();
         $parsed = $this->madeline->API->unpack_file_id($file_id);
-        if ($parsed['type'] === 'photo') {
-            if ($parsed['MessageMedia'][$parsed['type']]['id'] === 0) { // Thumbnail or other weird file
-                $name = $parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['volume_id'].$parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['secret'].$parsed['MessageMedia'][$parsed['type']]['sizes'][0]['location']['local_id'];
+        if (in_array($parsed['type'], ['photo', 'thumbnail'])) {
+            $name = $parsed['MessageMedia']['photo']['sizes'][0]['location']['volume_id'].$parsed['MessageMedia']['photo']['sizes'][0]['location']['secret'].$parsed['MessageMedia']['photo']['sizes'][0]['location']['local_id'];
+            $botAPIres = $this->curl($this->url.'/getfile?file_id='.$file_id)['result'];
 
-                return ['ok' => true, 'file_type' => 'photo', 'file_size' => $this->curl($this->url.'/getfile?file_id='.$file_id)['result']['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
-            } else {
-                $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaPhoto', 'id' => ['_' => 'inputPhoto', 'id' => $parsed['MessageMedia'][$parsed['type']]['id'], 'access_hash' => $parsed['MessageMedia'][$parsed['type']]['access_hash']], 'caption' => '']]);
-            }
+            return ['ok' => true, 'file_type' => 'photo', 'file_size' => $botAPIres['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
         } else {
             $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);
         }
@@ -539,7 +535,7 @@ class API extends Tools
                     $attributes[] = ['_' => 'documentAttributeFilename', 'file_name' => $file_name];
                     $media = ['_' => 'inputMediaUploadedDocument', 'file' => $inputFile, 'mime_type' => $mime, 'attributes' => $attributes, 'caption' => $newparams['caption']];
                 }
-                $result = end($this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => $media])['updates']);
+                $result = $this->madeline->messages->uploadMedia(['peer' => ['_' => 'inputPeerSelf'], 'media' => $media]);
                 $result = $this->parse_finfo(['ok' => true, 'result' => $this->madeline->API->MTProto_to_botAPI($result)]);
                 $file_id = $result['file_id'];
                 $type = $result['file_type'];
