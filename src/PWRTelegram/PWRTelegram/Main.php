@@ -138,7 +138,7 @@ class Main extends Proxy
             }
             $this->get_me();
             require 'vendor/autoload.php';
-            $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1],'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true],'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'],'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
+            $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
             $madeline->bot_login($this->token);
             $madeline->API->get_updates_difference();
             $madeline->API->store_db([], true);

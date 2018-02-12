@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with the
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-if(preg_match('/^storage/', $_SERVER['HTTP_HOST'])) {
+if (preg_match('/^storage/', $_SERVER['HTTP_HOST'])) {
     require_once 'storage.php';
     exit;
 }
