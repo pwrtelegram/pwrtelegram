@@ -129,6 +129,16 @@ class Main extends Proxy
                     $this->madeline_backend_path = '';
                 } else {
                     $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
+                    // if readlink() not work [some times madeline backend linked file have problem and is'nt link]
+                    if(intval($this->backend_id) == 0){
+			$backend_session = file_get_contents($this->madeline_backend_path);
+			preg_match_all('/\\"bot_inline_geo";b:0;s:2:"id";i:([0-9]+);s:11:"access_hash"/s',$backend_session,$match);
+			if(sizeof($match[1]) > 0){
+				$this->backend_id = $match[1][0];
+			}else{
+				$this->backend_id = 777000; //Telegram Notify chat_id 
+			}
+		    }
                 }
             }
         }
