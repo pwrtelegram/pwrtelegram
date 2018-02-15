@@ -13,7 +13,7 @@
         }
     ],
     "minimum-stability": "dev",
-    "license": "AGPLv3",
+    "license": "AGPL-3.0-only",
     "authors": [
         {
             "name": "Daniil Gentili",
