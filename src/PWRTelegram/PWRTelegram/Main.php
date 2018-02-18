@@ -37,7 +37,7 @@ class Main extends Proxy
                 $this->madeline_backend->API->settings['msg_array_limit']['outcoming'] = 200;
                 $this->madeline_backend->API->should_serialize = true;
             }
-           $this->madeline_backend->session = $this->madeline_backend_path;
+            $this->madeline_backend->session = $this->madeline_backend_path;
         }
     }
 
