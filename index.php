@@ -46,37 +46,36 @@ $API = new \PWRTelegram\PWRTelegram\Main($GLOBALS);
 try {
     $API->run();
 } catch (\danog\MadelineProto\ResponseException $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log(parseTLTrace($e->getTLTrace()));
+    $API->jsonexit(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
 } catch (\danog\MadelineProto\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())."\nTL Trace: ".parseTLTrace($e->getTLTrace())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log(parseTLTrace($e->getTLTrace()));
+    $API->jsonexit(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())."\nTL Trace: ".parseTLTrace($e->getTLTrace())]);
 } catch (\danog\MadelineProto\RPCErrorException $e) {
+    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
+    error_log(parseTLTrace($e->getTLTrace()));
     if (in_array($e->rpc, ['SESSION_REVOKED', 'AUTH_KEY_UNREGISTERED'])) {
-        if (file_exists($API->madeline_path)) {
-            unlink($API->madeline_path);
+        foreach (glob($API->madeline_path.'*') as $path) {
+            unlink($path);
         }
     }
     if (preg_match('|FLOOD_WAIT_|', $e->getMessage())) {
         $n = preg_replace('|\D|', '', $e->getMessage());
-        echo json_encode(['ok' => false, 'error_code' => 429, 'description' => 'Too Many Requests: retry after '.$n, 'params' => ['retry_after' => $n]]);
+        $API->jsonexit(['ok' => false, 'error_code' => 429, 'description' => 'Too Many Requests: retry after '.$n, 'params' => ['retry_after' => $n]]);
     } else {
-        echo json_encode(['ok' => false, 'error_code' => $e->getCode(), 'description' => $e->getMessage()]);
+        $API->jsonexit(['ok' => false, 'error_code' => $e->getCode(), 'description' => $e->getMessage()]);
     }
-    error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log(parseTLTrace($e->getTLTrace()));
 } catch (\danog\MadelineProto\TL\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())."\nTL Trace: ".parseTLTrace($e->getTLTrace())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log(parseTLTrace($e->getTLTrace()));
+    $API->jsonexit(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())."\nTL Trace: ".parseTLTrace($e->getTLTrace())]);
 } catch (\PDOException $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log(parseTLTrace($e->getTLTrace()));
+    $API->jsonexit(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
 } catch (\Exception $e) {
-    echo json_encode(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
-    error_log(parseTLTrace($e->getTLTrace()));
+    $API->jsonexit(['ok' => false, 'error_code' => 400, 'description' => $e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile())]);
 }
+

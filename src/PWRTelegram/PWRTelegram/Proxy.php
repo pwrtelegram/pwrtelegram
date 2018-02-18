@@ -85,7 +85,6 @@ class Proxy extends API
 
         // finally, output the content
 
-        echo $response_content;
-        exit;
+        $this->exit($response_content);
     }
 }

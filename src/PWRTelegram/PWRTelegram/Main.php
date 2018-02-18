@@ -122,13 +122,12 @@ class Main extends Proxy
                 }
             } else {
                 $this->madeline_path = $this->homedir.'sessions/pwr_'.$this->bot_id.'_'.hash('sha256', $this->real_token).'.madeline';
-                $this->madeline_backend_path = $this->homedir.'sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
-                //$this->madeline_backend_path = $this->homedir.'sessions/pwrbackend_global.madeline';
+                $this->madeline_backend_path = isset($this->official_pwr) ? $this->homedir.'sessions/pwrbackend_global.madeline' : $this->homedir.'sessions/pwrbackend_'.$this->get_me()['result']['username'].'.madeline';
                 ini_set('error_log', '/tmp/'.$this->bot_id.'.log');
                 if (!file_exists($this->madeline_backend_path)) {
                     $this->madeline_backend_path = '';
                 } else {
-                    $this->backend_id = preg_replace(['|.*pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
+                    $this->backend_id = isset($this->official_pwr) ? $this->official_pwr_backend_id : preg_replace(['|.*pwruser_|', '|_.*|'], '', readlink($this->madeline_backend_path));
                 }
             }
         }
@@ -483,41 +482,6 @@ class Main extends Proxy
                 }
                 $this->jsonexit($this->download($this->REQUEST['file_id']));
                 break;
-/*
-            case '/getupdates':
-                if ($this->token == '') {
-                    $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
-                }
-                if (!$this->issetandnotempty($this->REQUEST, 'limit')) {
-                    $this->REQUEST['limit'] = 100;
-                }
-                $response = $this->curl($this->url.'/getUpdates?'.http_build_query($this->REQUEST));
-                if (!$response['ok']) {
-                    $this->jsonexit($response);
-                }
-                $notmecount = 0;
-                $todo = '';
-                $newresponse = ['ok' => true, 'result' => []];
-                $this->madeline_connect_backend();
-                foreach ($response['result'] as $cur) {
-                    if (isset($cur['message']['chat']['id']) && $cur['message']['chat']['id'] == $this->madeline_backend->API->datacenter->authorization['user']['id']) {
-                        $this->handle_my_message($cur);
-                        if ($notmecount == 0) {
-                            $todo = $cur['update_id'] + 1;
-                        }
-                    } else {
-                        $notmecount++;
-                        if ($notmecount <= $this->REQUEST['limit']) {
-                            $newresponse['result'][] = $cur;
-                        }
-                    }
-                }
-                if ($todo != '') {
-                    $this->curl($this->url.'/getUpdates?offset='.$todo);
-                }
-                $this->jsonexit($newresponse);
-                break;
-*/
             case '/deletemessages':
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
@@ -704,7 +668,7 @@ class Main extends Proxy
                     $this->curl($this->url.'/deletewebhook');
                     $this->jsonexit(['ok' => true, 'error_code' => 400, 'description' => "Couldn't find webhook in database"]);
                 }
-                exit;
+                $this->exit();
                 break;
             case '/getchatbyfile':
                 if ($this->REQUEST['file_id'] == '') {
@@ -880,7 +844,6 @@ class Main extends Proxy
             case '/sendmessage':
                 if (!isset($this->REQUEST['mtproto']) || !$this->REQUEST['mtproto']) {
                     $this->run_proxy();
-                    die;
                 }
                 if ($this->token == '') {
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'No token was provided.']);
