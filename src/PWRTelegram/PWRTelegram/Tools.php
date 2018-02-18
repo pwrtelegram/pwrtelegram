@@ -145,17 +145,22 @@ class Tools
         http_response_code($code);
         $this->exit($die, $wut['ok']);
     }
-    public function exit($text = '', $ok = true) {
+
+    public function exit($text = '', $ok = true)
+    {
         if (isset($this->official_pwr)) {
             try {
                 $this->pdo = new \PDO('mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=stats', $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
                 $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
                 $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-                $this->pdo->prepare('INSERT INTO pwrtelegram (method, id, backend_id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([$this->method, isset($this->bot_id) ? $this->bot_id : null, isset($this->backend_id) ? $this->backend_id : null, memory_get_peak_usage(), getrusage()["ru_utime.tv_usec"], $ok, http_build_query($this->REQUEST)]);
-            } catch (\PDOException $e) { error_log($e); }
+                $this->pdo->prepare('INSERT INTO pwrtelegram (method, id, backend_id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([$this->method, isset($this->bot_id) ? $this->bot_id : null, isset($this->backend_id) ? $this->backend_id : null, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], $ok, http_build_query($this->REQUEST)]);
+            } catch (\PDOException $e) {
+                error_log($e);
+            }
         }
         exit($text);
     }
+
     /**
      * Returns the size of a file without downloading it, or -1 if the file
      * size could not be determined.

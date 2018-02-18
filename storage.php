@@ -17,26 +17,28 @@ function no_cache($status, $wut)
     echo $wut;
     die;
 }
-function analytics($ok, $uri, $bot_id, $user, $pass) {
-    require_once('../storage_url.php');
-    if (!isset($official_pwr)) return;
+function analytics($ok, $uri, $bot_id, $user, $pass)
+{
+    require_once '../storage_url.php';
+    if (!isset($official_pwr)) {
+        return;
+    }
+
     try {
         $pdo = new \PDO('mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=stats', $user, $pass);
         $pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-        $pdo->prepare('INSERT INTO pwrtelegram (method, id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute(['/file', $bot_id, memory_get_peak_usage(), getrusage()["ru_utime.tv_usec"], $ok, $uri]);
+        $pdo->prepare('INSERT INTO pwrtelegram (method, id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute(['/file', $bot_id, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], $ok, $uri]);
     } catch (PDOException $e) {
         error_log($e);
     }
 }
-
 
 if ($_SERVER['REQUEST_URI'] == '/') {
     header("HTTP/1.1 418 I'm a teapot");
     analytics(true, '/', null, $dbuser, $dbpassword);
     exit('<html><h1>418 I&apos;m a teapot.</h1><br><p>My little teapot, my little teapot, oooh oooh oooh oooh...</p></html>');
 }
-
 
 try {
     $servefile = $_SERVER['REQUEST_METHOD'] !== 'HEAD';
@@ -151,7 +153,9 @@ try {
         foreach (glob($madeline.'*') as $file) {
             unlink($file);
         }
-        if (isset($MadelineProto)) $MadelineProto->session = NULL;
+        if (isset($MadelineProto)) {
+            $MadelineProto->session = null;
+        }
         analytics(false, $file_path, null, $dbuser, $dbpassword);
         no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>The token/session was revoked</p></body></html>');
     }
