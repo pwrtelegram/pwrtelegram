@@ -148,17 +148,23 @@ class Tools
 
     public function exit($text = '', $ok = true)
     {
+        echo($text);
+        ignore_user_abort(true);
+        header("Connection: close");
+        flush();
+        fastcgi_finish_request();
+
         if (isset($this->official_pwr)) {
             try {
                 $this->pdo = new \PDO('mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=stats', $this->deep ? $this->deepdbuser : $this->dbuser, $this->deep ? $this->deepdbpassword : $this->dbpassword);
                 $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
                 $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-                $this->pdo->prepare('INSERT INTO pwrtelegram (method, id, backend_id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([$this->method, isset($this->bot_id) ? $this->bot_id : null, isset($this->backend_id) ? $this->backend_id : null, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], $ok, http_build_query($this->REQUEST)]);
+                $this->pdo->prepare('INSERT INTO pwrtelegram (method, id, backend_id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([$this->method, isset($this->bot_id) ? $this->bot_id : null, isset($this->backend_id) ? $this->backend_id : null, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], (int) $ok, http_build_query($this->REQUEST)]);
             } catch (\PDOException $e) {
                 error_log($e);
             }
         }
-        exit($text);
+        exit;
     }
 
     /**

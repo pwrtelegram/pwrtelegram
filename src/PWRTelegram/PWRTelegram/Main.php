@@ -22,22 +22,22 @@ class Main extends Proxy
     {
         if (isset($this->madeline) && is_object($this->madeline) && $this->madeline_path !== '') {
             $this->madeline->API->store_db([], true);
-            $this->madeline->API->reset_session();
+            //$this->madeline->API->reset_session();
             if ($this->madeline->API->settings['msg_array_limit']['incoming'] > 200) {
                 $this->madeline->API->settings['msg_array_limit']['incoming'] = 200;
                 $this->madeline->API->settings['msg_array_limit']['outcoming'] = 200;
                 $this->madeline->API->should_serialize = true;
             }
-            \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+            $this->madeline->session = $this->madeline_path;
         }
         if (isset($this->madeline_backend) && is_object($this->madeline_backend)) {
-            $this->madeline_backend->API->reset_session();
+            //$this->madeline_backend->API->reset_session();
             if ($this->madeline_backend->API->settings['msg_array_limit']['incoming'] > 200) {
                 $this->madeline_backend->API->settings['msg_array_limit']['incoming'] = 200;
                 $this->madeline_backend->API->settings['msg_array_limit']['outcoming'] = 200;
                 $this->madeline_backend->API->should_serialize = true;
             }
-            \danog\MadelineProto\Serialization::serialize($this->madeline_backend_path, $this->madeline_backend);
+           $this->madeline_backend->session = $this->madeline_backend_path;
         }
     }
 

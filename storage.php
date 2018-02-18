@@ -28,7 +28,7 @@ function analytics($ok, $uri, $bot_id, $user, $pass)
         $pdo = new \PDO('mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=stats', $user, $pass);
         $pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-        $pdo->prepare('INSERT INTO pwrtelegram (method, id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute(['/file', $bot_id, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], $ok, $uri]);
+        $pdo->prepare('INSERT INTO pwrtelegram (method, id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute(['/file', $bot_id, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], (int) $ok, $uri]);
     } catch (PDOException $e) {
         error_log($e);
     }
