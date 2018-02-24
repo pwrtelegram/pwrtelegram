@@ -59,6 +59,15 @@ while (true) {
     } catch (\danog\MadelineProto\RPCErrorException $e) {
         error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
         error_log($e->getTraceAsString());
+        if (in_array($e->rpc, ['AUTH_KEY_UNREGISTERED', 'SESSION_REVOKED'])) {
+            foreach (glob($madeline.'*') as $file) {
+                unlink($file);
+            }
+            if (isset($MadelineProto)) {
+                $MadelineProto->session = null;
+            }
+            exit();
+        }
     } catch (\danog\MadelineProto\TL\Exception $e) {
         error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
         error_log($e->getTraceAsString());

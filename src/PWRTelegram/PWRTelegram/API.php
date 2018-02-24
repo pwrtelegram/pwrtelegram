@@ -146,7 +146,7 @@ class API extends Tools
 
             return ['ok' => true, 'file_type' => 'photo', 'file_size' => $botAPIres['file_size'], 'mime_type' => 'image/jpeg', 'file_id' => $file_id, 'file_name' => 'thumb'.$name.'.jpg'];
         } else {
-            $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => '']]);
+            $result = $this->madeline->messages->sendMedia(['peer' => $this->get_backend_id(), 'media' => ['_' => 'inputMediaDocument', 'id' => ['_' => 'inputDocument', 'id' => $parsed['MessageMedia']['document']['id'], 'access_hash' => $parsed['MessageMedia']['document']['access_hash']], 'caption' => ''], 'message' => '']);
         }
         $result = ['ok' => true, 'result' => $this->madeline->API->MTProto_to_botAPI(end($result['updates'])['message']['media'])];
         if ($full_photo) {
