@@ -163,7 +163,7 @@ class Main extends Proxy
             $this->madeline_connect();
 
             try {
-                $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'])];
+                $info = $this->full_chat[$this->get_pwr_chat($params['chat_id'], true)];
                 if (!isset($info['photo'])) {
                     return $res;
                 }

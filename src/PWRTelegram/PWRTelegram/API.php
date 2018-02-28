@@ -505,11 +505,11 @@ class API extends Tools
                     if ($newparams['width'] !== $newparams['height']) {
                         $newparams['width'] = $newparams['height'];
                     }
-                    $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height'], 'round_message' => true]];
+                    $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height'], 'round_message' => true, 'supports_streaming' => true]];
                     break;
 
                     case 'video':
-                    $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height']]];
+                    $attributes = [['_' => 'documentAttributeVideo', 'duration' => $newparams['duration'], 'w' => $newparams['width'], 'h' => $newparams['height'], 'supports_streaming' => true]];
                     break;
 
                     case 'voice':
