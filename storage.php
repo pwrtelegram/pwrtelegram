@@ -28,7 +28,7 @@ function analytics($ok, $uri, $bot_id, $user, $pass)
         $pdo = new \PDO('mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=stats', $user, $pass);
         $pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-        $pdo->prepare('INSERT INTO pwrtelegram (method, id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute(['/file', $bot_id, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], (int) $ok, $uri]);
+        $pdo->prepare('INSERT INTO pwrtelegram (method, id, peak_ram, duration, ok, params) VALUES (?, ?, ?, ?, ?, ?)')->execute(['/file', $bot_id, memory_get_peak_usage(), getrusage()['ru_utime.tv_usec'], (int) $ok, $uri]);
     } catch (PDOException $e) {
         error_log($e);
     }
@@ -95,7 +95,11 @@ try {
     if ($servefile) {
         $pdo->prepare('INSERT INTO dl_stats (file, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1;')->execute([$file_path]);
         $madeline = glob($homedir.'/sessions/pwr_'.$select['bot'].'*')[0];
-        $MadelineProto = \danog\MadelineProto\Serialization::deserialize($madeline, true);
+        if ($madeline === null) {
+            analytics(false, $file_path, null, $dbuser, $dbpassword);
+            no_cache(404, '<html><body><h1>404 File not found.</h1><br><p>Could not fetch file info from database.</p></body></html>');
+        }
+        $MadelineProto = new \danog\MadelineProto\API($madeline);
         \danog\MadelineProto\Logger::log($file_path);
         $MadelineProto->API->getting_state = true;
 
