@@ -30,7 +30,7 @@ class API extends Tools
             require_once $this->pwrhomedir.'/vendor/autoload.php';
 
             try {
-                $this->madeline = \danog\MadelineProto\Serialization::deserialize($this->madeline_path);
+                $this->madeline = new \danog\MadelineProto\API($this->madeline_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']]]);
                 if (is_object($this->madeline)) {
                     //if (!$this->check_worker()) {
                     //    $this->start_worker();
@@ -52,11 +52,11 @@ class API extends Tools
             if ($this->user) {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Please login again.']);
             }
-            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
+            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]]]);
             $this->madeline->bot_login($this->real_token);
             $this->madeline->API->get_updates_difference();
             $this->madeline->API->store_db([], true);
-            \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+            $this->madeline->session = $this->madeline_path;
         }
     }
 
@@ -68,7 +68,7 @@ class API extends Tools
             }
             require_once $this->pwrhomedir.'/vendor/autoload.php';
 
-            $this->madeline_backend = \danog\MadelineProto\Serialization::deserialize($this->madeline_backend_path);
+            $this->madeline_backend = new \danog\MadelineProto\API($this->madeline_backend_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']]]);
             if ($this->madeline_backend === false) {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Reset the custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
             }

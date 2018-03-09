@@ -56,7 +56,7 @@ try {
 } catch (\danog\MadelineProto\RPCErrorException $e) {
     error_log('Exception thrown: '.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()));
     error_log(parseTLTrace($e->getTLTrace()));
-    if (in_array($e->rpc, ['SESSION_REVOKED', 'AUTH_KEY_UNREGISTERED'])) {
+    if (in_array($e->rpc, ['SESSION_REVOKED', 'AUTH_KEY_UNREGISTERED', 'USER_DEACTIVATED'])) {
         foreach (glob($API->madeline_path.'*') as $path) {
             unlink($path);
         }

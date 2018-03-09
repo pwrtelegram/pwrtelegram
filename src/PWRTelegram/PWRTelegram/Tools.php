@@ -149,8 +149,8 @@ class Tools
     public function exit($text = '', $ok = true)
     {
         echo $text;
+        exit();
         ignore_user_abort(true);
-        header('Connection: close');
         flush();
         fastcgi_finish_request();
 

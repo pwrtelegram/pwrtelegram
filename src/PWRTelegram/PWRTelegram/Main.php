@@ -137,12 +137,12 @@ class Main extends Proxy
             }
             $this->get_me();
             require 'vendor/autoload.php';
-            $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
+            $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]]]);
             $madeline->bot_login($this->token);
             $madeline->API->get_updates_difference();
             $madeline->API->store_db([], true);
             $madeline->API->reset_session();
-            \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
+            $madeline->session = $this->madeline_path;
         }
         if ($this->real_token !== '' && $this->user) {
             $this->madeline_connect();
@@ -363,7 +363,8 @@ class Main extends Proxy
                     $this->madeline->API->settings['pwr']['update_handler'] = 'pwr_webhook';
                     $this->madeline->API->store_db([], true);
                     $this->madeline->API->reset_session();
-                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->madeline->session = $this->madeline_path;
+                    $this->serialize();
                     $this->start_worker();
                     $this->jsonexit(['ok' => true, 'result' => true]);
                 }
@@ -403,10 +404,11 @@ class Main extends Proxy
                 require 'vendor/autoload.php';
                 $this->real_token = $this->base64url_encode(\phpseclib\Crypt\Random::string(32));
                 $this->madeline_path = $this->homedir.'sessions/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
-                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['test_mode' => $this->deep]]]);
+                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['protocol' => 'tcp_abridged', 'all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]]]);
                 //$madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
                 $madeline->phone_login($this->REQUEST['phone']);
-                \danog\MadelineProto\Serialization::serialize($this->madeline_path, $madeline);
+                $madeline->session = $this->madeline_path;
+                $madeline->serialize();
                 $this->jsonexit(['ok' => true, 'result' => $this->real_token]);
                 break;
             case '/completephonelogin':
@@ -418,11 +420,11 @@ class Main extends Proxy
                     $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => '2FA is enabled but no password is set.']);
                 }
                 if ($authorization['_'] === 'account.password') {
-                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->madeline->serialize($this->madeline_path);
                     $this->jsonexit(['ok' => false, 'error_code' => 401, 'description' => '2FA is enabled: call the complete2FALogin method with the password as password parameter (hint: '.$authorization['hint'].')']);
                 }
                 if ($authorization['_'] === 'account.needSignup') {
-                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->madeline->serialize($this->madeline_path);
                     $this->jsonexit(['ok' => false, 'error_code' => 401, 'description' => 'Need to signup: call the completesignup method.']);
                 }
                 $this->real_token = $authorization['user']['id'].':'.$this->real_token;
@@ -568,7 +570,7 @@ class Main extends Proxy
                     $this->madeline->API->settings['pwr']['update_handler'] = 'pwr_webhook';
                     $this->madeline->API->store_db([], true);
                     $this->madeline->API->reset_session();
-                    \danog\MadelineProto\Serialization::serialize($this->madeline_path, $this->madeline);
+                    $this->madeline->serialize($this->madeline_path);
                     $this->start_worker();
                     $this->jsonexit(['ok' => true, 'result' => true]);
                 }

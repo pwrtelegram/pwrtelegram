@@ -19,6 +19,7 @@ function no_cache($status, $wut)
 }
 function analytics($ok, $uri, $bot_id, $user, $pass)
 {
+    return;
     require_once '../storage_url.php';
     if (!isset($official_pwr)) {
         return;
@@ -153,7 +154,7 @@ try {
     analytics(false, $file_path, null, $dbuser, $dbpassword);
     no_cache(500, '<html><body><h1>500 internal server error</h1><br><p>'.$e->getMessage().' on line '.$e->getLine().' of '.basename($e->getFile()).'</p></body></html>');
 } catch (\danog\MadelineProto\RPCErrorException $e) {
-    if (in_array($e->rpc, ['AUTH_KEY_UNREGISTERED', 'SESSION_REVOKED'])) {
+    if (in_array($e->rpc, ['AUTH_KEY_UNREGISTERED', 'SESSION_REVOKED', 'USER_DEACTIVATED'])) {
         foreach (glob($madeline.'*') as $file) {
             unlink($file);
         }
