@@ -404,7 +404,7 @@ class Main extends Proxy
                 require 'vendor/autoload.php';
                 $this->real_token = $this->base64url_encode(\phpseclib\Crypt\Random::string(32));
                 $this->madeline_path = $this->homedir.'sessions/pwrusertemp_'.hash('sha256', $this->real_token).'.madeline';
-                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['protocol' => 'tcp_abridged', 'all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]]]);
+                $madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]], 'peer' => ['cache_all_peers_on_startup' => true]]);
                 //$madeline->API->settings['pwr']['update_handler'] = $madeline->API->settings['updates']['callback'];
                 $madeline->phone_login($this->REQUEST['phone']);
                 $madeline->session = $this->madeline_path;
@@ -586,6 +586,39 @@ class Main extends Proxy
             case '/getmtprotowebhookinfo':
                 $this->madeline_connect();
                 $this->jsonexit(['ok' => true, 'result' => ['url' => (isset($this->madeline->API->hook_url) ? $this->madeline->API->hook_url : ''), 'has_custom_certificate' => isset($this->madeline->API->pem_path)]]);
+
+            case '/getchats':
+                $this->madeline_connect();
+                $chats = [];
+                foreach ($this->madeline->API->chats as $chat) {
+                    try {
+                        $chats[]= $this->madeline->get_pwr_chat($chat, false, true);
+                    } catch (\danog\MadelineProto\Exception $e) {
+                    } catch (\danog\MadelineProto\RPCErrorException $e) {
+                    }
+                }
+                $this->jsonexit(['ok' => true, 'result' => $chats]);
+
+            case '/broadcast':
+                $this->madeline_connect();
+                $ids = [];
+                foreach ($this->madeline->API->chats as $chat) {
+                    try {
+                        $ids[]= $this->madeline->get_info($chat)['bot_api_id'];
+                    } catch (\danog\MadelineProto\Exception $e) {
+                    } catch (\danog\MadelineProto\RPCErrorException $e) {
+                    }
+                }
+                $ch = curl_init();
+                foreach ($ids as $id) {
+                    $this->REQUEST['chat_id'] = $id;
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_URL, $this->pwrtelegram_api.'/'.$this->REQUEST['method']);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($this->REQUEST));
+                    curl_exec($ch);
+                }
+                curl_close($ch);
+                $this->jsonexit(['ok' => true, 'result' => true]);
 
             case '/setwebhook':
                 if ($this->token == '') {
