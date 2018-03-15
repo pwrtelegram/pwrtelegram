@@ -592,7 +592,7 @@ class Main extends Proxy
                 $chats = [];
                 foreach ($this->madeline->API->chats as $chat) {
                     try {
-                        $chats[]= $this->madeline->get_pwr_chat($chat, false, true);
+                        $chats[] = $this->madeline->get_pwr_chat($chat, false, true);
                     } catch (\danog\MadelineProto\Exception $e) {
                     } catch (\danog\MadelineProto\RPCErrorException $e) {
                     }
@@ -604,7 +604,7 @@ class Main extends Proxy
                 $ids = [];
                 foreach ($this->madeline->API->chats as $chat) {
                     try {
-                        $ids[]= $this->madeline->get_info($chat)['bot_api_id'];
+                        $ids[] = $this->madeline->get_info($chat)['bot_api_id'];
                     } catch (\danog\MadelineProto\Exception $e) {
                     } catch (\danog\MadelineProto\RPCErrorException $e) {
                     }
