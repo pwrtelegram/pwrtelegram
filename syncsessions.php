@@ -53,7 +53,7 @@ foreach ($sessions as $key => $session) {
         }
         die;
     }
-    $pids []= $pid;
+    $pids[] = $pid;
     while (count($pids) > 20) {
         foreach ($pids as $key => $pid) {
             if (pcntl_waitpid($pid, $status, WNOHANG)) {
