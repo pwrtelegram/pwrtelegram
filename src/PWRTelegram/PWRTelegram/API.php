@@ -250,7 +250,7 @@ class API extends Tools
         }
         $this->madeline_connect();
 
-        $path = $this->homedir.'ul/'.$me.'/'.$file_name;//$this->madeline->base64url_encode($this->madeline->random(64));
+        $path = $this->homedir.'ul/'.$me.'/'.$file_name; //$this->madeline->base64url_encode($this->madeline->random(64));
         if (file_exists($file) && $whattype == 'file') {
             $size = filesize($file);
             if ($size < 1) {
