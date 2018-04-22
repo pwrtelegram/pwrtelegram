@@ -30,7 +30,7 @@ class API extends Tools
             require_once $this->pwrhomedir.'/vendor/autoload.php';
 
             try {
-                $this->madeline = new \danog\MadelineProto\API($this->madeline_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']]]);
+                $this->madeline = new \danog\MadelineProto\API($this->madeline_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']], 'upload' => ['allow_automatic_upload' => false]]);
                 if (is_object($this->madeline)) {
                     //if (!$this->check_worker()) {
                     //    $this->start_worker();
@@ -52,7 +52,7 @@ class API extends Tools
             if ($this->user) {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Please login again.']);
             }
-            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]]]);
+            $this->madeline = new \danog\MadelineProto\API(['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]], 'upload' => ['allow_automatic_upload' => false]]);
             $this->madeline->bot_login($this->real_token);
             $this->madeline->API->get_updates_difference();
             $this->madeline->API->store_db([], true);
@@ -67,8 +67,14 @@ class API extends Tools
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Set a custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
             }
             require_once $this->pwrhomedir.'/vendor/autoload.php';
-
-            $this->madeline_backend = new \danog\MadelineProto\API($this->madeline_backend_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']]]);
+            if ($this->get_backend_id() === 101374607) {
+                $this->madeline_backend = new \danog\MadelineProto\API($this->madeline_backend_path, ['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => false, 'db_token' => $this->db_token, 'strict' => false], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]], 'peer' => ['cache_all_peers_on_startup' => true], 'upload' => ['allow_automatic_upload' => false]]);
+                unset($this->madeline_backend->settings['pwr']['update_handler']);
+                $this->madeline_backend->API->updates = [];
+            } else {
+                $this->madeline_backend = new \danog\MadelineProto\API($this->madeline_backend_path, ['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]], 'peer' => ['cache_all_peers_on_startup' => true], 'upload' => ['allow_automatic_upload' => false]]);
+            }
+            //$this->madeline_backend = new \danog\MadelineProto\API($this->madeline_backend_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']]]);
             if ($this->madeline_backend === false) {
                 $this->jsonexit(['ok' => false, 'error_code' => 400, 'description' => 'Reset the custom backend to use the PWRTelegram API. Instructions available @ https://pwrtelegram.xyz']);
             }

@@ -122,12 +122,11 @@ try {
             ob_flush();
             \danog\MadelineProto\Logger::log('Download status: '.$percent.'%');
         }, $seek_start, $seek_end + 1);
-        analytics(true, $file_path, $madeline->get_self()['id'], $dbuser, $dbpassword);
+        //analytics(true, $file_path, $MadelineProto->get_self()['id'], $dbuser, $dbpassword);
 
         $MadelineProto->API->getting_state = false;
         $MadelineProto->API->store_db([], true);
         $MadelineProto->API->reset_session();
-        \danog\MadelineProto\Serialization::serialize($madeline, $MadelineProto);
     } else {
         if ($seek_start > 0 || $seek_end < $select['file_size'] - 1) {
             header('HTTP/1.1 206 Partial Content');

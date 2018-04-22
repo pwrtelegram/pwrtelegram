@@ -12,8 +12,9 @@ foreach ($sessions as $key => $session) {
     echo "Creating fork (".($key*100/count($sessions))."%, ".count($pids)." processes running)\n";
     if (($pid = pcntl_fork()) === 0) {
         try {
-            $madeline = new \danog\MadelineProto\API($session, ['logger' => ['logger_level' => 4], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']], 'peer' => ['cache_all_peers_on_startup' => true, 'full_fetch' => true], 'pwr' => ['db_token' => $db_token, 'pwr' => true, 'strict' => true]]);
-            if (!isset($madeline->settings['pwr']['update_handler'])) $madeline->API->updates = [];
+            $madeline = new \danog\MadelineProto\API($session, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']], 'peer' => ['cache_all_peers_on_startup' => true, 'full_fetch' => true], 'pwr' => ['db_token' => $db_token, 'pwr' => true, 'strict' => true]]);
+            //if (!isset($madeline->settings['pwr']['update_handler'])) 
+            $madeline->API->updates = [];
             $dialogs = false;
             try {
                 $dialogs = $madeline->get_dialogs(false);
@@ -51,7 +52,7 @@ foreach ($sessions as $key => $session) {
         die;
     }
     $pids []= $pid;
-    while (count($pids)) {
+    while (count($pids) > 20) {
         foreach ($pids as $key => $pid) {
             if (pcntl_waitpid($pid, $status, WNOHANG)) {
                 unset($pids[$key]);
