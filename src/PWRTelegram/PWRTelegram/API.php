@@ -30,7 +30,7 @@ class API extends Tools
             require_once $this->pwrhomedir.'/vendor/autoload.php';
 
             try {
-                $this->madeline = new \danog\MadelineProto\API($this->madeline_path, ['logger' => ['logger_level' => 5], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged']], 'upload' => ['allow_automatic_upload' => false]]);
+                $this->madeline = new \danog\MadelineProto\API($this->madeline_path, ['logger' => ['logger' => 1, 'logger_level' => 5], 'pwr' => ['pwr' => true, 'db_token' => $this->db_token, 'strict' => true], 'app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e'], 'connection_settings' => ['all' => ['protocol' => 'tcp_abridged', 'test_mode' => $this->deep]], 'upload' => ['allow_automatic_upload' => false]]);
                 if (is_object($this->madeline)) {
                     //if (!$this->check_worker()) {
                     //    $this->start_worker();
