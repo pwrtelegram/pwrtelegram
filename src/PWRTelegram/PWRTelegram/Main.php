@@ -364,7 +364,7 @@ class Main extends Proxy
                     $this->madeline->API->store_db([], true);
                     $this->madeline->API->reset_session();
                     $this->madeline->session = $this->madeline_path;
-                    $this->serialize();
+                    $this->madeline->serialize();
                     $this->start_worker();
                     $this->jsonexit(['ok' => true, 'result' => true]);
                 }
