@@ -1,3 +1,7 @@
+---
+title: PWRTelegram documentation
+description: The PWRTelegram MTProto API
+---
 # Pwrtelegram API
 Version 1.1 beta 3.   
 Licensed under AGPLv3.  

@@ -1,8 +1,15 @@
-title: Pwrtelegram
-description: Repository for the pwrtelegram bot API.
-google_analytics: 
-show_downloads: true
 theme: jekyll-theme-cayman
-
 gems:
-  - jekyll-mentions
+  - jekyll-sitemap
+  - jekyll-seo-tag
+url: https://docs.madelineproto.xyz
+logo: https://docs.madelineproto.xyz/logo.png
+
+twitter:
+  username: DaniilGentili
+  card: summary
+  
+author:
+  twitter: DaniilGentili
+  
+include: [".well-known"]
