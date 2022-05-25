@@ -15,7 +15,7 @@ function no_cache($status, $wut)
     header('Pragma: no-cache');
     http_response_code($status);
     echo $wut;
-    die;
+    exit;
 }
 function analytics($ok, $uri, $bot_id, $user, $pass)
 {

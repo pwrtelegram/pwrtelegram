@@ -45,13 +45,13 @@ foreach ($sessions as $key => $session) {
                 foreach (glob($session.'*') as $path) {
                     rename($path, '../brokensessions/'.basename($path));
                 }
-                die;
+                exit;
             }
             echo $e;
         } catch (Exception $e) {
             echo $e;
         }
-        die;
+        exit;
     }
     $pids[] = $pid;
     while (count($pids) > 20) {
